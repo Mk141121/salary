@@ -1,0 +1,176 @@
+import { NhanVienService } from './nhan-vien.service';
+import { TaoNhanVienDto, CapNhatNhanVienDto, TimKiemNhanVienDto } from './dto/nhan-vien.dto';
+export declare class NhanVienController {
+    private readonly nhanVienService;
+    constructor(nhanVienService: NhanVienService);
+    layMaTuDong(): Promise<{
+        maNhanVien: string;
+    }>;
+    layTatCa(query: TimKiemNhanVienDto): Promise<import("../../common").PaginatedResult<any>>;
+    layTheoId(id: number): Promise<{
+        phongBan: {
+            id: number;
+            maPhongBan: string;
+            tenPhongBan: string;
+            moTa: string | null;
+            trangThai: boolean;
+            gioVaoChuan: string;
+            gioRaChuan: string;
+            phutChoPhepTre: number;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+        };
+        chiTietBangLuongs: ({
+            khoanLuong: {
+                id: number;
+                moTa: string | null;
+                trangThai: boolean;
+                ngayTao: Date;
+                ngayCapNhat: Date;
+                maKhoan: string;
+                tenKhoan: string;
+                loai: import(".prisma/client").$Enums.LoaiKhoanLuong;
+                cachTinh: import(".prisma/client").$Enums.CachTinhLuong;
+                chiuThue: boolean;
+                phamViApDung: string | null;
+                thuTu: number;
+            };
+            bangLuong: {
+                id: number;
+                trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
+                ngayTao: Date;
+                ngayCapNhat: Date;
+                phongBanId: number;
+                nam: number;
+                ghiChu: string | null;
+                thang: number;
+                tenBangLuong: string | null;
+                ngayChot: Date | null;
+                nguoiChot: string | null;
+            };
+        } & {
+            id: number;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+            nhanVienId: number;
+            khoanLuongId: number;
+            soTien: import("@prisma/client/runtime/library").Decimal;
+            ghiChu: string | null;
+            bangLuongId: number;
+            nguon: import(".prisma/client").$Enums.NguonChiTiet;
+        })[];
+    } & {
+        id: number;
+        trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        maNhanVien: string;
+        email: string | null;
+        hoTen: string;
+        soDienThoai: string | null;
+        phongBanId: number;
+        chucVu: string | null;
+        luongCoBan: import("@prisma/client/runtime/library").Decimal;
+        ngayVaoLam: Date;
+    }>;
+    layTheoMa(maNhanVien: string): Promise<{
+        phongBan: {
+            id: number;
+            maPhongBan: string;
+            tenPhongBan: string;
+            moTa: string | null;
+            trangThai: boolean;
+            gioVaoChuan: string;
+            gioRaChuan: string;
+            phutChoPhepTre: number;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+        };
+    } & {
+        id: number;
+        trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        maNhanVien: string;
+        email: string | null;
+        hoTen: string;
+        soDienThoai: string | null;
+        phongBanId: number;
+        chucVu: string | null;
+        luongCoBan: import("@prisma/client/runtime/library").Decimal;
+        ngayVaoLam: Date;
+    }>;
+    taoMoi(dto: TaoNhanVienDto): Promise<{
+        phongBan: {
+            id: number;
+            maPhongBan: string;
+            tenPhongBan: string;
+            moTa: string | null;
+            trangThai: boolean;
+            gioVaoChuan: string;
+            gioRaChuan: string;
+            phutChoPhepTre: number;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+        };
+    } & {
+        id: number;
+        trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        maNhanVien: string;
+        email: string | null;
+        hoTen: string;
+        soDienThoai: string | null;
+        phongBanId: number;
+        chucVu: string | null;
+        luongCoBan: import("@prisma/client/runtime/library").Decimal;
+        ngayVaoLam: Date;
+    }>;
+    capNhat(id: number, dto: CapNhatNhanVienDto): Promise<{
+        phongBan: {
+            id: number;
+            maPhongBan: string;
+            tenPhongBan: string;
+            moTa: string | null;
+            trangThai: boolean;
+            gioVaoChuan: string;
+            gioRaChuan: string;
+            phutChoPhepTre: number;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+        };
+    } & {
+        id: number;
+        trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        maNhanVien: string;
+        email: string | null;
+        hoTen: string;
+        soDienThoai: string | null;
+        phongBanId: number;
+        chucVu: string | null;
+        luongCoBan: import("@prisma/client/runtime/library").Decimal;
+        ngayVaoLam: Date;
+    }>;
+    xoa(id: number): Promise<{
+        id: number;
+        trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        maNhanVien: string;
+        email: string | null;
+        hoTen: string;
+        soDienThoai: string | null;
+        phongBanId: number;
+        chucVu: string | null;
+        luongCoBan: import("@prisma/client/runtime/library").Decimal;
+        ngayVaoLam: Date;
+    }>;
+    thongKeTheoPhongBan(): Promise<(import(".prisma/client").Prisma.PickEnumerable<import(".prisma/client").Prisma.NhanVienGroupByOutputType, "phongBanId"[]> & {
+        _count: {
+            id: number;
+        };
+    })[]>;
+}

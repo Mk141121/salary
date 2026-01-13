@@ -1,0 +1,922 @@
+{
+  "exportedAt": "2026-01-13T02:35:01.840Z",
+  "phongBans": [
+    {
+      "maPhongBan": "KT",
+      "tenPhongBan": "Kế toán",
+      "moTa": "Phòng Kế toán - Tài chính",
+      "gioVaoChuan": "08:00",
+      "gioRaChuan": "17:00",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "MKT",
+      "tenPhongBan": "Marketing",
+      "moTa": "Phòng Kinh doanh và Marketing",
+      "gioVaoChuan": "08:30",
+      "gioRaChuan": "17:30",
+      "phutChoPhepTre": 10
+    },
+    {
+      "maPhongBan": "DH",
+      "tenPhongBan": "Đơn hàng",
+      "moTa": "Phòng Quản lý đơn hàng",
+      "gioVaoChuan": "07:30",
+      "gioRaChuan": "16:30",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "KV",
+      "tenPhongBan": "Kho vận",
+      "moTa": "Phòng Kho vận - Logistics",
+      "gioVaoChuan": "06:00",
+      "gioRaChuan": "15:00",
+      "phutChoPhepTre": 10
+    },
+    {
+      "maPhongBan": "CH",
+      "tenPhongBan": "Chia hàng",
+      "moTa": "Bộ phận Chia hàng",
+      "gioVaoChuan": "06:00",
+      "gioRaChuan": "15:00",
+      "phutChoPhepTre": 10
+    },
+    {
+      "maPhongBan": "NS",
+      "tenPhongBan": "Nhân Sự",
+      "moTa": "Phòng Nhân Sự",
+      "gioVaoChuan": "08:00",
+      "gioRaChuan": "17:00",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "SHIP",
+      "tenPhongBan": "Giao Hàng",
+      "moTa": "",
+      "gioVaoChuan": "04:00",
+      "gioRaChuan": "16:00",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "KE_TOAN",
+      "tenPhongBan": "Kế Toán",
+      "moTa": "Phòng Kế Toán",
+      "gioVaoChuan": "08:00",
+      "gioRaChuan": "17:00",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "KINH_DOANH",
+      "tenPhongBan": "Kinh Doanh",
+      "moTa": "Phòng Kinh Doanh",
+      "gioVaoChuan": "08:00",
+      "gioRaChuan": "17:00",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "GIAO_HANG",
+      "tenPhongBan": "Giao hàng",
+      "moTa": "Phòng Giao hàng",
+      "gioVaoChuan": "08:00",
+      "gioRaChuan": "17:00",
+      "phutChoPhepTre": 5
+    },
+    {
+      "maPhongBan": "TM",
+      "tenPhongBan": "Thu mua",
+      "moTa": "",
+      "gioVaoChuan": "08:00",
+      "gioRaChuan": "17:00",
+      "phutChoPhepTre": 5
+    }
+  ],
+  "nhanViens": [
+    {
+      "maNhanVien": "NV0001",
+      "hoTen": "ĐỖ MỘNG CHÚC ANH",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kế Toán",
+      "chucVu": "Thủ quỹ",
+      "luongCoBan": 6400000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0002",
+      "hoTen": "LÊ THÀNH HOÀNG",
+      "email": "hoang@mail.com",
+      "soDienThoai": "",
+      "tenPhongBan": "Kế Toán",
+      "chucVu": "",
+      "luongCoBan": 5000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "NGHI_VIEC"
+    },
+    {
+      "maNhanVien": "NV0003",
+      "hoTen": "LÂM NHƯ NGỌC",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kế Toán",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0004",
+      "hoTen": "PHẠM THÚY DUY",
+      "email": "duy@mail.com",
+      "soDienThoai": "",
+      "tenPhongBan": "Kế Toán",
+      "chucVu": "",
+      "luongCoBan": 5000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "NGHI_VIEC"
+    },
+    {
+      "maNhanVien": "NV0005",
+      "hoTen": "NGUYỄN ÁI MINH TRIỆU",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kinh Doanh",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 5500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0006",
+      "hoTen": "NGUYỄN THỊ THANH THÚY",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kinh Doanh",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 5500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0007",
+      "hoTen": "PHẠM MINH MẪN",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Đơn hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0008",
+      "hoTen": "LÂM HUỲNH THẠCH QUÝ",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Đơn hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0009",
+      "hoTen": "NGUYỄN ÁI KHANH",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Đơn hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0010",
+      "hoTen": "NGUYỄN VŨ HOÀNG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Đơn hàng",
+      "chucVu": "Trưởng nhóm",
+      "luongCoBan": 6000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0011",
+      "hoTen": "TRẦN THỊ DIỆU LINH",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kế Toán",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 5000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0012",
+      "hoTen": "TRẦN HỒ HỮU NHÂN",
+      "email": "nhan@mail.com",
+      "soDienThoai": "",
+      "tenPhongBan": "Kho vận",
+      "chucVu": "",
+      "luongCoBan": 5000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "NGHI_VIEC"
+    },
+    {
+      "maNhanVien": "NV0013",
+      "hoTen": "TRẦN THỊ TUYẾT LÊ",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0014",
+      "hoTen": "DƯ THỊ ƯƠNG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0015",
+      "hoTen": "SƠN THỊ NGỌC HUYỀN",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0016",
+      "hoTen": "VÕ THỊ BÍCH DUNG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kho vận",
+      "chucVu": "Quản Lý",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0017",
+      "hoTen": "TRẦN THỊ THANH HƯƠNG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0018",
+      "hoTen": "TRẦN THỊ NGỌC THANH",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0019",
+      "hoTen": "BÙI THỊ ÁI VÂN",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0020",
+      "hoTen": "NGUYỄN THỊ THU",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0021",
+      "hoTen": "PHẠM THỊ MINH",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0022",
+      "hoTen": "CHÂU THỊ BÉ",
+      "email": "be@mail.com",
+      "soDienThoai": "",
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "",
+      "luongCoBan": 5000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "NGHI_VIEC"
+    },
+    {
+      "maNhanVien": "NV0023",
+      "hoTen": "NGUYỄN NGỌC KIM VĂN",
+      "email": "van@mail.com",
+      "soDienThoai": "",
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "",
+      "luongCoBan": 5000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "NGHI_VIEC"
+    },
+    {
+      "maNhanVien": "NV0024",
+      "hoTen": "LÊ THỊ THÙY TRANG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0025",
+      "hoTen": "NGUYỄN LÝ HỒNG NGỌC",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0026",
+      "hoTen": "NGUYỄN NHẬT TUẤN",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Giao hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 6000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0027",
+      "hoTen": "PHẠM NGỌC AN",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Giao hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 6000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0028",
+      "hoTen": "HOÀNG HÙNG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Giao hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 6000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0029",
+      "hoTen": "TRẦN ĐỨC TÚ",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Giao hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0030",
+      "hoTen": "TRẦN QUỐC VŨ",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Thu mua",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 5500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0032",
+      "hoTen": "NGUYỄN THÀNH BẢO",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Kho vận",
+      "chucVu": "Nhân Viên",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0033",
+      "hoTen": "LÝ VĂN HÒA",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Giao hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0034",
+      "hoTen": "HUỲNH PHƯỚC HẢI",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Giao hàng",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 4500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0035",
+      "hoTen": "TRẦN THỊ ÁI NHI",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Marketing",
+      "chucVu": "Học việc",
+      "luongCoBan": 3500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0036",
+      "hoTen": "TRƯƠNG MỸ DUYÊN",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Marketing",
+      "chucVu": "Học việc",
+      "luongCoBan": 3500000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0037",
+      "hoTen": "LÊ PHẠM HÀ",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Chia hàng",
+      "chucVu": "Sơ chế",
+      "luongCoBan": 4550000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0038",
+      "hoTen": "PHẠM VĂN HÙNG",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Thu mua",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 6000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    },
+    {
+      "maNhanVien": "NV0039",
+      "hoTen": "HOÀNG TỬ LẬP",
+      "email": null,
+      "soDienThoai": null,
+      "tenPhongBan": "Thu mua",
+      "chucVu": "Nhân viên",
+      "luongCoBan": 6000000,
+      "ngayVaoLam": "2026-01-13",
+      "trangThai": "DANG_LAM"
+    }
+  ],
+  "khoanLuongs": [
+    {
+      "maKhoan": "LUONG_CO_BAN",
+      "tenKhoan": "Lương cơ bản",
+      "loai": "THU_NHAP",
+      "chiuThue": true,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 1,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "THUONG_HIEU_SUAT",
+      "tenKhoan": "Thưởng hiệu suất",
+      "loai": "THU_NHAP",
+      "chiuThue": true,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 2,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHU_CAP_XANG_XE",
+      "tenKhoan": "Phụ cấp xăng xe",
+      "loai": "THU_NHAP",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 3,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHU_CAP_DIEN_THOAI",
+      "tenKhoan": "Phụ cấp điện thoại",
+      "loai": "THU_NHAP",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 4,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "HO_TRO_CHUYEN_CAN",
+      "tenKhoan": "Hỗ trợ chuyên cần",
+      "loai": "THU_NHAP",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 5,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "HO_TRO_AN_CA",
+      "tenKhoan": "Hỗ trợ ăn ca",
+      "loai": "THU_NHAP",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 6,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "THUONG_KINH_DOANH",
+      "tenKhoan": "Thưởng kinh doanh",
+      "loai": "THU_NHAP",
+      "chiuThue": true,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 7,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHU_CAP_KHAC",
+      "tenKhoan": "Phụ cấp khác",
+      "loai": "THU_NHAP",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 8,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHU_CAP_CHUC_VU",
+      "tenKhoan": "Phụ cấp chức vụ",
+      "loai": "THU_NHAP",
+      "chiuThue": true,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 9,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHU_CAP_THAM_NIEN",
+      "tenKhoan": "Phụ cấp thâm niên",
+      "loai": "THU_NHAP",
+      "chiuThue": true,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 10,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "BHXH_NV",
+      "tenKhoan": "BHXH/BHYT/BHTN (NV đóng)",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 100,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "BHXH_NLD",
+      "tenKhoan": "BHXH (8%)",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 101,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "BHYT_NLD",
+      "tenKhoan": "BHYT (1.5%)",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 102,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "BHTN_NLD",
+      "tenKhoan": "BHTN (1%)",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 103,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "THUE_TNCN",
+      "tenKhoan": "Thuế TNCN",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 104,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHAT_DI_MUON",
+      "tenKhoan": "Phạt đi muộn",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 111,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHAT_VE_SOM",
+      "tenKhoan": "Phạt về sớm",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 112,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "PHAT_NGHI_KHONG_PHEP",
+      "tenKhoan": "Phạt nghỉ không phép",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 113,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "TRU_NGAY_CONG",
+      "tenKhoan": "Trừ ngày công",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 114,
+      "trangThai": true
+    },
+    {
+      "maKhoan": "KHAU_TRU_KHAC",
+      "tenKhoan": "Khấu trừ khác",
+      "loai": "KHAU_TRU",
+      "chiuThue": false,
+      "phamViApDung": null,
+      "moTa": null,
+      "thuTu": 120,
+      "trangThai": true
+    }
+  ],
+  "cauHinhBHXH": [
+    {
+      "nam": 2025,
+      "tyLeBHXH_NV": 8,
+      "tyLeBHXH_DN": 17.5,
+      "tyLeBHYT_NV": 1.5,
+      "tyLeBHYT_DN": 3,
+      "tyLeBHTN_NV": 1,
+      "tyLeBHTN_DN": 1,
+      "luongCoBanToiThieu": 4680000,
+      "tranDongBHXH": 46800000,
+      "luongCoSo": 2340000,
+      "trangThai": true
+    },
+    {
+      "nam": 2026,
+      "tyLeBHXH_NV": 8,
+      "tyLeBHXH_DN": 17.5,
+      "tyLeBHYT_NV": 1.5,
+      "tyLeBHYT_DN": 3,
+      "tyLeBHTN_NV": 1,
+      "tyLeBHTN_DN": 1,
+      "luongCoBanToiThieu": 4960000,
+      "tranDongBHXH": 49600000,
+      "luongCoSo": 2480000,
+      "trangThai": true
+    }
+  ],
+  "cauHinhThue": [
+    {
+      "nam": 2025,
+      "giamTruBanThan": 11000000,
+      "giamTruPhuThuoc": 4400000,
+      "trangThai": true
+    },
+    {
+      "nam": 2026,
+      "giamTruBanThan": 11000000,
+      "giamTruPhuThuoc": 4400000,
+      "trangThai": true
+    }
+  ],
+  "bacThue": [
+    {
+      "cauHinhThueId": 1,
+      "bac": 1,
+      "tuMuc": 0,
+      "denMuc": 5000000,
+      "thueSuat": 5,
+      "soTienTruNhanh": 0
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 1,
+      "tuMuc": 0,
+      "denMuc": 5000000,
+      "thueSuat": 5,
+      "soTienTruNhanh": 0
+    },
+    {
+      "cauHinhThueId": 1,
+      "bac": 2,
+      "tuMuc": 5000000,
+      "denMuc": 10000000,
+      "thueSuat": 10,
+      "soTienTruNhanh": 250000
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 2,
+      "tuMuc": 5000000,
+      "denMuc": 10000000,
+      "thueSuat": 10,
+      "soTienTruNhanh": 250000
+    },
+    {
+      "cauHinhThueId": 1,
+      "bac": 3,
+      "tuMuc": 10000000,
+      "denMuc": 18000000,
+      "thueSuat": 15,
+      "soTienTruNhanh": 750000
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 3,
+      "tuMuc": 10000000,
+      "denMuc": 18000000,
+      "thueSuat": 15,
+      "soTienTruNhanh": 750000
+    },
+    {
+      "cauHinhThueId": 1,
+      "bac": 4,
+      "tuMuc": 18000000,
+      "denMuc": 32000000,
+      "thueSuat": 20,
+      "soTienTruNhanh": 1650000
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 4,
+      "tuMuc": 18000000,
+      "denMuc": 32000000,
+      "thueSuat": 20,
+      "soTienTruNhanh": 1650000
+    },
+    {
+      "cauHinhThueId": 1,
+      "bac": 5,
+      "tuMuc": 32000000,
+      "denMuc": 52000000,
+      "thueSuat": 25,
+      "soTienTruNhanh": 3250000
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 5,
+      "tuMuc": 32000000,
+      "denMuc": 52000000,
+      "thueSuat": 25,
+      "soTienTruNhanh": 3250000
+    },
+    {
+      "cauHinhThueId": 1,
+      "bac": 6,
+      "tuMuc": 52000000,
+      "denMuc": 80000000,
+      "thueSuat": 30,
+      "soTienTruNhanh": 5850000
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 6,
+      "tuMuc": 52000000,
+      "denMuc": 80000000,
+      "thueSuat": 30,
+      "soTienTruNhanh": 5850000
+    },
+    {
+      "cauHinhThueId": 1,
+      "bac": 7,
+      "tuMuc": 80000000,
+      "denMuc": null,
+      "thueSuat": 35,
+      "soTienTruNhanh": 9850000
+    },
+    {
+      "cauHinhThueId": 2,
+      "bac": 7,
+      "tuMuc": 80000000,
+      "denMuc": null,
+      "thueSuat": 35,
+      "soTienTruNhanh": 9850000
+    }
+  ],
+  "phuCapNhanViens": [
+    {
+      "maNhanVien": "NV0008",
+      "maKhoan": "HO_TRO_CHUYEN_CAN",
+      "soTien": 500000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    },
+    {
+      "maNhanVien": "NV0008",
+      "maKhoan": "THUONG_KINH_DOANH",
+      "soTien": 500000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    },
+    {
+      "maNhanVien": "NV0008",
+      "maKhoan": "PHU_CAP_KHAC",
+      "soTien": 500000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    },
+    {
+      "maNhanVien": "NV0001",
+      "maKhoan": "PHU_CAP_XANG_XE",
+      "soTien": 600000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    },
+    {
+      "maNhanVien": "NV0001",
+      "maKhoan": "PHU_CAP_DIEN_THOAI",
+      "soTien": 500000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    },
+    {
+      "maNhanVien": "NV0001",
+      "maKhoan": "HO_TRO_AN_CA",
+      "soTien": 500000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    },
+    {
+      "maNhanVien": "NV0001",
+      "maKhoan": "PHU_CAP_KHAC",
+      "soTien": 1600000,
+      "ghiChu": null,
+      "trangThai": "HIEU_LUC"
+    }
+  ]
+}

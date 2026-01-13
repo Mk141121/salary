@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Đánh Giá Dự Án - Hệ Thống Tính Lương</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light: #f3f4f6;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .report-header {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+        
+        .report-header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .report-header .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+        
+        .report-header .date {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--light);
+            border-radius: 50px;
+            display: inline-block;
+            color: var(--dark);
+            font-weight: 500;
+        }
+        
+        .section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .section-title .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-card.success { background: linear-gradient(135deg, #059669, var(--success)); }
+        .stat-card.warning { background: linear-gradient(135deg, #d97706, var(--warning)); }
+        .stat-card.info { background: linear-gradient(135deg, #2563eb, var(--info)); }
+        
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tech-badge {
+            padding: 8px 16px;
+            background: var(--light);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tech-badge.primary { background: var(--primary); color: white; }
+        .tech-badge.success { background: var(--success); color: white; }
+        .tech-badge.info { background: var(--info); color: white; }
+        .tech-badge.warning { background: var(--warning); color: white; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.partial { background: #fef3c7; color: #92400e; }
+        .status.pending { background: #fee2e2; color: #991b1b; }
+        
+        .feature-list {
+            list-style: none;
+        }
+        
+        .feature-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-list .check {
+            width: 24px;
+            height: 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+        
+        .recommendation-card {
+            background: #fffbeb;
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin: 15px 0;
+        }
+        
+        .recommendation-card.danger {
+            background: #fef2f2;
+            border-left-color: var(--danger);
+        }
+        
+        .recommendation-card.info {
+            background: #eff6ff;
+            border-left-color: var(--info);
+        }
+        
+        .recommendation-card h4 {
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .recommendation-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .code-block .comment { color: #64748b; }
+        .code-block .keyword { color: #c084fc; }
+        .code-block .string { color: #86efac; }
+        .code-block .number { color: #fcd34d; }
+        
+        .score-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--success) 0deg, var(--success) calc(var(--score) * 3.6deg), var(--light) calc(var(--score) * 3.6deg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .score-circle::before {
+            content: '';
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        .score-circle .score-value {
+            position: relative;
+            z-index: 1;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .score-label {
+            text-align: center;
+        }
+        
+        .score-label h3 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .score-label p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .module-card {
+            border: 1px solid var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .module-card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .module-card h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .module-card p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .module-card .files {
+            font-size: 0.85rem;
+            color: var(--info);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar .fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+            
+            .report-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: white;
+            opacity: 0.9;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .highlight-box h4 {
+            color: var(--info);
+            margin-bottom: 10px;
+        }
+        
+        .architecture-diagram {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .architecture-diagram .layer {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px auto;
+            max-width: 400px;
+        }
+        
+        .architecture-diagram .layer.frontend {
+            border-color: var(--success);
+        }
+        
+        .architecture-diagram .layer.backend {
+            border-color: var(--info);
+        }
+        
+        .architecture-diagram .layer.database {
+            border-color: var(--warning);
+        }
+        
+        .architecture-diagram .arrow {
+            color: var(--gray);
+            font-size: 1.5rem;
+        }
+        
+        .timeline {
+            border-left: 3px solid var(--primary);
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 25px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            width: 15px;
+            height: 15px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: absolute;
+            left: -39px;
+            top: 0;
+        }
+        
+        .timeline-item h4 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .timeline-item p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="report-header">
+            <h1>🏢 Hệ Thống Tính Lương</h1>
+            <p class="subtitle">Payroll Management System - Báo Cáo Đánh Giá Toàn Diện Dự Án</p>
+            <div class="date">📅 Ngày đánh giá: 13/01/2026</div>
+        </header>
+        
+        <!-- Tổng quan -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">📊</span>
+                Tổng Quan Dự Án
+            </h2>
+            
+            <div class="overview-grid">
+                <div class="stat-card">
+                    <div class="number">14</div>
+                    <div class="label">Backend Modules</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="number">16</div>
+                    <div class="label">Frontend Pages</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="number">30+</div>
+                    <div class="label">Database Models</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="number">1072</div>
+                    <div class="label">Lines in Schema</div>
+                </div>
+            </div>
+            
+            <div class="highlight-box">
+                <h4>📝 Mô Tả Dự Án</h4>
+                <p>Hệ thống tính lương doanh nghiệp toàn diện được xây dựng cho thị trường Việt Nam. Ứng dụng cho phép quản lý phòng ban, nhân viên, tính lương tự động theo ngày công, tính BHXH & thuế TNCN theo quy định Việt Nam, đánh giá KPI và phân quyền người dùng. Toàn bộ giao diện, dữ liệu và code đều sử dụng tiếng Việt.</p>
+            </div>
+        </section>
+        
+        <!-- Điểm đánh giá -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">⭐</span>
+                Điểm Đánh Giá Tổng Thể
+            </h2>
+            
+            <div class="score-container">
+                <div>
+                    <div class="score-circle" style="--score: 85">
+                        <span class="score-value">85%</span>
+                    </div>
+                    <div class="score-label">
+                        <h3>Kiến Trúc</h3>
+                        <p>Code Structure</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="score-circle" style="--score: 90">
+                        <span class="score-value">90%</span>
+                    </div>
+                    <div class="score-label">
+                        <h3>Tính Năng</h3>
+                        <p>Feature Coverage</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="score-circle" style="--score: 80">
+                        <span class="score-value">80%</span>
+                    </div>
+                    <div class="score-label">
+                        <h3>Database Design</h3>
+                        <p>Schema Quality</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="score-circle" style="--score: 75">
+                        <span class="score-value">75%</span>
+                    </div>
+                    <div class="score-label">
+                        <h3>Bảo Mật</h3>
+                        <p>Security Level</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Tech Stack -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">🛠️</span>
+                Công Nghệ Sử Dụng
+            </h2>
+            
+            <div class="two-columns">
+                <div>
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">🔧 Backend</h3>
+                    <div class="tech-stack">
+                        <span class="tech-badge primary">NestJS 10.x</span>
+                        <span class="tech-badge info">TypeScript 5.x</span>
+                        <span class="tech-badge success">Prisma ORM 5.7</span>
+                        <span class="tech-badge warning">PostgreSQL 14+</span>
+                        <span class="tech-badge">Swagger API</span>
+                        <span class="tech-badge">ExcelJS</span>
+                        <span class="tech-badge">Nodemailer</span>
+                        <span class="tech-badge">Class Validator</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">🎨 Frontend</h3>
+                    <div class="tech-stack">
+                        <span class="tech-badge primary">React 18.3</span>
+                        <span class="tech-badge info">TypeScript</span>
+                        <span class="tech-badge success">Vite 6.x</span>
+                        <span class="tech-badge warning">TanStack Query 5.x</span>
+                        <span class="tech-badge">TanStack Table 8.x</span>
+                        <span class="tech-badge">Tailwind CSS 3.4</span>
+                        <span class="tech-badge">React Router 6.x</span>
+                        <span class="tech-badge">Axios</span>
+                        <span class="tech-badge">Lucide Icons</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="architecture-diagram">
+                <h4 style="margin-bottom: 20px; color: var(--dark);">Kiến Trúc Hệ Thống</h4>
+                <div class="layer frontend">
+                    <strong>🎨 Frontend Layer</strong><br>
+                    React + Vite + TailwindCSS<br>
+                    <small>localhost:5173</small>
+                </div>
+                <div class="arrow">⬇️ REST API ⬇️</div>
+                <div class="layer backend">
+                    <strong>⚙️ Backend Layer</strong><br>
+                    NestJS + Prisma + TypeScript<br>
+                    <small>localhost:3001 | Swagger: /api/docs</small>
+                </div>
+                <div class="arrow">⬇️ Prisma ORM ⬇️</div>
+                <div class="layer database">
+                    <strong>🗄️ Database Layer</strong><br>
+                    PostgreSQL<br>
+                    <small>tinh_luong database</small>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Backend Modules -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">📦</span>
+                Backend Modules
+            </h2>
+            
+            <div class="module-grid">
+                <div class="module-card">
+                    <h4>💰 bang-luong</h4>
+                    <p>Quản lý bảng lương theo tháng/phòng ban. Tính lương, chốt, xuất Excel, gửi phiếu lương email.</p>
+                    <span class="files">4 services: bang-luong, tinh-luong, ngay-cong, phieu-luong</span>
+                </div>
+                <div class="module-card">
+                    <h4>👥 nhan-vien</h4>
+                    <p>CRUD nhân viên, quản lý thông tin cá nhân, lương cơ bản, phòng ban.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>🏢 phong-ban</h4>
+                    <p>Quản lý phòng ban, cấu hình giờ làm việc riêng theo từng phòng.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>📋 khoan-luong</h4>
+                    <p>Danh mục khoản lương (thu nhập/khấu trừ), cách tính lương theo ngày/cố định.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>📊 cham-cong</h4>
+                    <p>Quản lý chấm công, tính ngày công lý thuyết, OT, đi muộn về sớm.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>🎁 phu-cap-nhan-vien</h4>
+                    <p>Phụ cấp cố định theo nhân viên, tự động áp dụng vào bảng lương hàng tháng.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>🏥 bhxh-thue</h4>
+                    <p>Cấu hình BHXH/BHYT/BHTN theo năm, thuế TNCN lũy tiến 7 bậc, người phụ thuộc.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>⚙️ rule-engine</h4>
+                    <p>Công thức tính lương động, biến số tùy chỉnh theo phòng ban.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>📈 kpi</h4>
+                    <p>Template KPI, kỳ đánh giá, chỉ tiêu, xếp loại, hệ số thưởng tự động.</p>
+                    <span class="files">controller, service, dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>🔐 rbac</h4>
+                    <p>Phân quyền: người dùng, vai trò, quyền. Đăng nhập, phiên làm việc.</p>
+                    <span class="files">controller, service (815 lines), dto</span>
+                </div>
+                <div class="module-card">
+                    <h4>📜 snapshot-dieu-chinh</h4>
+                    <p>Lưu snapshot khi chốt lương, phiếu điều chỉnh sau chốt.</p>
+                    <span class="files">module</span>
+                </div>
+                <div class="module-card">
+                    <h4>📥 import-excel</h4>
+                    <p>Import dữ liệu từ Excel, mapping cột tự động.</p>
+                    <span class="files">controller, service</span>
+                </div>
+                <div class="module-card">
+                    <h4>📧 email</h4>
+                    <p>Gửi email phiếu lương cho nhân viên.</p>
+                    <span class="files">module, service</span>
+                </div>
+                <div class="module-card">
+                    <h4>🏛️ thong-tin-cong-ty</h4>
+                    <p>Lưu thông tin công ty hiển thị trên phiếu lương.</p>
+                    <span class="files">module</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Database Models -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">🗄️</span>
+                Database Schema (30+ Models)
+            </h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Mô Tả</th>
+                        <th>Quan Hệ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>PhongBan</strong></td>
+                        <td>Phòng ban, cấu hình giờ làm việc</td>
+                        <td>1-n NhanVien, CoCauLuong, BangLuong</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NhanVien</strong></td>
+                        <td>Nhân viên, lương cơ bản, trạng thái</td>
+                        <td>n-1 PhongBan, 1-n ChiTietBangLuong, PhuCap</td>
+                    </tr>
+                    <tr>
+                        <td><strong>KhoanLuong</strong></td>
+                        <td>Danh mục khoản lương: THU_NHAP/KHAU_TRU</td>
+                        <td>1-n ChiTietBangLuong, CoCauLuongChiTiet</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BangLuong</strong></td>
+                        <td>Bảng lương tháng: NHAP/DA_CHOT/KHOA</td>
+                        <td>n-1 PhongBan, 1-n ChiTietBangLuong</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ChiTietBangLuong</strong></td>
+                        <td>Mỗi ô = 1 dòng (nhanVien + khoanLuong)</td>
+                        <td>n-1 BangLuong, NhanVien, KhoanLuong</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NgayCongBangLuong</strong></td>
+                        <td>Ngày công điều chỉnh thủ công</td>
+                        <td>n-1 BangLuong, NhanVien</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ChamCong</strong></td>
+                        <td>Chấm công tháng: OT, nghỉ phép, đi muộn</td>
+                        <td>n-1 NhanVien</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ChiTietChamCong</strong></td>
+                        <td>Chấm công chi tiết từng ngày</td>
+                        <td>n-1 NhanVien (theo ngày)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PhuCapNhanVien</strong></td>
+                        <td>Phụ cấp cố định có thời hạn</td>
+                        <td>n-1 NhanVien, KhoanLuong</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CauHinhBHXH</strong></td>
+                        <td>Tỷ lệ BHXH/BHYT/BHTN theo năm</td>
+                        <td>Độc lập</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CauHinhThueTNCN</strong></td>
+                        <td>Giảm trừ bản thân, phụ thuộc theo năm</td>
+                        <td>1-n BacThueTNCN</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BacThueTNCN</strong></td>
+                        <td>7 bậc thuế lũy tiến</td>
+                        <td>n-1 CauHinhThueTNCN</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NguoiPhuThuoc</strong></td>
+                        <td>Người phụ thuộc để tính giảm trừ</td>
+                        <td>n-1 NhanVien</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TemplateKPI</strong></td>
+                        <td>Mẫu KPI theo phòng ban</td>
+                        <td>1-n ChiTieuKPI</td>
+                    </tr>
+                    <tr>
+                        <td><strong>KyDanhGiaKPI</strong></td>
+                        <td>Kỳ đánh giá: tháng/quý/năm</td>
+                        <td>1-n DanhGiaKPINhanVien</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NguoiDung</strong></td>
+                        <td>Tài khoản hệ thống</td>
+                        <td>1-n VaiTro, AuditLog, PhienDangNhap</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VaiTro</strong></td>
+                        <td>ADMIN, HR, ACCOUNTANT, EMPLOYEE</td>
+                        <td>n-n NguoiDung, Quyen</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AuditLog</strong></td>
+                        <td>Ghi lại mọi hành động</td>
+                        <td>n-1 NguoiDung</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SnapshotBangLuong</strong></td>
+                        <td>Snapshot khi chốt lương</td>
+                        <td>Độc lập (lưu denormalized)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ThongTinCongTy</strong></td>
+                        <td>Thông tin công ty (logo, địa chỉ...)</td>
+                        <td>Độc lập</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Tính năng -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">✨</span>
+                Tính Năng Đã Hoàn Thiện
+            </h2>
+            
+            <ul class="feature-list">
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Quản lý phòng ban & nhân viên</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">CRUD đầy đủ, trạng thái nhân viên (đang làm/nghỉ việc/tạm nghỉ)</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Quản lý khoản lương linh hoạt</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Thu nhập/Khấu trừ, cách tính: cố định/theo ngày công/chuyên cần điều kiện</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Tạo & quản lý bảng lương theo tháng</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Tự động tính từ phụ cấp + ngày công, giao diện chỉnh sửa giống Excel</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Tính ngày công thông minh</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Thứ 7 = 0.5 ngày, nghỉ phép được tính như đi làm, điều chỉnh thủ công</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Chấm công chi tiết</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">OT (đêm, CN, lễ), đi muộn/về sớm, cấu hình phạt theo số lần</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>BHXH & Thuế TNCN theo quy định VN</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Cấu hình tỷ lệ theo năm, 7 bậc thuế lũy tiến, người phụ thuộc</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Import/Export Excel</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Mapping cột tự động, verify tổng với Excel gốc</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Quy trình chốt & khóa bảng lương</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">NHAP → DA_CHOT → KHOA, snapshot khi chốt, phiếu điều chỉnh sau chốt</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Phiếu lương & gửi email</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Xem/in phiếu lương, gửi email cho từng nhân viên hoặc tất cả</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>KPI & Đánh giá hiệu suất</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Template KPI, kỳ đánh giá, chỉ tiêu, xếp loại tự động, tính thưởng</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Phân quyền RBAC</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Người dùng, vai trò, quyền chi tiết, phân quyền theo phòng ban</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="check">✓</span>
+                    <div>
+                        <strong>Audit Log</strong>
+                        <p style="color: var(--gray); font-size: 0.9rem;">Ghi lại mọi thao tác: tạo/sửa/xóa/chốt/duyệt/import/export</p>
+                    </div>
+                </li>
+            </ul>
+        </section>
+        
+        <!-- Frontend Pages -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">📱</span>
+                Frontend Pages (16 Pages)
+            </h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trang</th>
+                        <th>Route</th>
+                        <th>Mô Tả</th>
+                        <th>Trạng Thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TrangChu</td>
+                        <td>/</td>
+                        <td>Dashboard tổng quan</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>DanhSachBangLuong</td>
+                        <td>/bang-luong</td>
+                        <td>Danh sách bảng lương theo tháng</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>ChiTietBangLuong</td>
+                        <td>/bang-luong/:id</td>
+                        <td>Chi tiết bảng lương dạng Excel (740 lines)</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>QuanLyNhanVien</td>
+                        <td>/nhan-vien</td>
+                        <td>CRUD nhân viên</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>ChiTietNhanVien</td>
+                        <td>/nhan-vien/:id</td>
+                        <td>Thông tin chi tiết nhân viên</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>QuanLyPhongBan</td>
+                        <td>/phong-ban</td>
+                        <td>CRUD phòng ban</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>QuanLyKhoanLuong</td>
+                        <td>/khoan-luong</td>
+                        <td>Quản lý danh mục khoản lương</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>QuanLyChamCong</td>
+                        <td>/cham-cong</td>
+                        <td>Nhập/sửa chấm công</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>ImportExcel</td>
+                        <td>/import-excel</td>
+                        <td>Import dữ liệu từ Excel</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>CaiDatHeThong</td>
+                        <td>/cai-dat</td>
+                        <td>Cài đặt BHXH, thuế, công ty</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>DangNhap</td>
+                        <td>/dang-nhap</td>
+                        <td>Trang đăng nhập</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>QuanLyKPI</td>
+                        <td>/kpi/template</td>
+                        <td>Quản lý template KPI</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>KyDanhGiaKPI</td>
+                        <td>/kpi/ky-danh-gia</td>
+                        <td>Quản lý kỳ đánh giá</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>CauHinhThuongKPI</td>
+                        <td>/kpi/cau-hinh-thuong</td>
+                        <td>Cấu hình hệ số thưởng</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>QuanLyNguoiDung</td>
+                        <td>/quan-tri/nguoi-dung</td>
+                        <td>Quản lý tài khoản, vai trò</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                    <tr>
+                        <td>AuditLog</td>
+                        <td>/quan-tri/audit-log</td>
+                        <td>Xem lịch sử thao tác</td>
+                        <td><span class="status complete">Hoàn thành</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Điểm mạnh -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">💪</span>
+                Điểm Mạnh
+            </h2>
+            
+            <div class="module-grid">
+                <div class="module-card" style="border-left: 4px solid var(--success);">
+                    <h4>🎯 Thiết kế chuẩn hóa</h4>
+                    <p>Không hard-code theo cột Excel. Mỗi khoản tiền = 1 dòng dữ liệu. Tổng lương KHÔNG lưu DB mà luôn tính realtime.</p>
+                </div>
+                <div class="module-card" style="border-left: 4px solid var(--success);">
+                    <h4>🇻🇳 Localized cho VN</h4>
+                    <p>Toàn bộ tiếng Việt: biến, bảng, enum, UI. Quy định BHXH/thuế theo luật VN.</p>
+                </div>
+                <div class="module-card" style="border-left: 4px solid var(--success);">
+                    <h4>📊 Linh hoạt cao</h4>
+                    <p>Rule engine cho công thức lương, phụ cấp theo phòng ban, cách tính khác nhau cho mỗi khoản.</p>
+                </div>
+                <div class="module-card" style="border-left: 4px solid var(--success);">
+                    <h4>📜 Audit đầy đủ</h4>
+                    <p>Ghi lịch sử mọi thay đổi, snapshot khi chốt lương, phiếu điều chỉnh sau chốt.</p>
+                </div>
+                <div class="module-card" style="border-left: 4px solid var(--success);">
+                    <h4>🔧 Code quality</h4>
+                    <p>TypeScript strict, Prisma type-safe, class-validator, code structure rõ ràng theo module.</p>
+                </div>
+                <div class="module-card" style="border-left: 4px solid var(--success);">
+                    <h4>📱 UX tốt</h4>
+                    <p>Giao diện edit như Excel, TanStack Query cho caching, optimistic updates, toast notifications.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Khuyến nghị cải thiện -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">🔧</span>
+                Khuyến Nghị Cải Thiện
+            </h2>
+            
+            <div class="recommendation-card danger">
+                <h4>🔐 Bảo mật cần cải thiện</h4>
+                <p>1. Password đang hash bằng SHA-256, nên chuyển sang <strong>bcrypt</strong> với salt.</p>
+                <p>2. Chưa thấy JWT authentication middleware cho API.</p>
+                <p>3. Cần thêm rate limiting, CORS cấu hình chặt hơn.</p>
+            </div>
+            
+            <div class="recommendation-card warning">
+                <h4>🧪 Testing</h4>
+                <p>Có cấu hình Jest nhưng chưa thấy test files. Cần viết unit tests cho services quan trọng như <code>TinhLuongService</code>, <code>BHXHThueService</code>.</p>
+            </div>
+            
+            <div class="recommendation-card info">
+                <h4>📝 Documentation</h4>
+                <p>1. Swagger đã có nhưng cần bổ sung descriptions, examples cho DTOs.</p>
+                <p>2. Cần API documentation cho frontend developers.</p>
+            </div>
+            
+            <div class="recommendation-card warning">
+                <h4>⚡ Performance</h4>
+                <p>1. Cần thêm indexes cho các trường query thường xuyên (thang, nam, nhanVienId).</p>
+                <p>2. Pagination cho các endpoints list dài.</p>
+                <p>3. Redis caching cho cấu hình BHXH/thuế (ít thay đổi).</p>
+            </div>
+            
+            <div class="recommendation-card info">
+                <h4>🐳 DevOps</h4>
+                <p>1. Thêm Dockerfile cho backend và frontend.</p>
+                <p>2. Docker Compose với PostgreSQL.</p>
+                <p>3. CI/CD pipeline (GitHub Actions).</p>
+            </div>
+            
+            <div class="recommendation-card warning">
+                <h4>🔄 Error Handling</h4>
+                <p>1. Thêm global exception filter cho NestJS.</p>
+                <p>2. Standardize error response format.</p>
+                <p>3. Error boundary cho React components.</p>
+            </div>
+        </section>
+        
+        <!-- Quy tắc nghiệp vụ -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">📋</span>
+                Quy Tắc Nghiệp Vụ Đã Implement
+            </h2>
+            
+            <div class="highlight-box">
+                <h4>📅 Ngày công</h4>
+                <ul style="margin-left: 20px; color: var(--gray);">
+                    <li>Làm tất cả các ngày trong tuần (T2 → CN)</li>
+                    <li>Thứ 7 = 0.5 ngày công</li>
+                    <li>Số ngày công lý thuyết = Tổng ngày - (Số Thứ 7 × 0.5)</li>
+                    <li>Nghỉ có phép vẫn tính như đi làm</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box">
+                <h4>💰 Lương & Phụ cấp</h4>
+                <ul style="margin-left: 20px; color: var(--gray);">
+                    <li><strong>LUONG_THANG_CO_DINH</strong>: Full số tiền, không chia theo ngày</li>
+                    <li><strong>THEO_NGAY_CONG</strong>: Định mức × (ngày thực tế / ngày lý thuyết)</li>
+                    <li><strong>CHUYEN_CAN_DIEU_KIEN</strong>: Full nếu nghỉ không phép ≤ 2 ngày, 0 nếu > 2 ngày</li>
+                </ul>
+            </div>
+            
+            <div class="highlight-box">
+                <h4>🏥 BHXH & Thuế (2025)</h4>
+                <ul style="margin-left: 20px; color: var(--gray);">
+                    <li>BHXH NV: 8%, DN: 17.5%</li>
+                    <li>BHYT NV: 1.5%, DN: 3%</li>
+                    <li>BHTN NV: 1%, DN: 1%</li>
+                    <li>Giảm trừ bản thân: 11 triệu</li>
+                    <li>Giảm trừ phụ thuộc: 4.4 triệu/người</li>
+                    <li>Thuế TNCN: 7 bậc lũy tiến (5% → 35%)</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- Roadmap -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">🗺️</span>
+                Đề Xuất Roadmap Phát Triển
+            </h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>Phase 1: Security Hardening</h4>
+                    <p>Bcrypt password, JWT middleware, rate limiting, CORS</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Phase 2: Testing</h4>
+                    <p>Unit tests cho services, E2E tests cho API, coverage ≥ 70%</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Phase 3: DevOps</h4>
+                    <p>Docker, CI/CD, staging environment</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Phase 4: Performance</h4>
+                    <p>Redis caching, query optimization, CDN cho static assets</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Phase 5: Advanced Features</h4>
+                    <p>Mobile app, real-time notifications, analytics dashboard</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Kết luận -->
+        <section class="section">
+            <h2 class="section-title">
+                <span class="icon">📌</span>
+                Kết Luận
+            </h2>
+            
+            <div style="text-align: center; padding: 20px;">
+                <div style="display: inline-block; background: linear-gradient(135deg, var(--success), #10b981); color: white; padding: 30px 50px; border-radius: 16px; font-size: 1.2rem;">
+                    <strong>Đánh giá tổng thể: 8.5/10</strong>
+                    <p style="margin-top: 10px; opacity: 0.9; font-size: 1rem;">Dự án hoàn thiện tốt, kiến trúc vững chắc</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <p style="color: var(--dark); font-size: 1.05rem; line-height: 1.8;">
+                    Hệ thống tính lương này là một dự án <strong>enterprise-grade</strong> được thiết kế cẩn thận với kiến trúc modular, chuẩn hóa nghiệp vụ phức tạp của Việt Nam. Điểm nổi bật là:
+                </p>
+                <ul style="margin: 20px 0 20px 30px; color: var(--gray); line-height: 2;">
+                    <li>✅ Database schema toàn diện với 30+ models, quan hệ rõ ràng</li>
+                    <li>✅ Backend NestJS clean architecture với 14 modules riêng biệt</li>
+                    <li>✅ Frontend React hiện đại với TanStack Query + Tailwind</li>
+                    <li>✅ Nghiệp vụ tính lương Việt Nam: BHXH, thuế TNCN, KPI</li>
+                    <li>✅ Audit trail đầy đủ, snapshot khi chốt lương</li>
+                    <li>⚠️ Cần cải thiện: Security (bcrypt, JWT), Testing, DevOps</li>
+                </ul>
+                <p style="color: var(--dark); font-size: 1.05rem;">
+                    Dự án sẵn sàng cho môi trường <strong>production</strong> sau khi hoàn thành các khuyến nghị về bảo mật và testing.
+                </p>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p>📄 Báo cáo được tạo tự động bởi GitHub Copilot</p>
+            <p style="margin-top: 5px; font-size: 0.9rem;">13/01/2026 - Hệ Thống Tính Lương v1.0</p>
+        </footer>
+    </div>
+</body>
+</html>

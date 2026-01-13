@@ -1,0 +1,1367 @@
+// Prisma Schema cho Hệ Thống Tính Lương
+// Tất cả tên bảng và trường đều sử dụng tiếng Việt (không dấu)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// BẢNG PHÒNG BAN
+// ============================================
+model PhongBan {
+  id          Int     @id @default(autoincrement())
+  maPhongBan  String  @unique @map("ma_phong_ban")
+  tenPhongBan String  @map("ten_phong_ban")
+  moTa        String? @map("mo_ta")
+  trangThai   Boolean @default(true) @map("trang_thai")
+
+  // Cấu hình giờ làm việc riêng theo phòng ban
+  gioVaoChuan    String @default("08:00") @map("gio_vao_chuan") // Format: HH:mm
+  gioRaChuan     String @default("17:00") @map("gio_ra_chuan") // Format: HH:mm
+  phutChoPhepTre Int    @default(5) @map("phut_cho_phep_tre") // Số phút được phép đi muộn
+
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanViens           NhanVien[]
+  coCauLuongs         CoCauLuong[]
+  bangLuongs          BangLuong[]
+  quyChe              QuyChe[]
+  nhanVienTrachNhiems NhanVienTrachNhiem[]
+  suKienThuongPhats   SuKienThuongPhat[]
+  aiRuleAudits        AiRuleAudit[]
+
+  @@map("phong_ban")
+}
+
+// ============================================
+// BẢNG NHÂN VIÊN
+// ============================================
+model NhanVien {
+  id          Int               @id @default(autoincrement())
+  maNhanVien  String            @unique @map("ma_nhan_vien")
+  hoTen       String            @map("ho_ten")
+  email       String?           @unique
+  soDienThoai String?           @map("so_dien_thoai")
+  phongBanId  Int               @map("phong_ban_id")
+  chucVu      String?           @map("chuc_vu")
+  luongCoBan  Decimal           @default(0) @map("luong_co_ban") @db.Decimal(15, 0)
+  ngayVaoLam  DateTime          @default(now()) @map("ngay_vao_lam")
+  trangThai   TrangThaiNhanVien @default(DANG_LAM) @map("trang_thai")
+  ngayTao     DateTime          @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime          @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  phongBan            PhongBan             @relation(fields: [phongBanId], references: [id])
+  chiTietBangLuongs   ChiTietBangLuong[]
+  lichSuChinhSuas     LichSuChinhSua[]
+  phuCaps             PhuCapNhanVien[]
+  nguoiPhuThuocs      NguoiPhuThuoc[]
+  phieuDieuChinhs     PhieuDieuChinh[]
+  chamCongs           ChamCong[]
+  ngayCongBangLuongs  NgayCongBangLuong[]
+  nhanVienTrachNhiems NhanVienTrachNhiem[]
+  suKienThuongPhats   SuKienThuongPhat[]
+  ruleTraces          RuleTrace[]
+
+  @@map("nhan_vien")
+}
+
+enum TrangThaiNhanVien {
+  DANG_LAM
+  NGHI_VIEC
+  TAM_NGHI
+
+  @@map("trang_thai_nhan_vien")
+}
+
+// ============================================
+// DANH MỤC KHOẢN LƯƠNG (CỰC KỲ QUAN TRỌNG)
+// Thay thế toàn bộ các cột trong Excel
+// ============================================
+model KhoanLuong {
+  id           Int            @id @default(autoincrement())
+  maKhoan      String         @unique @map("ma_khoan")
+  tenKhoan     String         @map("ten_khoan")
+  loai         LoaiKhoanLuong @default(THU_NHAP)
+  cachTinh     CachTinhLuong  @default(LUONG_THANG_CO_DINH) @map("cach_tinh")
+  chiuThue     Boolean        @default(false) @map("chiu_thue")
+  phamViApDung String?        @map("pham_vi_ap_dung") // null = toàn công ty
+  moTa         String?        @map("mo_ta")
+  thuTu        Int            @default(0) @map("thu_tu") // Thứ tự hiển thị
+  trangThai    Boolean        @default(true) @map("trang_thai")
+  ngayTao      DateTime       @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime       @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  coCauLuongChiTiets CoCauLuongChiTiet[]
+  chiTietBangLuongs  ChiTietBangLuong[]
+  lichSuChinhSuas    LichSuChinhSua[]
+  phuCapNhanViens    PhuCapNhanVien[]
+  chiTietPhieuDCs    ChiTietPhieuDieuChinh[]
+  quyCheRules        QuyCheRule[]
+  ruleTraces         RuleTrace[]
+
+  @@map("khoan_luong")
+}
+
+enum LoaiKhoanLuong {
+  THU_NHAP // Các khoản cộng vào lương
+  KHAU_TRU // Các khoản trừ đi (BHXH, thuế...)
+
+  @@map("loai_khoan_luong")
+}
+
+// Cách tính lương cho từng khoản
+enum CachTinhLuong {
+  LUONG_THANG_CO_DINH // Lương cố định tháng, không chia theo ngày
+  THEO_NGAY_CONG // Phụ cấp theo ngày = giá trị × (ngày thực tế / ngày lý thuyết)
+  CHUYEN_CAN_DIEU_KIEN // Full nếu nghỉ không phép <= 2 ngày, 0 nếu > 2 ngày
+
+  @@map("cach_tinh_luong")
+}
+
+// ============================================
+// CƠ CẤU LƯƠNG THEO PHÒNG BAN
+// Mỗi phòng ban có cơ cấu lương riêng
+// ============================================
+model CoCauLuong {
+  id          Int      @id @default(autoincrement())
+  phongBanId  Int      @map("phong_ban_id")
+  tenCoCau    String   @map("ten_co_cau")
+  moTa        String?  @map("mo_ta")
+  trangThai   Boolean  @default(true) @map("trang_thai")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  phongBan PhongBan            @relation(fields: [phongBanId], references: [id])
+  chiTiets CoCauLuongChiTiet[]
+
+  @@map("co_cau_luong")
+}
+
+// ============================================
+// CHI TIẾT CƠ CẤU LƯƠNG
+// Định nghĩa các khoản lương trong cơ cấu
+// ============================================
+model CoCauLuongChiTiet {
+  id            Int      @id @default(autoincrement())
+  coCauLuongId  Int      @map("co_cau_luong_id")
+  khoanLuongId  Int      @map("khoan_luong_id")
+  batBuoc       Boolean  @default(false) @map("bat_buoc")
+  giaTriMacDinh Decimal  @default(0) @map("gia_tri_mac_dinh") @db.Decimal(15, 0)
+  ngayTao       DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat   DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  coCauLuong CoCauLuong @relation(fields: [coCauLuongId], references: [id], onDelete: Cascade)
+  khoanLuong KhoanLuong @relation(fields: [khoanLuongId], references: [id])
+
+  @@unique([coCauLuongId, khoanLuongId])
+  @@map("co_cau_luong_chi_tiet")
+}
+
+// ============================================
+// BẢNG LƯƠNG THÁNG
+// Quản lý bảng lương theo tháng/phòng ban
+// ============================================
+model BangLuong {
+  id           Int                @id @default(autoincrement())
+  thang        Int // 1-12
+  nam          Int // 2024, 2025...
+  phongBanId   Int                @map("phong_ban_id")
+  tenBangLuong String?            @map("ten_bang_luong")
+  trangThai    TrangThaiBangLuong @default(NHAP) @map("trang_thai")
+  ngayChot     DateTime?          @map("ngay_chot")
+  nguoiChot    String?            @map("nguoi_chot")
+  ghiChu       String?            @map("ghi_chu")
+  ngayTao      DateTime           @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime           @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  phongBan   PhongBan            @relation(fields: [phongBanId], references: [id])
+  chiTiets   ChiTietBangLuong[]
+  ngayCong   NgayCongBangLuong[]
+  quyChe     BangLuongQuyChe[]
+  ruleTraces RuleTrace[]
+
+  @@unique([thang, nam, phongBanId])
+  @@index([thang, nam])
+  @@index([phongBanId])
+  @@index([trangThai])
+  @@map("bang_luong")
+}
+
+// ============================================
+// NGÀY CÔNG BẢNG LƯƠNG
+// Lưu ngày công đã điều chỉnh thủ công cho từng nhân viên trong bảng lương
+// ============================================
+model NgayCongBangLuong {
+  id                  Int      @id @default(autoincrement())
+  bangLuongId         Int      @map("bang_luong_id")
+  nhanVienId          Int      @map("nhan_vien_id")
+  ngayCongLyThuyet    Decimal  @map("ngay_cong_ly_thuyet") @db.Decimal(5, 2) // VD: 22.00
+  soCongThucTe        Decimal  @map("so_cong_thuc_te") @db.Decimal(5, 2) // Số công đi làm thực tế
+  soNgayNghiPhep      Decimal  @default(0) @map("so_ngay_nghi_phep") @db.Decimal(5, 2) // Nghỉ có phép (vẫn tính lương)
+  soNgayNghiKhongPhep Decimal  @default(0) @map("so_ngay_nghi_khong_phep") @db.Decimal(5, 2) // Nghỉ không phép
+  ngayCongDieuChinh   Decimal? @map("ngay_cong_dieu_chinh") @db.Decimal(5, 2) // Ngày công sau khi điều chỉnh thủ công
+  ghiChu              String?  @map("ghi_chu")
+  ngayTao             DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat         DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  bangLuong BangLuong @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
+  nhanVien  NhanVien  @relation(fields: [nhanVienId], references: [id])
+
+  @@unique([bangLuongId, nhanVienId])
+  @@index([bangLuongId])
+  @@index([nhanVienId])
+  @@map("ngay_cong_bang_luong")
+}
+
+enum TrangThaiBangLuong {
+  NHAP // Đang nhập liệu
+  DA_CHOT // Đã chốt, không sửa được
+  KHOA // Đã khoá hoàn toàn
+
+  @@map("trang_thai_bang_luong")
+}
+
+// ============================================
+// CHI TIẾT BẢNG LƯƠNG (LINH HỒN HỆ THỐNG)
+// Mỗi ô trong Excel = 1 dòng ở bảng này
+// ============================================
+model ChiTietBangLuong {
+  id           Int          @id @default(autoincrement())
+  bangLuongId  Int          @map("bang_luong_id")
+  nhanVienId   Int          @map("nhan_vien_id")
+  khoanLuongId Int          @map("khoan_luong_id")
+  soTien       Decimal      @default(0) @map("so_tien") @db.Decimal(15, 0)
+  nguon        NguonChiTiet @default(NHAP_TAY) @map("nguon") // CO_DINH = từ phụ cấp, NHAP_TAY = nhập thủ công
+  ghiChu       String?      @map("ghi_chu")
+  ngayTao      DateTime     @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime     @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  bangLuong  BangLuong  @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
+  nhanVien   NhanVien   @relation(fields: [nhanVienId], references: [id])
+  khoanLuong KhoanLuong @relation(fields: [khoanLuongId], references: [id])
+
+  @@unique([bangLuongId, nhanVienId, khoanLuongId])
+  @@index([bangLuongId])
+  @@index([nhanVienId])
+  @@index([khoanLuongId])
+  @@map("chi_tiet_bang_luong")
+}
+
+// Nguồn dữ liệu chi tiết bảng lương
+enum NguonChiTiet {
+  CO_DINH // Từ phụ cấp cố định nhân viên (không cho sửa trong bảng lương)
+  NHAP_TAY // Nhập thủ công trong bảng lương
+  CHAM_CONG // Từ tính toán chấm công (phạt đi muộn, về sớm, nghỉ không phép)
+  RULE // Từ Rule Engine tính tự động
+  PHAT_SINH // Phát sinh trong kỳ (thưởng/phạt)
+  DIEU_CHINH // Từ phiếu điều chỉnh
+
+  @@map("nguon_chi_tiet")
+}
+
+// ============================================
+// LỊCH SỬ CHỈNH SỬA (AUDIT LOG)
+// Lưu lại mọi thay đổi trên bảng lương
+// ============================================
+model LichSuChinhSua {
+  id           Int      @id @default(autoincrement())
+  bangLuongId  Int?     @map("bang_luong_id")
+  nhanVienId   Int?     @map("nhan_vien_id")
+  khoanLuongId Int?     @map("khoan_luong_id")
+  giaTriCu     Decimal? @map("gia_tri_cu") @db.Decimal(15, 0)
+  giaTriMoi    Decimal? @map("gia_tri_moi") @db.Decimal(15, 0)
+  loaiThayDoi  String   @map("loai_thay_doi") // TAO_MOI, CAP_NHAT, XOA
+  nguoiThayDoi String   @map("nguoi_thay_doi")
+  lyDo         String?  @map("ly_do")
+  ngayThayDoi  DateTime @default(now()) @map("ngay_thay_doi")
+
+  // Quan hệ (optional vì có thể đã xóa)
+  nhanVien   NhanVien?   @relation(fields: [nhanVienId], references: [id], onDelete: SetNull)
+  khoanLuong KhoanLuong? @relation(fields: [khoanLuongId], references: [id], onDelete: SetNull)
+
+  @@map("lich_su_chinh_sua")
+}
+
+// ============================================
+// MAPPING EXCEL (Lưu cấu hình mapping cột)
+// ============================================
+model MappingExcel {
+  id            Int      @id @default(autoincrement())
+  tenMapping    String   @map("ten_mapping")
+  tenCotExcel   String   @map("ten_cot_excel")
+  khoanLuongId  Int?     @map("khoan_luong_id")
+  truongHeThong String?  @map("truong_he_thong") // ho_ten, ma_nhan_vien...
+  thuTuCot      Int      @default(0) @map("thu_tu_cot")
+  trangThai     Boolean  @default(true) @map("trang_thai")
+  ngayTao       DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat   DateTime @updatedAt @map("ngay_cap_nhat")
+
+  @@map("mapping_excel")
+}
+
+// ============================================
+// PHỤ CẤP NHÂN VIÊN (MODULE CỐT LÕI)
+// Phụ cấp cố định theo từng nhân viên
+// Không lưu trong bảng lương, tự động áp dụng hàng tháng
+// ============================================
+model PhuCapNhanVien {
+  id           Int             @id @default(autoincrement())
+  nhanVienId   Int             @map("nhan_vien_id")
+  khoanLuongId Int             @map("khoan_luong_id")
+  soTien       Decimal         @default(0) @map("so_tien") @db.Decimal(15, 0)
+  tuNgay       DateTime        @map("tu_ngay")
+  denNgay      DateTime?       @map("den_ngay")
+  ghiChu       String?         @map("ghi_chu")
+  trangThai    TrangThaiPhuCap @default(HIEU_LUC) @map("trang_thai")
+  nguoiTao     String?         @map("nguoi_tao")
+  ngayTao      DateTime        @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime        @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanVien   NhanVien   @relation(fields: [nhanVienId], references: [id])
+  khoanLuong KhoanLuong @relation(fields: [khoanLuongId], references: [id])
+
+  // Ràng buộc: không cho trùng khoản lương trong cùng khoảng thời gian
+  // (validation sẽ thực hiện ở service layer)
+  @@map("phu_cap_nhan_vien")
+}
+
+enum TrangThaiPhuCap {
+  HIEU_LUC // Đang áp dụng
+  TAM_DUNG // Tạm dừng
+  KET_THUC // Đã kết thúc
+
+  @@map("trang_thai_phu_cap")
+}
+
+// ============================================
+// SNAPSHOT BẢNG LƯƠNG (LƯU TRỮ KHI CHỐT)
+// Khi chốt lương, lưu snapshot để không bị thay đổi
+// ============================================
+model SnapshotBangLuong {
+  id           Int            @id @default(autoincrement())
+  bangLuongId  Int            @map("bang_luong_id")
+  nhanVienId   Int            @map("nhan_vien_id")
+  maNhanVien   String         @map("ma_nhan_vien")
+  hoTen        String         @map("ho_ten")
+  phongBan     String         @map("phong_ban")
+  khoanLuongId Int            @map("khoan_luong_id")
+  maKhoan      String         @map("ma_khoan")
+  tenKhoan     String         @map("ten_khoan")
+  loaiKhoan    LoaiKhoanLuong @map("loai_khoan")
+  soTien       Decimal        @map("so_tien") @db.Decimal(15, 0)
+  nguon        NguonChiTiet   @map("nguon")
+  ngayChot     DateTime       @map("ngay_chot")
+  nguoiChot    String         @map("nguoi_chot")
+  ngayTao      DateTime       @default(now()) @map("ngay_tao")
+
+  @@index([bangLuongId])
+  @@index([nhanVienId])
+  @@map("snapshot_bang_luong")
+}
+
+// ============================================
+// PHIẾU ĐIỀU CHỈNH LƯƠNG (SAU KHI CHỐT)
+// Dùng để điều chỉnh khi phát hiện sai sót sau khi đã chốt
+// ============================================
+model PhieuDieuChinh {
+  id            Int              @id @default(autoincrement())
+  maPhieu       String           @unique @map("ma_phieu")
+  bangLuongId   Int              @map("bang_luong_id")
+  nhanVienId    Int              @map("nhan_vien_id")
+  loaiDieuChinh LoaiDieuChinh    @default(TANG) @map("loai_dieu_chinh")
+  lyDo          String           @map("ly_do")
+  ghiChu        String?          @map("ghi_chu")
+  trangThai     TrangThaiPhieuDC @default(CHO_DUYET) @map("trang_thai")
+  nguoiTao      String           @map("nguoi_tao")
+  ngayTao       DateTime         @default(now()) @map("ngay_tao")
+  nguoiDuyet    String?          @map("nguoi_duyet")
+  ngayDuyet     DateTime?        @map("ngay_duyet")
+  nguoiTuChoi   String?          @map("nguoi_tu_choi")
+  ngayTuChoi    DateTime?        @map("ngay_tu_choi")
+  lyDoTuChoi    String?          @map("ly_do_tu_choi")
+
+  // Quan hệ
+  nhanVien NhanVien                @relation(fields: [nhanVienId], references: [id])
+  chiTiets ChiTietPhieuDieuChinh[]
+
+  @@map("phieu_dieu_chinh")
+}
+
+model ChiTietPhieuDieuChinh {
+  id               Int      @id @default(autoincrement())
+  phieuDieuChinhId Int      @map("phieu_dieu_chinh_id")
+  khoanLuongId     Int      @map("khoan_luong_id")
+  soTienCu         Decimal  @map("so_tien_cu") @db.Decimal(15, 0)
+  soTienMoi        Decimal  @map("so_tien_moi") @db.Decimal(15, 0)
+  chenhLech        Decimal  @map("chenh_lech") @db.Decimal(15, 0)
+  ghiChu           String?  @map("ghi_chu")
+  ngayTao          DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  phieuDieuChinh PhieuDieuChinh @relation(fields: [phieuDieuChinhId], references: [id], onDelete: Cascade)
+  khoanLuong     KhoanLuong     @relation(fields: [khoanLuongId], references: [id])
+
+  @@map("chi_tiet_phieu_dieu_chinh")
+}
+
+enum LoaiDieuChinh {
+  TANG // Điều chỉnh tăng
+  GIAM // Điều chỉnh giảm
+  THAY_THE // Thay thế hoàn toàn
+
+  @@map("loai_dieu_chinh")
+}
+
+enum TrangThaiPhieuDC {
+  CHO_DUYET // Chờ duyệt
+  DA_DUYET // Đã duyệt, áp dụng vào kỳ sau
+  TU_CHOI // Từ chối
+  HUY // Đã hủy
+
+  @@map("trang_thai_phieu_dc")
+}
+
+// ============================================
+// CẤU HÌNH BHXH/THUẾ TNCN (VIỆT NAM)
+// Lưu các mức đóng BHXH, thuế suất theo năm
+// ============================================
+model CauHinhBHXH {
+  id                 Int      @id @default(autoincrement())
+  nam                Int      @unique // Năm áp dụng
+  tyLeBHXH_NV        Decimal  @map("ty_le_bhxh_nv") @db.Decimal(5, 2) // 8%
+  tyLeBHXH_DN        Decimal  @map("ty_le_bhxh_dn") @db.Decimal(5, 2) // 17.5%
+  tyLeBHYT_NV        Decimal  @map("ty_le_bhyt_nv") @db.Decimal(5, 2) // 1.5%
+  tyLeBHYT_DN        Decimal  @map("ty_le_bhyt_dn") @db.Decimal(5, 2) // 3%
+  tyLeBHTN_NV        Decimal  @map("ty_le_bhtn_nv") @db.Decimal(5, 2) // 1%
+  tyLeBHTN_DN        Decimal  @map("ty_le_bhtn_dn") @db.Decimal(5, 2) // 1%
+  luongCoBanToiThieu Decimal  @map("luong_co_ban_toi_thieu") @db.Decimal(15, 0) // Lương tối thiểu vùng
+  tranDongBHXH       Decimal  @map("tran_dong_bhxh") @db.Decimal(15, 0) // Trần đóng BHXH (20x lương cơ sở)
+  luongCoSo          Decimal  @map("luong_co_so") @db.Decimal(15, 0) // Lương cơ sở (2.34 triệu năm 2025)
+  trangThai          Boolean  @default(true) @map("trang_thai")
+  ngayTao            DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat        DateTime @updatedAt @map("ngay_cap_nhat")
+
+  @@map("cau_hinh_bhxh")
+}
+
+model CauHinhThueTNCN {
+  id              Int      @id @default(autoincrement())
+  nam             Int      @unique // Năm áp dụng
+  giamTruBanThan  Decimal  @map("giam_tru_ban_than") @db.Decimal(15, 0) // 11 triệu
+  giamTruPhuThuoc Decimal  @map("giam_tru_phu_thuoc") @db.Decimal(15, 0) // 4.4 triệu/người
+  trangThai       Boolean  @default(true) @map("trang_thai")
+  ngayTao         DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat     DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  bacThue BacThueTNCN[]
+
+  @@map("cau_hinh_thue_tncn")
+}
+
+// Bậc thuế lũy tiến (7 bậc)
+model BacThueTNCN {
+  id             Int      @id @default(autoincrement())
+  cauHinhThueId  Int      @map("cau_hinh_thue_id")
+  bac            Int // 1-7
+  tuMuc          Decimal  @map("tu_muc") @db.Decimal(15, 0)
+  denMuc         Decimal? @map("den_muc") @db.Decimal(15, 0) // null = không giới hạn
+  thueSuat       Decimal  @map("thue_suat") @db.Decimal(5, 2) // 5%, 10%, 15%...
+  soTienTruNhanh Decimal  @map("so_tien_tru_nhanh") @db.Decimal(15, 0) // Số tiền trừ nhanh
+  ngayTao        DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  cauHinhThue CauHinhThueTNCN @relation(fields: [cauHinhThueId], references: [id], onDelete: Cascade)
+
+  @@unique([cauHinhThueId, bac])
+  @@map("bac_thue_tncn")
+}
+
+// ============================================
+// THÔNG TIN PHỤ THUỘC (NGƯỜI PHỤ THUỘC)
+// Để tính giảm trừ gia cảnh
+// ============================================
+model NguoiPhuThuoc {
+  id          Int       @id @default(autoincrement())
+  nhanVienId  Int       @map("nhan_vien_id")
+  hoTen       String    @map("ho_ten")
+  ngaySinh    DateTime? @map("ngay_sinh")
+  quanHe      String    @map("quan_he") // Con, Bố, Mẹ, Vợ/Chồng
+  maSoThue    String?   @map("ma_so_thue") // MST người phụ thuộc
+  soCCCD      String?   @map("so_cccd")
+  tuNgay      DateTime  @map("tu_ngay") // Ngày bắt đầu tính giảm trừ
+  denNgay     DateTime? @map("den_ngay")
+  trangThai   Boolean   @default(true) @map("trang_thai")
+  ghiChu      String?   @map("ghi_chu")
+  ngayTao     DateTime  @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime  @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanVien NhanVien @relation(fields: [nhanVienId], references: [id])
+
+  @@map("nguoi_phu_thuoc")
+}
+
+// ============================================
+// BẢNG TÍNH BHXH/THUẾ THEO THÁNG
+// Lưu kết quả tính cho mỗi nhân viên mỗi tháng
+// ============================================
+model BangTinhBHXH {
+  id            Int      @id @default(autoincrement())
+  bangLuongId   Int      @map("bang_luong_id")
+  nhanVienId    Int      @map("nhan_vien_id")
+  luongDongBHXH Decimal  @map("luong_dong_bhxh") @db.Decimal(15, 0) // Lương làm căn cứ đóng
+  bhxhNV        Decimal  @map("bhxh_nv") @db.Decimal(15, 0)
+  bhytNV        Decimal  @map("bhyt_nv") @db.Decimal(15, 0)
+  bhtnNV        Decimal  @map("bhtn_nv") @db.Decimal(15, 0)
+  tongBHNV      Decimal  @map("tong_bh_nv") @db.Decimal(15, 0)
+  bhxhDN        Decimal  @map("bhxh_dn") @db.Decimal(15, 0)
+  bhytDN        Decimal  @map("bhyt_dn") @db.Decimal(15, 0)
+  bhtnDN        Decimal  @map("bhtn_dn") @db.Decimal(15, 0)
+  tongBHDN      Decimal  @map("tong_bh_dn") @db.Decimal(15, 0)
+  ngayTao       DateTime @default(now()) @map("ngay_tao")
+
+  @@unique([bangLuongId, nhanVienId])
+  @@map("bang_tinh_bhxh")
+}
+
+model BangTinhThue {
+  id              Int      @id @default(autoincrement())
+  bangLuongId     Int      @map("bang_luong_id")
+  nhanVienId      Int      @map("nhan_vien_id")
+  thuNhapChiuThue Decimal  @map("thu_nhap_chiu_thue") @db.Decimal(15, 0)
+  giamTruBanThan  Decimal  @map("giam_tru_ban_than") @db.Decimal(15, 0)
+  soPhuThuoc      Int      @default(0) @map("so_phu_thuoc")
+  giamTruPhuThuoc Decimal  @map("giam_tru_phu_thuoc") @db.Decimal(15, 0)
+  giamTruBHXH     Decimal  @map("giam_tru_bhxh") @db.Decimal(15, 0)
+  thuNhapTinhThue Decimal  @map("thu_nhap_tinh_thue") @db.Decimal(15, 0)
+  thueTNCN        Decimal  @map("thue_tncn") @db.Decimal(15, 0)
+  bacThueApDung   Int?     @map("bac_thue_ap_dung")
+  ngayTao         DateTime @default(now()) @map("ngay_tao")
+
+  @@unique([bangLuongId, nhanVienId])
+  @@map("bang_tinh_thue")
+}
+
+// ============================================
+// RULE ENGINE - CÔNG THỨC TÍNH LƯƠNG ĐỘNG
+// Cho phép định nghĩa công thức tính theo phòng ban
+// ============================================
+model CongThucLuong {
+  id          Int       @id @default(autoincrement())
+  maCongThuc  String    @unique @map("ma_cong_thuc")
+  tenCongThuc String    @map("ten_cong_thuc")
+  moTa        String?   @map("mo_ta")
+  phongBanId  Int?      @map("phong_ban_id") // null = áp dụng toàn công ty
+  congThuc    String    @map("cong_thuc") @db.Text // Biểu thức công thức
+  phienBan    Int       @default(1) @map("phien_ban")
+  tuNgay      DateTime  @map("tu_ngay")
+  denNgay     DateTime? @map("den_ngay")
+  trangThai   Boolean   @default(true) @map("trang_thai")
+  nguoiTao    String?   @map("nguoi_tao")
+  ngayTao     DateTime  @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime  @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  bienSos BienSoCongThuc[]
+
+  @@map("cong_thuc_luong")
+}
+
+// Biến số dùng trong công thức
+model BienSoCongThuc {
+  id            Int        @id @default(autoincrement())
+  congThucId    Int        @map("cong_thuc_id")
+  tenBien       String     @map("ten_bien") // LUONG_CO_BAN, PHU_CAP, CONG_THUC_TE...
+  moTa          String?    @map("mo_ta")
+  kieuDuLieu    KieuDuLieu @default(SO) @map("kieu_du_lieu")
+  nguonDuLieu   String?    @map("nguon_du_lieu") // Bảng/trường lấy dữ liệu
+  giaTriMacDinh String?    @map("gia_tri_mac_dinh")
+  ngayTao       DateTime   @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  congThuc CongThucLuong @relation(fields: [congThucId], references: [id], onDelete: Cascade)
+
+  @@unique([congThucId, tenBien])
+  @@map("bien_so_cong_thuc")
+}
+
+enum KieuDuLieu {
+  SO // Number
+  TIEN // Currency (VND)
+  PHAN_TRAM // Percentage
+  NGAY // Date
+  CHUOI // String
+
+  @@map("kieu_du_lieu")
+}
+
+// Lịch sử phiên bản công thức
+model LichSuCongThuc {
+  id           Int      @id @default(autoincrement())
+  maCongThuc   String   @map("ma_cong_thuc")
+  phienBan     Int      @map("phien_ban")
+  congThucCu   String   @map("cong_thuc_cu") @db.Text
+  congThucMoi  String   @map("cong_thuc_moi") @db.Text
+  lyDoThayDoi  String?  @map("ly_do_thay_doi")
+  nguoiThayDoi String   @map("nguoi_thay_doi")
+  ngayThayDoi  DateTime @default(now()) @map("ngay_thay_doi")
+
+  @@map("lich_su_cong_thuc")
+}
+
+// ============================================
+// CHẤM CÔNG
+// Quản lý dữ liệu chấm công nhân viên
+// ============================================
+model ChamCong {
+  id                   Int      @id @default(autoincrement())
+  nhanVienId           Int      @map("nhan_vien_id")
+  thang                Int // 1-12
+  nam                  Int
+  soCongChuan          Decimal  @default(26) @map("so_cong_chuan") @db.Decimal(5, 1)
+  soCongThucTe         Decimal  @default(0) @map("so_cong_thuc_te") @db.Decimal(5, 1)
+  soNgayNghiPhep       Decimal  @default(0) @map("so_ngay_nghi_phep") @db.Decimal(5, 1)
+  soNgayNghiKhongLuong Decimal  @default(0) @map("so_ngay_nghi_khong_luong") @db.Decimal(5, 1)
+  soGioOT              Decimal  @default(0) @map("so_gio_ot") @db.Decimal(5, 1)
+  soGioOTDem           Decimal  @default(0) @map("so_gio_ot_dem") @db.Decimal(5, 1)
+  soGioOTChuNhat       Decimal  @default(0) @map("so_gio_ot_chu_nhat") @db.Decimal(5, 1)
+  soGioOTLe            Decimal  @default(0) @map("so_gio_ot_le") @db.Decimal(5, 1)
+  soLanDiMuon          Int      @default(0) @map("so_lan_di_muon")
+  soLanVeSom           Int      @default(0) @map("so_lan_ve_som")
+  ghiChu               String?  @map("ghi_chu")
+  ngayTao              DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat          DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanVien NhanVien @relation(fields: [nhanVienId], references: [id])
+
+  @@unique([nhanVienId, thang, nam])
+  @@index([nhanVienId])
+  @@index([thang, nam])
+  @@map("cham_cong")
+}
+
+// Chi tiết chấm công từng ngày
+model ChiTietChamCong {
+  id         Int               @id @default(autoincrement())
+  nhanVienId Int               @map("nhan_vien_id")
+  ngay       DateTime          @map("ngay")
+  gioVao     DateTime?         @map("gio_vao")
+  gioRa      DateTime?         @map("gio_ra")
+  loaiNgay   LoaiNgayCong      @default(NGAY_THUONG) @map("loai_ngay")
+  trangThai  TrangThaiChamCong @default(DI_LAM) @map("trang_thai")
+  soGioLam   Decimal           @default(0) @map("so_gio_lam") @db.Decimal(5, 2)
+  soGioOT    Decimal           @default(0) @map("so_gio_ot") @db.Decimal(5, 2)
+  ghiChu     String?           @map("ghi_chu")
+  ngayTao    DateTime          @default(now()) @map("ngay_tao")
+
+  @@unique([nhanVienId, ngay])
+  @@index([nhanVienId])
+  @@index([ngay])
+  @@map("chi_tiet_cham_cong")
+}
+
+enum LoaiNgayCong {
+  NGAY_THUONG
+  THU_BAY
+  CHU_NHAT
+  NGAY_LE
+
+  @@map("loai_ngay_cong")
+}
+
+enum TrangThaiChamCong {
+  DI_LAM
+  NGHI_PHEP
+  NGHI_KHONG_LUONG
+  NGHI_LE
+  NGHI_BENH
+  CONG_TAC
+  LAM_TU_XA
+
+  @@map("trang_thai_cham_cong")
+}
+
+// ============================================
+// CẤU HÌNH PHẠT CHẤM CÔNG
+// Quy định mức phạt đi muộn, về sớm, nghỉ không phép
+// ============================================
+model CauHinhPhatChamCong {
+  id  Int @id @default(autoincrement())
+  nam Int @unique // Năm áp dụng
+
+  // Phạt đi muộn (theo số lần trong tháng)
+  phatDiMuon1_3Lan   Decimal @default(0) @map("phat_di_muon_1_3_lan") @db.Decimal(15, 0) // 1-3 lần
+  phatDiMuon4_6Lan   Decimal @default(0) @map("phat_di_muon_4_6_lan") @db.Decimal(15, 0) // 4-6 lần
+  phatDiMuonTren6Lan Decimal @default(0) @map("phat_di_muon_tren_6_lan") @db.Decimal(15, 0) // >6 lần
+
+  // Phạt về sớm (theo số lần trong tháng)
+  phatVeSom1_3Lan   Decimal @default(0) @map("phat_ve_som_1_3_lan") @db.Decimal(15, 0)
+  phatVeSom4_6Lan   Decimal @default(0) @map("phat_ve_som_4_6_lan") @db.Decimal(15, 0)
+  phatVeSomTren6Lan Decimal @default(0) @map("phat_ve_som_tren_6_lan") @db.Decimal(15, 0)
+
+  // Phạt nghỉ không phép (theo ngày)
+  phatNghiKhongPhep     Decimal @default(0) @map("phat_nghi_khong_phep") @db.Decimal(15, 0) // Tiền/ngày
+  truLuongNghiKhongPhep Boolean @default(true) @map("tru_luong_nghi_khong_phep") // Trừ theo ngày công
+
+  // Giờ làm việc chuẩn
+  gioVaoChuan    String @default("08:00") @map("gio_vao_chuan")
+  gioRaChuan     String @default("17:00") @map("gio_ra_chuan")
+  phutChoPhepTre Int    @default(5) @map("phut_cho_phep_tre") // Phút được phép trễ
+
+  moTa        String?  @map("mo_ta")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  @@map("cau_hinh_phat_cham_cong")
+}
+
+// ============================================
+// MODULE KPI & THƯỞNG
+// Quản lý đánh giá KPI và tính thưởng tự động
+// ============================================
+
+// Template KPI theo phòng ban
+model TemplateKPI {
+  id          Int      @id @default(autoincrement())
+  maTemplate  String   @unique @map("ma_template")
+  tenTemplate String   @map("ten_template")
+  phongBanId  Int?     @map("phong_ban_id") // null = áp dụng toàn công ty
+  moTa        String?  @map("mo_ta")
+  trangThai   Boolean  @default(true) @map("trang_thai")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  chiTieuKPIs ChiTieuKPI[]
+
+  @@map("template_kpi")
+}
+
+// Chi tiêu KPI trong template
+model ChiTieuKPI {
+  id              Int            @id @default(autoincrement())
+  templateId      Int            @map("template_id")
+  maChiTieu       String         @map("ma_chi_tieu")
+  tenChiTieu      String         @map("ten_chi_tieu")
+  moTa            String?        @map("mo_ta")
+  donViTinh       String         @map("don_vi_tinh") // %, số, VNĐ
+  trongSo         Decimal        @map("trong_so") @db.Decimal(5, 2) // % trọng số (tổng = 100%)
+  loaiChiTieu     LoaiChiTieuKPI @default(SO) @map("loai_chi_tieu")
+  chiTieuToiThieu Decimal?       @map("chi_tieu_toi_thieu") @db.Decimal(15, 2)
+  chiTieuMucTieu  Decimal?       @map("chi_tieu_muc_tieu") @db.Decimal(15, 2)
+  chiTieuVuotMuc  Decimal?       @map("chi_tieu_vuot_muc") @db.Decimal(15, 2)
+  thuTu           Int            @default(0) @map("thu_tu")
+  ngayTao         DateTime       @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  template   TemplateKPI @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  ketQuaKPIs KetQuaKPI[]
+
+  @@unique([templateId, maChiTieu])
+  @@map("chi_tieu_kpi")
+}
+
+enum LoaiChiTieuKPI {
+  SO // Số lượng cụ thể
+  PHAN_TRAM // Phần trăm
+  TIEN // Doanh số, doanh thu
+  THOI_GIAN // Giờ, ngày
+  DANH_GIA // Đánh giá từ 1-5
+
+  @@map("loai_chi_tieu_kpi")
+}
+
+// Kỳ đánh giá KPI
+model KyDanhGiaKPI {
+  id           Int                @id @default(autoincrement())
+  maKy         String             @unique @map("ma_ky") // KPI-2025-Q1, KPI-2025-01
+  tenKy        String             @map("ten_ky")
+  loaiKy       LoaiKyDanhGia      @default(THANG) @map("loai_ky")
+  thang        Int? // Nếu là kỳ tháng
+  quy          Int? // Nếu là kỳ quý (1-4)
+  nam          Int
+  tuNgay       DateTime           @map("tu_ngay")
+  denNgay      DateTime           @map("den_ngay")
+  hanNopKetQua DateTime           @map("han_nop_ket_qua")
+  trangThai    TrangThaiKyDanhGia @default(MO) @map("trang_thai")
+  ghiChu       String?            @map("ghi_chu")
+  ngayTao      DateTime           @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime           @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  danhGiaNhanViens DanhGiaKPINhanVien[]
+
+  @@map("ky_danh_gia_kpi")
+}
+
+enum LoaiKyDanhGia {
+  THANG
+  QUY
+  NAM
+
+  @@map("loai_ky_danh_gia")
+}
+
+enum TrangThaiKyDanhGia {
+  MO // Đang mở để nhập
+  DONG // Đã đóng nhập liệu
+  DUYET // Đã duyệt kết quả
+  HOAN_THANH // Hoàn thành (đã tính thưởng)
+
+  @@map("trang_thai_ky_danh_gia")
+}
+
+// Đánh giá KPI của từng nhân viên
+model DanhGiaKPINhanVien {
+  id           Int                 @id @default(autoincrement())
+  kyDanhGiaId  Int                 @map("ky_danh_gia_id")
+  nhanVienId   Int                 @map("nhan_vien_id")
+  templateId   Int                 @map("template_id")
+  diemTongKet  Decimal?            @map("diem_tong_ket") @db.Decimal(5, 2) // 0-100
+  xepLoai      XepLoaiKPI?         @map("xep_loai")
+  heSoThuong   Decimal             @default(0) @map("he_so_thuong") @db.Decimal(5, 2)
+  soTienThuong Decimal             @default(0) @map("so_tien_thuong") @db.Decimal(15, 0)
+  nhanXetChung String?             @map("nhan_xet_chung")
+  nguoiDanhGia String?             @map("nguoi_danh_gia")
+  ngayDanhGia  DateTime?           @map("ngay_danh_gia")
+  nguoiDuyet   String?             @map("nguoi_duyet")
+  ngayDuyet    DateTime?           @map("ngay_duyet")
+  trangThai    TrangThaiDanhGiaKPI @default(NHAP) @map("trang_thai")
+  ngayTao      DateTime            @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime            @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  kyDanhGia  KyDanhGiaKPI @relation(fields: [kyDanhGiaId], references: [id])
+  ketQuaKPIs KetQuaKPI[]
+
+  @@unique([kyDanhGiaId, nhanVienId])
+  @@map("danh_gia_kpi_nhan_vien")
+}
+
+enum XepLoaiKPI {
+  XUAT_SAC // >= 95%
+  TOT // >= 80%
+  KHA // >= 65%
+  TRUNG_BINH // >= 50%
+  YEU // < 50%
+
+  @@map("xep_loai_kpi")
+}
+
+enum TrangThaiDanhGiaKPI {
+  NHAP // Đang nhập
+  CHO_DUYET // Chờ duyệt
+  DA_DUYET // Đã duyệt
+  TU_CHOI // Từ chối
+
+  @@map("trang_thai_danh_gia_kpi")
+}
+
+// Kết quả từng chỉ tiêu KPI
+model KetQuaKPI {
+  id         Int      @id @default(autoincrement())
+  danhGiaId  Int      @map("danh_gia_id")
+  chiTieuId  Int      @map("chi_tieu_id")
+  ketQuaDat  Decimal? @map("ket_qua_dat") @db.Decimal(15, 2)
+  tyLeDat    Decimal? @map("ty_le_dat") @db.Decimal(5, 2) // 0-150%
+  diemQuyDoi Decimal? @map("diem_quy_doi") @db.Decimal(5, 2)
+  ghiChu     String?  @map("ghi_chu")
+  ngayTao    DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  danhGia DanhGiaKPINhanVien @relation(fields: [danhGiaId], references: [id], onDelete: Cascade)
+  chiTieu ChiTieuKPI         @relation(fields: [chiTieuId], references: [id])
+
+  @@unique([danhGiaId, chiTieuId])
+  @@map("ket_qua_kpi")
+}
+
+// Cấu hình hệ số thưởng theo xếp loại
+model CauHinhThuongKPI {
+  id           Int        @id @default(autoincrement())
+  nam          Int
+  xepLoai      XepLoaiKPI @map("xep_loai")
+  diemToiThieu Decimal    @map("diem_toi_thieu") @db.Decimal(5, 2)
+  diemToiDa    Decimal    @map("diem_toi_da") @db.Decimal(5, 2)
+  heSoThuong   Decimal    @map("he_so_thuong") @db.Decimal(5, 2) // 0.5x, 1x, 1.5x, 2x
+  moTa         String?    @map("mo_ta")
+  trangThai    Boolean    @default(true) @map("trang_thai")
+  ngayTao      DateTime   @default(now()) @map("ngay_tao")
+
+  @@unique([nam, xepLoai])
+  @@map("cau_hinh_thuong_kpi")
+}
+
+// ============================================
+// MODULE RBAC & AUDIT
+// Phân quyền và theo dõi hành động
+// ============================================
+
+// Người dùng hệ thống
+model NguoiDung {
+  id              Int                @id @default(autoincrement())
+  tenDangNhap     String             @unique @map("ten_dang_nhap")
+  matKhau         String             @map("mat_khau") // Hashed
+  email           String             @unique
+  hoTen           String             @map("ho_ten")
+  nhanVienId      Int?               @unique @map("nhan_vien_id") // Liên kết với nhân viên nếu có
+  trangThai       TrangThaiNguoiDung @default(HOAT_DONG) @map("trang_thai")
+  lanDangNhapCuoi DateTime?          @map("lan_dang_nhap_cuoi")
+  ngayTao         DateTime           @default(now()) @map("ngay_tao")
+  ngayCapNhat     DateTime           @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  vaiTros        NguoiDungVaiTro[]
+  auditLogs      AuditLog[]
+  phienDangNhaps PhienDangNhap[]
+  aiRuleAudits   AiRuleAudit[]
+
+  @@map("nguoi_dung")
+}
+
+enum TrangThaiNguoiDung {
+  HOAT_DONG
+  TAM_KHOA
+  VO_HIEU_HOA
+
+  @@map("trang_thai_nguoi_dung")
+}
+
+// Vai trò (Role)
+model VaiTro {
+  id        Int      @id @default(autoincrement())
+  maVaiTro  String   @unique @map("ma_vai_tro") // ADMIN, HR, ACCOUNTANT, EMPLOYEE
+  tenVaiTro String   @map("ten_vai_tro")
+  moTa      String?  @map("mo_ta")
+  capDo     Int      @default(0) @map("cap_do") // 0 = thấp nhất
+  trangThai Boolean  @default(true) @map("trang_thai")
+  ngayTao   DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  nguoiDungs NguoiDungVaiTro[]
+  quyens     VaiTroQuyen[]
+
+  @@map("vai_tro")
+}
+
+// Liên kết người dùng - vai trò (many-to-many)
+model NguoiDungVaiTro {
+  id          Int       @id @default(autoincrement())
+  nguoiDungId Int       @map("nguoi_dung_id")
+  vaiTroId    Int       @map("vai_tro_id")
+  phongBanId  Int?      @map("phong_ban_id") // null = toàn công ty
+  tuNgay      DateTime  @default(now()) @map("tu_ngay")
+  denNgay     DateTime? @map("den_ngay")
+  ngayTao     DateTime  @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  nguoiDung NguoiDung @relation(fields: [nguoiDungId], references: [id], onDelete: Cascade)
+  vaiTro    VaiTro    @relation(fields: [vaiTroId], references: [id])
+
+  @@unique([nguoiDungId, vaiTroId, phongBanId])
+  @@map("nguoi_dung_vai_tro")
+}
+
+// Quyền (Permission)
+model Quyen {
+  id        Int      @id @default(autoincrement())
+  maQuyen   String   @unique @map("ma_quyen") // LUONG_XEM, LUONG_SUA, NHAN_VIEN_TAO...
+  tenQuyen  String   @map("ten_quyen")
+  nhomQuyen String   @map("nhom_quyen") // LUONG, NHAN_VIEN, KPI...
+  moTa      String?  @map("mo_ta")
+  ngayTao   DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  vaiTros VaiTroQuyen[]
+
+  @@map("quyen")
+}
+
+// Liên kết vai trò - quyền
+model VaiTroQuyen {
+  id       Int      @id @default(autoincrement())
+  vaiTroId Int      @map("vai_tro_id")
+  quyenId  Int      @map("quyen_id")
+  ngayTao  DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  vaiTro VaiTro @relation(fields: [vaiTroId], references: [id], onDelete: Cascade)
+  quyen  Quyen  @relation(fields: [quyenId], references: [id])
+
+  @@unique([vaiTroId, quyenId])
+  @@map("vai_tro_quyen")
+}
+
+// Audit Log - Ghi lại mọi hành động
+model AuditLog {
+  id          Int           @id @default(autoincrement())
+  nguoiDungId Int?          @map("nguoi_dung_id")
+  tenDangNhap String        @map("ten_dang_nhap")
+  hanhDong    HanhDongAudit @map("hanh_dong")
+  bangDuLieu  String        @map("bang_du_lieu") // Tên bảng bị thay đổi
+  banGhiId    String?       @map("ban_ghi_id") // ID bản ghi
+  duLieuCu    String?       @map("du_lieu_cu") @db.Text // JSON
+  duLieuMoi   String?       @map("du_lieu_moi") @db.Text // JSON
+  diaChiIP    String?       @map("dia_chi_ip")
+  userAgent   String?       @map("user_agent")
+  moTa        String?       @map("mo_ta")
+  ngayTao     DateTime      @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  nguoiDung NguoiDung? @relation(fields: [nguoiDungId], references: [id], onDelete: SetNull)
+
+  @@index([nguoiDungId])
+  @@index([bangDuLieu])
+  @@index([ngayTao])
+  @@map("audit_log")
+}
+
+enum HanhDongAudit {
+  TAO_MOI
+  CAP_NHAT
+  XOA
+  DANG_NHAP
+  DANG_XUAT
+  CHOT_LUONG
+  MO_KHOA
+  DUYET
+  TU_CHOI
+  IMPORT
+  EXPORT
+
+  @@map("hanh_dong_audit")
+}
+
+// Phiên đăng nhập
+model PhienDangNhap {
+  id             Int            @id @default(autoincrement())
+  nguoiDungId    Int            @map("nguoi_dung_id")
+  token          String         @unique
+  diaChiIP       String?        @map("dia_chi_ip")
+  userAgent      String?        @map("user_agent")
+  thoiGianBatDau DateTime       @default(now()) @map("thoi_gian_bat_dau")
+  thoiGianHetHan DateTime       @map("thoi_gian_het_han")
+  trangThai      TrangThaiPhien @default(HOAT_DONG) @map("trang_thai")
+
+  // Quan hệ
+  nguoiDung NguoiDung @relation(fields: [nguoiDungId], references: [id], onDelete: Cascade)
+
+  @@index([nguoiDungId])
+  @@index([thoiGianHetHan])
+  @@map("phien_dang_nhap")
+}
+
+enum TrangThaiPhien {
+  HOAT_DONG
+  HET_HAN
+  DANG_XUAT
+
+  @@map("trang_thai_phien")
+}
+
+// ============================================
+// THÔNG TIN CÔNG TY
+// Lưu thông tin công ty để hiển thị trên phiếu lương
+// ============================================
+model ThongTinCongTy {
+  id            Int      @id @default(autoincrement())
+  tenCongTy     String   @map("ten_cong_ty")
+  maSoThue      String?  @map("ma_so_thue")
+  diaChi        String?  @map("dia_chi")
+  dienThoai     String?  @map("dien_thoai")
+  email         String?  @map("email")
+  website       String?  @map("website")
+  logo          String?  @map("logo") // URL hoặc path đến logo
+  nguoiDaiDien  String?  @map("nguoi_dai_dien")
+  chucVuDaiDien String?  @map("chuc_vu_dai_dien")
+  ngayTao       DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat   DateTime @updatedAt @map("ngay_cap_nhat")
+
+  @@map("thong_tin_cong_ty")
+}
+
+// ============================================
+// RULE ENGINE - QUY CHẾ LƯƠNG THEO PHÒNG BAN
+// Quản lý quy chế lương có version theo thời gian
+// ============================================
+model QuyChe {
+  id          Int             @id @default(autoincrement())
+  phongBanId  Int             @map("phong_ban_id")
+  tenQuyChe   String          @map("ten_quy_che")
+  moTa        String?         @map("mo_ta")
+  tuNgay      DateTime        @map("tu_ngay")
+  denNgay     DateTime?       @map("den_ngay")
+  phienBan    Int             @default(1) @map("phien_ban")
+  trangThai   TrangThaiQuyChe @default(HIEU_LUC) @map("trang_thai")
+  nguoiTao    String?         @map("nguoi_tao")
+  ngayTao     DateTime        @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime        @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  phongBan     PhongBan          @relation(fields: [phongBanId], references: [id])
+  rules        QuyCheRule[]
+  bangLuongs   BangLuongQuyChe[]
+  ruleTraces   RuleTrace[]
+  aiRuleAudits AiRuleAudit[]
+
+  @@index([phongBanId])
+  @@index([tuNgay, denNgay])
+  @@index([trangThai])
+  @@map("quy_che")
+}
+
+enum TrangThaiQuyChe {
+  NHAP // Đang soạn thảo
+  HIEU_LUC // Đang áp dụng
+  TAM_DUNG // Tạm dừng
+  NGUNG // Ngừng áp dụng
+
+  @@map("trang_thai_quy_che")
+}
+
+// ============================================
+// RULE CẤU HÌNH TRONG QUY CHẾ
+// Mỗi rule định nghĩa cách tính 1 khoản lương
+// ============================================
+model QuyCheRule {
+  id              Int      @id @default(autoincrement())
+  quyCheId        Int      @map("quy_che_id")
+  khoanLuongId    Int      @map("khoan_luong_id")
+  tenRule         String   @map("ten_rule")
+  moTa            String?  @map("mo_ta")
+  loaiRule        LoaiRule @map("loai_rule")
+  dieuKienJson    String?  @map("dieu_kien_json") @db.Text // JSON điều kiện áp dụng
+  congThucJson    String   @map("cong_thuc_json") @db.Text // JSON mô tả cách tính
+  thuTuUuTien     Int      @default(0) @map("thu_tu_uu_tien")
+  cheDoGop        CheDoGop @default(GHI_DE) @map("che_do_gop")
+  choPhepChinhTay Boolean  @default(true) @map("cho_phep_chinh_tay")
+  trangThai       Boolean  @default(true) @map("trang_thai")
+  nguoiTao        String?  @map("nguoi_tao")
+  ngayTao         DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat     DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  quyChe       QuyChe        @relation(fields: [quyCheId], references: [id], onDelete: Cascade)
+  khoanLuong   KhoanLuong    @relation(fields: [khoanLuongId], references: [id])
+  ruleTraces   RuleTrace[]
+  aiRuleAudits AiRuleAudit[]
+
+  @@index([quyCheId])
+  @@index([khoanLuongId])
+  @@index([thuTuUuTien])
+  @@map("quy_che_rule")
+}
+
+enum LoaiRule {
+  CO_DINH // Số tiền cố định
+  THEO_HE_SO // Theo hệ số × base
+  BAC_THANG // Theo bậc thang điều kiện
+  THEO_SU_KIEN // Theo sự kiện thưởng/phạt
+  CONG_THUC // Biểu thức công thức
+
+  @@map("loai_rule")
+}
+
+enum CheDoGop {
+  CONG_DON // Cộng dồn nhiều lần
+  GHI_DE // Ghi đè theo ưu tiên
+
+  @@map("che_do_gop")
+}
+
+// ============================================
+// NHÂN VIÊN TRÁCH NHIỆM
+// Cấp trách nhiệm, hệ số, vai trò của nhân viên
+// ============================================
+model NhanVienTrachNhiem {
+  id             Int       @id @default(autoincrement())
+  nhanVienId     Int       @map("nhan_vien_id")
+  phongBanId     Int       @map("phong_ban_id")
+  capTrachNhiem  Int       @default(1) @map("cap_trach_nhiem") // 1, 2, 3...
+  heSoTrachNhiem Decimal   @default(1) @map("he_so_trach_nhiem") @db.Decimal(5, 2)
+  vaiTro         String?   @map("vai_tro") // TO_TRUONG, QUAN_LY, GIAM_DOC...
+  tuNgay         DateTime  @map("tu_ngay")
+  denNgay        DateTime? @map("den_ngay")
+  ghiChu         String?   @map("ghi_chu")
+  ngayTao        DateTime  @default(now()) @map("ngay_tao")
+  ngayCapNhat    DateTime  @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanVien NhanVien @relation(fields: [nhanVienId], references: [id])
+  phongBan PhongBan @relation(fields: [phongBanId], references: [id])
+
+  @@index([nhanVienId])
+  @@index([phongBanId])
+  @@index([tuNgay, denNgay])
+  @@map("nhan_vien_trach_nhiem")
+}
+
+// ============================================
+// SỰ KIỆN THƯỞNG/PHẠT
+// Ghi nhận các sự kiện thưởng/phạt phát sinh
+// ============================================
+model SuKienThuongPhat {
+  id          Int             @id @default(autoincrement())
+  nhanVienId  Int             @map("nhan_vien_id")
+  phongBanId  Int             @map("phong_ban_id")
+  ngay        DateTime
+  loaiSuKien  LoaiSuKien      @map("loai_su_kien")
+  maSuKien    String          @map("ma_su_kien") // DI_TRE, SAI_QUY_TRINH, HOAN_THANH_XUAT_SAC...
+  giaTri      Decimal         @default(0) @map("gia_tri") @db.Decimal(15, 2) // Số lần/điểm/số tiền
+  soTien      Decimal         @default(0) @map("so_tien") @db.Decimal(15, 0) // Số tiền quy đổi
+  ghiChu      String?         @map("ghi_chu")
+  trangThai   TrangThaiSuKien @default(NHAP) @map("trang_thai")
+  duyetBoi    String?         @map("duyet_boi")
+  duyetLuc    DateTime?       @map("duyet_luc")
+  nguoiTao    String?         @map("nguoi_tao")
+  ngayTao     DateTime        @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime        @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanVien NhanVien @relation(fields: [nhanVienId], references: [id])
+  phongBan PhongBan @relation(fields: [phongBanId], references: [id])
+
+  @@index([nhanVienId])
+  @@index([phongBanId])
+  @@index([ngay])
+  @@index([loaiSuKien])
+  @@index([trangThai])
+  @@map("su_kien_thuong_phat")
+}
+
+enum LoaiSuKien {
+  THUONG // Thưởng
+  PHAT // Phạt
+
+  @@map("loai_su_kien")
+}
+
+enum TrangThaiSuKien {
+  NHAP // Đang nhập
+  DA_DUYET // Đã duyệt
+  TU_CHOI // Từ chối
+  HUY // Đã hủy
+
+  @@map("trang_thai_su_kien")
+}
+
+// ============================================
+// DANH MỤC SỰ KIỆN
+// Định nghĩa các loại sự kiện thưởng/phạt
+// ============================================
+model DanhMucSuKien {
+  id            Int        @id @default(autoincrement())
+  maSuKien      String     @unique @map("ma_su_kien")
+  tenSuKien     String     @map("ten_su_kien")
+  loai          LoaiSuKien
+  moTa          String?    @map("mo_ta")
+  soTienMacDinh Decimal?   @map("so_tien_mac_dinh") @db.Decimal(15, 0)
+  trangThai     Boolean    @default(true) @map("trang_thai")
+  ngayTao       DateTime   @default(now()) @map("ngay_tao")
+  ngayCapNhat   DateTime   @updatedAt @map("ngay_cap_nhat")
+
+  @@map("danh_muc_su_kien")
+}
+
+// ============================================
+// LIÊN KẾT BẢNG LƯƠNG - QUY CHẾ
+// Ghi nhận quy chế đã áp dụng cho bảng lương
+// ============================================
+model BangLuongQuyChe {
+  id          Int      @id @default(autoincrement())
+  bangLuongId Int      @map("bang_luong_id")
+  quyCheId    Int      @map("quy_che_id")
+  ngayApDung  DateTime @default(now()) @map("ngay_ap_dung")
+  nguoiApDung String?  @map("nguoi_ap_dung")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  bangLuong BangLuong @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
+  quyChe    QuyChe    @relation(fields: [quyCheId], references: [id])
+
+  @@unique([bangLuongId, quyCheId])
+  @@map("bang_luong_quy_che")
+}
+
+// ============================================
+// RULE TRACE - GIẢI TRÌNH TÍNH TOÁN
+// Lưu lại trace khi rule engine chạy
+// ============================================
+model RuleTrace {
+  id               Int      @id @default(autoincrement())
+  bangLuongId      Int      @map("bang_luong_id")
+  nhanVienId       Int      @map("nhan_vien_id")
+  quyCheId         Int      @map("quy_che_id")
+  quyCheRuleId     Int?     @map("quy_che_rule_id")
+  khoanLuongId     Int      @map("khoan_luong_id")
+  inputJson        String   @map("input_json") @db.Text // Dữ liệu đầu vào
+  outputSoTien     Decimal  @map("output_so_tien") @db.Decimal(15, 0)
+  messageGiaiThich String   @map("message_giai_thich") @db.Text // Giải thích cách tính
+  taoLuc           DateTime @default(now()) @map("tao_luc")
+
+  // Quan hệ
+  bangLuong  BangLuong   @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
+  nhanVien   NhanVien    @relation(fields: [nhanVienId], references: [id])
+  quyChe     QuyChe      @relation(fields: [quyCheId], references: [id])
+  quyCheRule QuyCheRule? @relation(fields: [quyCheRuleId], references: [id], onDelete: SetNull)
+  khoanLuong KhoanLuong  @relation(fields: [khoanLuongId], references: [id])
+
+  @@index([bangLuongId])
+  @@index([nhanVienId])
+  @@index([quyCheId])
+  @@index([taoLuc])
+  @@map("rule_trace")
+}
+
+// ============================================
+// AI RULE AUDIT - LỊCH SỬ GỢI Ý RULE TỪ AI
+// Lưu lại mọi prompt và response từ trợ lý AI
+// ============================================
+model AiRuleAudit {
+  id           Int              @id @default(autoincrement())
+  nguoiTaoId   Int?             @map("nguoi_tao_id")
+  phongBanId   Int?             @map("phong_ban_id")
+  quyCheId     Int?             @map("quy_che_id")
+  promptGoc    String           @map("prompt_goc") @db.Text // Nội dung tiếng Việt user nhập
+  responseJson String           @map("response_json") @db.Text // Kết quả JSON từ AI
+  trangThai    TrangThaiAiAudit @default(DE_XUAT) @map("trang_thai")
+  ruleApDungId Int?             @map("rule_ap_dung_id") // ID rule nếu đã áp dụng
+  taoLuc       DateTime         @default(now()) @map("tao_luc")
+
+  // Quan hệ
+  nguoiTao NguoiDung?  @relation(fields: [nguoiTaoId], references: [id])
+  phongBan PhongBan?   @relation(fields: [phongBanId], references: [id])
+  quyChe   QuyChe?     @relation(fields: [quyCheId], references: [id])
+  rule     QuyCheRule? @relation(fields: [ruleApDungId], references: [id], onDelete: SetNull)
+
+  @@index([nguoiTaoId])
+  @@index([quyCheId])
+  @@index([trangThai])
+  @@index([taoLuc])
+  @@map("ai_rule_audit")
+}
+
+enum TrangThaiAiAudit {
+  DE_XUAT
+  DA_AP_DUNG
+  HUY
+
+  @@map("trang_thai_ai_audit")
+}
