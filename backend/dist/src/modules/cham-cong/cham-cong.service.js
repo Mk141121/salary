@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChamCongService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const constants_1 = require("../../common/constants");
 let ChamCongService = class ChamCongService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -186,6 +187,23 @@ let ChamCongService = class ChamCongService {
             },
         });
     }
+    async layChamCongNhieuNhanVien(nhanVienIds, thang, nam) {
+        const chamCongs = await this.prisma.chamCong.findMany({
+            where: {
+                nhanVienId: { in: nhanVienIds },
+                thang,
+                nam,
+            },
+            include: {
+                nhanVien: true,
+            },
+        });
+        const map = new Map();
+        for (const cc of chamCongs) {
+            map.set(cc.nhanVienId, cc);
+        }
+        return map;
+    }
     async luuChamCong(data) {
         return this.prisma.chamCong.upsert({
             where: {
@@ -214,7 +232,7 @@ let ChamCongService = class ChamCongService {
             },
         });
     }
-    async khoiTaoChamCongThang(thang, nam, soCongChuan = 26) {
+    async khoiTaoChamCongThang(thang, nam, soCongChuan = constants_1.NGAY_CONG_CHUAN_MAC_DINH) {
         const nhanViens = await this.prisma.nhanVien.findMany({
             where: { trangThai: 'DANG_LAM' },
         });

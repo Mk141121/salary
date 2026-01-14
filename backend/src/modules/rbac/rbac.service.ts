@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 import {
   TaoNguoiDungDto,
   CapNhatNguoiDungDto,
@@ -21,20 +22,42 @@ import {
   TimKiemAuditLogDto,
 } from './dto/rbac.dto';
 
+// Số vòng salt cho bcrypt (12 là cân bằng giữa bảo mật và performance)
+const BCRYPT_SALT_ROUNDS = 12;
+
 @Injectable()
 export class RBACService {
   constructor(private prisma: PrismaService) {}
 
   // ============================================
-  // HELPER: HASH PASSWORD
+  // HELPER: HASH PASSWORD (BCRYPT)
   // ============================================
 
-  private hashPassword(password: string): string {
-    return crypto.createHash('sha256').update(password).digest('hex');
+  private async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+  }
+
+  private async verifyPassword(password: string, hash: string): Promise<boolean> {
+    // Hỗ trợ migrate từ SHA-256 cũ sang bcrypt mới
+    if (hash.length === 64 && !hash.startsWith('$2')) {
+      // Đây là SHA-256 hash cũ (64 hex chars)
+      const sha256Hash = crypto.createHash('sha256').update(password).digest('hex');
+      return sha256Hash === hash;
+    }
+    // Bcrypt hash mới
+    return bcrypt.compare(password, hash);
   }
 
   private generateToken(): string {
     return crypto.randomBytes(32).toString('hex');
+  }
+
+  /**
+   * Hash token để lưu trong DB (không lưu plaintext)
+   * Dùng SHA-256 vì token đã là random, chỉ cần hash để không lưu raw value
+   */
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   // ============================================
@@ -115,7 +138,7 @@ export class RBACService {
     const nguoiDung = await this.prisma.nguoiDung.create({
       data: {
         tenDangNhap: dto.tenDangNhap,
-        matKhau: this.hashPassword(dto.matKhau),
+        matKhau: await this.hashPassword(dto.matKhau),
         email: dto.email,
         hoTen: dto.hoTen,
         nhanVienId: dto.nhanVienId,
@@ -167,14 +190,15 @@ export class RBACService {
     }
 
     // Kiểm tra mật khẩu cũ
-    if (nguoiDung.matKhau !== this.hashPassword(dto.matKhauCu)) {
+    const isValidPassword = await this.verifyPassword(dto.matKhauCu, nguoiDung.matKhau);
+    if (!isValidPassword) {
       throw new BadRequestException('Mật khẩu cũ không đúng');
     }
 
     await this.prisma.nguoiDung.update({
       where: { id },
       data: {
-        matKhau: this.hashPassword(dto.matKhauMoi),
+        matKhau: await this.hashPassword(dto.matKhauMoi),
       },
     });
 
@@ -199,13 +223,27 @@ export class RBACService {
       },
     });
 
-    if (!nguoiDung || nguoiDung.matKhau !== this.hashPassword(dto.matKhau)) {
+    // Kiểm tra user tồn tại trước khi verify password
+    if (!nguoiDung) {
+      await this.ghiAuditLog({
+        tenDangNhap: dto.tenDangNhap,
+        hanhDong: 'DANG_NHAP',
+        bangDuLieu: 'nguoi_dung',
+        moTa: 'Đăng nhập thất bại - Không tìm thấy user',
+        diaChiIP: ip,
+        userAgent,
+      });
+      throw new UnauthorizedException('Tên đăng nhập hoặc mật khẩu không đúng');
+    }
+
+    const isValidPassword = await this.verifyPassword(dto.matKhau, nguoiDung.matKhau);
+    if (!isValidPassword) {
       // Log đăng nhập thất bại
       await this.ghiAuditLog({
         tenDangNhap: dto.tenDangNhap,
         hanhDong: 'DANG_NHAP',
         bangDuLieu: 'nguoi_dung',
-        moTa: 'Đăng nhập thất bại - Sai thông tin',
+        moTa: 'Đăng nhập thất bại - Sai mật khẩu',
         diaChiIP: ip,
         userAgent,
       });
@@ -218,13 +256,15 @@ export class RBACService {
 
     // Tạo token
     const token = this.generateToken();
+    const tokenHash = this.hashToken(token);
     const hetHan = new Date();
     hetHan.setHours(hetHan.getHours() + 8); // 8 giờ
 
+    // Lưu hash của token, không lưu plaintext
     await this.prisma.phienDangNhap.create({
       data: {
         nguoiDungId: nguoiDung.id,
-        token,
+        token: tokenHash,
         diaChiIP: ip,
         userAgent,
         thoiGianHetHan: hetHan,
@@ -275,14 +315,15 @@ export class RBACService {
   }
 
   async dangXuat(token: string) {
+    const tokenHash = this.hashToken(token);
     const phien = await this.prisma.phienDangNhap.findUnique({
-      where: { token },
+      where: { token: tokenHash },
       include: { nguoiDung: true },
     });
 
     if (phien) {
       await this.prisma.phienDangNhap.update({
-        where: { token },
+        where: { token: tokenHash },
         data: { trangThai: 'DANG_XUAT' },
       });
 
@@ -299,8 +340,9 @@ export class RBACService {
   }
 
   async kiemTraToken(token: string) {
+    const tokenHash = this.hashToken(token);
     const phien = await this.prisma.phienDangNhap.findUnique({
-      where: { token },
+      where: { token: tokenHash },
       include: {
         nguoiDung: {
           include: {
@@ -326,7 +368,7 @@ export class RBACService {
 
     if (phien.thoiGianHetHan < new Date()) {
       await this.prisma.phienDangNhap.update({
-        where: { token },
+        where: { token: tokenHash },
         data: { trangThai: 'HET_HAN' },
       });
       throw new UnauthorizedException('Token đã hết hạn');

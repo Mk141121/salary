@@ -5,6 +5,7 @@ import { PhuCapNhanVienService } from '../phu-cap-nhan-vien/phu-cap-nhan-vien.se
 import { BHXHThueService } from '../bhxh-thue/bhxh-thue.service';
 import { SnapshotDieuChinhService } from '../snapshot-dieu-chinh/snapshot-dieu-chinh.service';
 import { ChamCongService } from '../cham-cong/cham-cong.service';
+import { AuditLogService } from '../../common/services/audit-log.service';
 import { TaoBangLuongDto, CapNhatBangLuongDto, CapNhatChiTietLuongDto, ChotBangLuongDto } from './dto/bang-luong.dto';
 export declare class BangLuongService {
     private prisma;
@@ -14,7 +15,9 @@ export declare class BangLuongService {
     private bhxhThueService;
     private snapshotService;
     private chamCongService;
-    constructor(prisma: PrismaService, tinhLuongService: TinhLuongService, ngayCongService: NgayCongService, phuCapNhanVienService: PhuCapNhanVienService, bhxhThueService: BHXHThueService, snapshotService: SnapshotDieuChinhService, chamCongService: ChamCongService);
+    private auditLogService;
+    private readonly logger;
+    constructor(prisma: PrismaService, tinhLuongService: TinhLuongService, ngayCongService: NgayCongService, phuCapNhanVienService: PhuCapNhanVienService, bhxhThueService: BHXHThueService, snapshotService: SnapshotDieuChinhService, chamCongService: ChamCongService, auditLogService: AuditLogService);
     layDanhSach(thang?: number, nam?: number, phongBanId?: number, trang?: number, soLuong?: number): Promise<{
         data: {
             tongThuNhap: number;
@@ -186,7 +189,7 @@ export declare class BangLuongService {
             thucLinh: number;
         };
     }[]>;
-    chotBangLuong(id: number, dto: ChotBangLuongDto): Promise<{
+    chotBangLuong(id: number, dto: ChotBangLuongDto, nguoiDungId?: number): Promise<{
         ghiChu: string | undefined;
         message: string;
         bangLuongId: number;
@@ -194,7 +197,7 @@ export declare class BangLuongService {
         ngayChot: Date;
         nguoiChot: string;
     }>;
-    moKhoaBangLuong(id: number): Promise<{
+    moKhoaBangLuong(id: number, lyDo: string, nguoiDungId?: number, tenDangNhap?: string): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
         ngayTao: Date;
@@ -207,7 +210,7 @@ export declare class BangLuongService {
         ngayChot: Date | null;
         nguoiChot: string | null;
     }>;
-    khoaBangLuong(id: number): Promise<{
+    khoaBangLuong(id: number, nguoiDungId?: number, tenDangNhap?: string): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
         ngayTao: Date;

@@ -13,6 +13,7 @@ exports.RuleEngineService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const constants_1 = require("../../common/constants");
 let RuleEngineService = class RuleEngineService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -121,20 +122,17 @@ let RuleEngineService = class RuleEngineService {
         }
         return true;
     }
-    tinhCongThuc(congThuc, bienSo) {
+    async tinhCongThuc(congThuc, bienSo) {
         try {
-            let bieuThuc = congThuc;
             const chiTiet = [];
+            const numericBienSo = {};
             for (const [ten, giaTri] of Object.entries(bienSo)) {
-                const regex = new RegExp(`\\b${ten}\\b`, 'g');
-                bieuThuc = bieuThuc.replace(regex, String(giaTri));
-                chiTiet.push(`${ten} = ${this.formatTien(Number(giaTri))}`);
+                const numValue = typeof giaTri === 'number' ? giaTri : parseFloat(String(giaTri)) || 0;
+                numericBienSo[ten] = numValue;
+                chiTiet.push(`${ten} = ${this.formatTien(numValue)}`);
             }
-            const safeExpression = bieuThuc
-                .replace(/[^0-9+\-*/().,%\s]/g, '')
-                .replace(/,/g, '');
-            const calculate = new Function(`return ${safeExpression}`);
-            const ketQua = calculate();
+            const { safeEval } = await Promise.resolve().then(() => require('../../common/utils/safe-eval'));
+            const ketQua = safeEval(congThuc, numericBienSo);
             if (typeof ketQua !== 'number' || isNaN(ketQua)) {
                 throw new Error('Kết quả không hợp lệ');
             }
@@ -191,10 +189,10 @@ let RuleEngineService = class RuleEngineService {
                     giaTri[bs.tenBien] = Number(nhanVien.luongCoBan);
                     break;
                 case 'CONG_CHUAN':
-                    giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongChuan) : 26;
+                    giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongChuan) : constants_1.NGAY_CONG_CHUAN_MAC_DINH;
                     break;
                 case 'CONG_THUC_TE':
-                    giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongThucTe) : 26;
+                    giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongThucTe) : constants_1.NGAY_CONG_CHUAN_MAC_DINH;
                     break;
                 case 'SO_GIO_OT':
                     giaTri[bs.tenBien] = chamCong ? Number(chamCong.soGioOT) : 0;
@@ -232,7 +230,7 @@ let RuleEngineService = class RuleEngineService {
     async tinhLuongTheoCongThuc(nhanVienId, congThucId, thang, nam) {
         const congThuc = await this.layCongThuc(congThucId);
         const bienSo = await this.layGiaTriBienSo(nhanVienId, thang, nam, congThuc.bienSos);
-        return this.tinhCongThuc(congThuc.congThuc, bienSo);
+        return await this.tinhCongThuc(congThuc.congThuc, bienSo);
     }
     async khoiTaoCongThucMau() {
         const congThucMau = [
@@ -313,7 +311,7 @@ let RuleEngineService = class RuleEngineService {
     }
     async testCongThuc(congThuc, bienSo) {
         this.validateCongThuc(congThuc);
-        return this.tinhCongThuc(congThuc, bienSo);
+        return await this.tinhCongThuc(congThuc, bienSo);
     }
 };
 exports.RuleEngineService = RuleEngineService;

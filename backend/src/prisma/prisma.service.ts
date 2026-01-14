@@ -1,9 +1,11 @@
 // Prisma Service - Quản lý kết nối database
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PrismaService.name);
+
   constructor() {
     super({
       log: process.env.NODE_ENV === 'development' 
@@ -14,12 +16,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
-    console.log('✅ Đã kết nối database PostgreSQL');
+    this.logger.log('Đã kết nối database PostgreSQL');
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
-    console.log('🔌 Đã ngắt kết nối database');
+    this.logger.log('Đã ngắt kết nối database');
   }
 
   // Helper method để clean database trong testing

@@ -19,9 +19,11 @@ import {
   TestCongThucDto,
   TinhLuongDto,
 } from './dto/rule-engine.dto';
+import { Quyen, VaiTro, CongKhai } from '../../common';
 
 @ApiTags('Rule Engine - Công thức lương')
 @Controller('rule-engine')
+@VaiTro('ADMIN', 'KETOAN') // Chỉ admin và kế toán mới truy cập rule engine
 export class RuleEngineController {
   constructor(private readonly ruleEngineService: RuleEngineService) {}
 

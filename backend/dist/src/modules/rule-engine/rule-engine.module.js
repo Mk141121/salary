@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RuleEngineModule = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_module_1 = require("../../prisma/prisma.module");
+const audit_log_service_1 = require("../../common/services/audit-log.service");
 const rule_engine_service_1 = require("./rule-engine.service");
 const quy_che_service_1 = require("./quy-che.service");
 const quy_che_rule_service_1 = require("./quy-che-rule.service");
@@ -39,6 +40,7 @@ exports.RuleEngineModule = RuleEngineModule = __decorate([
             su_kien_thuong_phat_service_1.SuKienThuongPhatService,
             rule_engine_executor_service_1.RuleEngineExecutor,
             tro_ly_ai_service_1.TroLyAiService,
+            audit_log_service_1.AuditLogService,
         ],
         exports: [
             rule_engine_service_1.RuleEngineService,

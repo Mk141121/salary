@@ -18,9 +18,11 @@ import {
   ImportChamCongDto,
   CapNhatCauHinhPhatDto,
 } from './dto/cham-cong.dto';
+import { Quyen } from '../../common';
 
 @ApiTags('Chấm công')
 @Controller('cham-cong')
+@Quyen('CHAMCONG_XEM') // Mặc định cần quyền xem chấm công để truy cập
 export class ChamCongController {
   constructor(private readonly chamCongService: ChamCongService) {}
 

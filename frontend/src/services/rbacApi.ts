@@ -1,10 +1,31 @@
 // RBAC API Service - Phân quyền & Người dùng
 import axios from 'axios'
 
+const AUTH_STORAGE_KEY = 'tinh_luong_auth'
+
 const api = axios.create({
   baseURL: '/api/rbac',
   headers: { 'Content-Type': 'application/json' },
 })
+
+// Interceptor để tự động thêm token vào header
+api.interceptors.request.use(
+  (config) => {
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        if (data.token) {
+          config.headers.Authorization = `Bearer ${data.token}`
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
 // ==================== INTERFACES ====================
 export interface NguoiDung {

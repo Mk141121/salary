@@ -180,11 +180,11 @@ export declare class KPIService {
                 id: number;
                 ngayTao: Date;
                 ghiChu: string | null;
-                chiTieuId: number;
                 ketQuaDat: Decimal | null;
                 tyLeDat: Decimal | null;
                 diemQuyDoi: Decimal | null;
                 danhGiaId: number;
+                chiTieuId: number;
             })[];
         } & {
             id: number;
@@ -198,10 +198,10 @@ export declare class KPIService {
             nguoiDuyet: string | null;
             ngayDuyet: Date | null;
             kyDanhGiaId: number;
-            nhanXetChung: string | null;
-            nguoiDanhGia: string | null;
             diemTongKet: Decimal | null;
             soTienThuong: Decimal;
+            nhanXetChung: string | null;
+            nguoiDanhGia: string | null;
             ngayDanhGia: Date | null;
         })[];
     } & {
@@ -273,11 +273,11 @@ export declare class KPIService {
             id: number;
             ngayTao: Date;
             ghiChu: string | null;
-            chiTieuId: number;
             ketQuaDat: Decimal | null;
             tyLeDat: Decimal | null;
             diemQuyDoi: Decimal | null;
             danhGiaId: number;
+            chiTieuId: number;
         })[];
     } & {
         id: number;
@@ -291,10 +291,10 @@ export declare class KPIService {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        nhanXetChung: string | null;
-        nguoiDanhGia: string | null;
         diemTongKet: Decimal | null;
         soTienThuong: Decimal;
+        nhanXetChung: string | null;
+        nguoiDanhGia: string | null;
         ngayDanhGia: Date | null;
     }>;
     capNhatKetQuaKPI(danhGiaId: number, dto: CapNhatKetQuaKPIDto): Promise<({
@@ -318,11 +318,11 @@ export declare class KPIService {
             id: number;
             ngayTao: Date;
             ghiChu: string | null;
-            chiTieuId: number;
             ketQuaDat: Decimal | null;
             tyLeDat: Decimal | null;
             diemQuyDoi: Decimal | null;
             danhGiaId: number;
+            chiTieuId: number;
         })[];
     } & {
         id: number;
@@ -336,10 +336,10 @@ export declare class KPIService {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        nhanXetChung: string | null;
-        nguoiDanhGia: string | null;
         diemTongKet: Decimal | null;
         soTienThuong: Decimal;
+        nhanXetChung: string | null;
+        nguoiDanhGia: string | null;
         ngayDanhGia: Date | null;
     }) | null>;
     private tinhTyLeDat;
@@ -360,10 +360,10 @@ export declare class KPIService {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        nhanXetChung: string | null;
-        nguoiDanhGia: string | null;
         diemTongKet: Decimal | null;
         soTienThuong: Decimal;
+        nhanXetChung: string | null;
+        nguoiDanhGia: string | null;
         ngayDanhGia: Date | null;
     }>;
     duyetDanhGia(danhGiaId: number, dto: DuyetDanhGiaKPIDto): Promise<{
@@ -378,10 +378,10 @@ export declare class KPIService {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        nhanXetChung: string | null;
-        nguoiDanhGia: string | null;
         diemTongKet: Decimal | null;
         soTienThuong: Decimal;
+        nhanXetChung: string | null;
+        nguoiDanhGia: string | null;
         ngayDanhGia: Date | null;
     }>;
     tuChoiDanhGia(danhGiaId: number, lyDo: string): Promise<{
@@ -396,10 +396,10 @@ export declare class KPIService {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        nhanXetChung: string | null;
-        nguoiDanhGia: string | null;
         diemTongKet: Decimal | null;
         soTienThuong: Decimal;
+        nhanXetChung: string | null;
+        nguoiDanhGia: string | null;
         ngayDanhGia: Date | null;
     }>;
     layCauHinhThuong(nam: number): Promise<{

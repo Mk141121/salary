@@ -150,6 +150,7 @@ export declare class QuyCheService {
         phienBan: number;
         tenQuyChe: string;
     }>;
+    private kiemTraOverlapQuyChe;
     capNhat(id: number, dto: CapNhatQuyCheDto): Promise<{
         phongBan: {
             id: number;

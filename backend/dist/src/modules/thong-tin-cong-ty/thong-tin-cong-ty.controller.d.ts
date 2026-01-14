@@ -15,6 +15,7 @@ export declare class ThongTinCongTyController {
         logo: string | null;
         nguoiDaiDien: string | null;
         chucVuDaiDien: string | null;
+        ngayCongChuanMacDinh: number;
     }>;
     capNhat(dto: CapNhatThongTinCongTyDto): Promise<{
         id: number;
@@ -29,5 +30,6 @@ export declare class ThongTinCongTyController {
         logo: string | null;
         nguoiDaiDien: string | null;
         chucVuDaiDien: string | null;
+        ngayCongChuanMacDinh: number;
     }>;
 }

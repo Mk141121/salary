@@ -33,12 +33,14 @@ export default function AuditLogPage() {
   const loadData = async () => {
     setIsLoading(true)
     try {
-      const data = await auditLogApi.layDanhSach({
+      const response = await auditLogApi.layDanhSach({
         hanhDong: filterHanhDong || undefined,
         bangDuLieu: filterBangDuLieu || undefined,
         tuNgay: filterTuNgay || undefined,
         denNgay: filterDenNgay || undefined,
-      })
+      }) as unknown as AuditLog[] | { items: AuditLog[] }
+      // Handle response format: array or { items: [] }
+      const data = Array.isArray(response) ? response : (response as { items: AuditLog[] })?.items || []
       setLogs(data)
     } catch (error) {
       console.error('Lỗi tải dữ liệu:', error)

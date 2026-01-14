@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { KieuDuLieu } from '@prisma/client';
+import { NGAY_CONG_CHUAN_MAC_DINH } from '../../common/constants';
 
 // Interface cho biến số trong công thức
 export interface BienSoGiaTri {
@@ -200,27 +201,22 @@ export class RuleEngineService {
   }
 
   // Tính toán công thức với các biến số
-  tinhCongThuc(congThuc: string, bienSo: BienSoGiaTri): KetQuaTinhCongThuc {
+  async tinhCongThuc(congThuc: string, bienSo: BienSoGiaTri): Promise<KetQuaTinhCongThuc> {
     try {
-      // Thay thế các biến số trong công thức
-      let bieuThuc = congThuc;
       const chiTiet: string[] = [];
 
+      // Convert bienSo sang Record<string, number>
+      const numericBienSo: Record<string, number> = {};
       for (const [ten, giaTri] of Object.entries(bienSo)) {
-        const regex = new RegExp(`\\b${ten}\\b`, 'g');
-        bieuThuc = bieuThuc.replace(regex, String(giaTri));
-        chiTiet.push(`${ten} = ${this.formatTien(Number(giaTri))}`);
+        const numValue = typeof giaTri === 'number' ? giaTri : parseFloat(String(giaTri)) || 0;
+        numericBienSo[ten] = numValue;
+        chiTiet.push(`${ten} = ${this.formatTien(numValue)}`);
       }
 
       // Tính toán kết quả
-      // Chỉ cho phép các phép toán cơ bản và hàm toán học
-      const safeExpression = bieuThuc
-        .replace(/[^0-9+\-*/().,%\s]/g, '')
-        .replace(/,/g, ''); // Loại bỏ dấu phẩy trong số
-
-      // Sử dụng Function constructor thay vì eval (an toàn hơn)
-      const calculate = new Function(`return ${safeExpression}`);
-      const ketQua = calculate();
+      // Sử dụng safe evaluator thay vì new Function()
+      const { safeEval } = await import('../../common/utils/safe-eval');
+      const ketQua = safeEval(congThuc, numericBienSo);
 
       if (typeof ketQua !== 'number' || isNaN(ketQua)) {
         throw new Error('Kết quả không hợp lệ');
@@ -294,10 +290,10 @@ export class RuleEngineService {
           giaTri[bs.tenBien] = Number(nhanVien.luongCoBan);
           break;
         case 'CONG_CHUAN':
-          giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongChuan) : 26;
+          giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongChuan) : NGAY_CONG_CHUAN_MAC_DINH;
           break;
         case 'CONG_THUC_TE':
-          giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongThucTe) : 26;
+          giaTri[bs.tenBien] = chamCong ? Number(chamCong.soCongThucTe) : NGAY_CONG_CHUAN_MAC_DINH;
           break;
         case 'SO_GIO_OT':
           giaTri[bs.tenBien] = chamCong ? Number(chamCong.soGioOT) : 0;
@@ -348,7 +344,7 @@ export class RuleEngineService {
     const congThuc = await this.layCongThuc(congThucId);
     const bienSo = await this.layGiaTriBienSo(nhanVienId, thang, nam, congThuc.bienSos);
 
-    return this.tinhCongThuc(congThuc.congThuc, bienSo);
+    return await this.tinhCongThuc(congThuc.congThuc, bienSo);
   }
 
   // ============================================
@@ -440,6 +436,6 @@ export class RuleEngineService {
   // Test công thức
   async testCongThuc(congThuc: string, bienSo: BienSoGiaTri): Promise<KetQuaTinhCongThuc> {
     this.validateCongThuc(congThuc);
-    return this.tinhCongThuc(congThuc, bienSo);
+    return await this.tinhCongThuc(congThuc, bienSo);
   }
 }

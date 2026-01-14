@@ -16,9 +16,11 @@ import {
   CapNhatNguoiPhuThuocDto,
   LuuCauHinhBHXHDto,
 } from './dto/bhxh-thue.dto';
+import { Quyen, VaiTro } from '../../common';
 
 @ApiTags('BHXH & Thuế TNCN')
 @Controller('bhxh-thue')
+@Quyen('BHXH_XEM') // Mặc định cần quyền xem BHXH
 export class BHXHThueController {
   constructor(private readonly bhxhThueService: BHXHThueService) {}
 

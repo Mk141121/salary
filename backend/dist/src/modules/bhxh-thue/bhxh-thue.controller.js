@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const bhxh_thue_service_1 = require("./bhxh-thue.service");
 const bhxh_thue_dto_1 = require("./dto/bhxh-thue.dto");
+const common_2 = require("../../common");
 let BHXHThueController = class BHXHThueController {
     constructor(bhxhThueService) {
         this.bhxhThueService = bhxhThueService;
@@ -125,6 +126,7 @@ __decorate([
 exports.BHXHThueController = BHXHThueController = __decorate([
     (0, swagger_1.ApiTags)('BHXH & Thuế TNCN'),
     (0, common_1.Controller)('bhxh-thue'),
+    (0, common_2.Quyen)('BHXH_XEM'),
     __metadata("design:paramtypes", [bhxh_thue_service_1.BHXHThueService])
 ], BHXHThueController);
 //# sourceMappingURL=bhxh-thue.controller.js.map

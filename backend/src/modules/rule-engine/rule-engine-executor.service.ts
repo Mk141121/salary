@@ -4,8 +4,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import {
   LoaiRule,
   CheDoGop,
@@ -15,6 +17,8 @@ import {
 } from '@prisma/client';
 import { QuyCheService } from './quy-che.service';
 import { SuKienThuongPhatService } from './su-kien-thuong-phat.service';
+import { AuditLogService } from '../../common/services/audit-log.service';
+import { NGAY_CONG_CHUAN_MAC_DINH } from '../../common/constants';
 
 // Interface dữ liệu nhân viên cho tính toán
 interface DuLieuNhanVien {
@@ -80,32 +84,112 @@ export class RuleEngineExecutor {
     private prisma: PrismaService,
     private quyCheService: QuyCheService,
     private suKienService: SuKienThuongPhatService,
+    private auditLogService: AuditLogService,
   ) {}
 
   // ============================================
-  // CHẠY RULE ENGINE CHO BẢNG LƯƠNG
+  // CHẠY RULE ENGINE CHO BẢNG LƯƠNG (PUBLIC - với transaction + lock)
   // ============================================
-  async chayRuleEngine(bangLuongId: number, nguoiThucHien?: string): Promise<KetQuaEngine> {
+  async chayRuleEngine(
+    bangLuongId: number, 
+    nguoiThucHien?: string,
+    nguoiDungId?: number,
+  ): Promise<KetQuaEngine> {
     const batDau = Date.now();
 
-    // 1. Lấy thông tin bảng lương
-    const bangLuong = await this.prisma.bangLuong.findUnique({
-      where: { id: bangLuongId },
-      include: {
-        phongBan: true,
+    // Sử dụng interactive transaction với timeout và isolation level
+    return await this.prisma.$transaction(
+      async (tx) => {
+        // 1. Lock bảng lương để tránh race condition
+        // SELECT ... FOR UPDATE sẽ lock row cho đến khi transaction hoàn thành
+        const lockedBangLuong = await tx.$queryRaw<
+          Array<{
+            id: number;
+            thang: number;
+            nam: number;
+            phong_ban_id: number;
+            trang_thai: string;
+          }>
+        >`SELECT id, thang, nam, phong_ban_id, trang_thai 
+          FROM bang_luong 
+          WHERE id = ${bangLuongId} 
+          FOR UPDATE NOWAIT`;
+
+        if (!lockedBangLuong || lockedBangLuong.length === 0) {
+          throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
+        }
+
+        const bangLuongRow = lockedBangLuong[0];
+        
+        // Kiểm tra trạng thái
+        if (bangLuongRow.trang_thai !== TrangThaiBangLuong.NHAP) {
+          throw new BadRequestException(
+            'Chỉ có thể chạy Rule Engine cho bảng lương đang ở trạng thái Nhập'
+          );
+        }
+
+        // Lấy đầy đủ thông tin bảng lương với relations
+        const bangLuong = await tx.bangLuong.findUnique({
+          where: { id: bangLuongId },
+          include: {
+            phongBan: true,
+          },
+        });
+
+        if (!bangLuong) {
+          throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
+        }
+
+        // Thực hiện logic rule engine trong transaction
+        const ketQua = await this.thucHienRuleEngine(tx, bangLuong, nguoiThucHien, batDau);
+        
+        // Ghi audit log (ngoài transaction để không ảnh hưởng)
+        this.auditLogService.ghiLogRuleEngine({
+          nguoiDungId,
+          tenDangNhap: nguoiThucHien,
+          bangLuongId,
+          quyCheId: ketQua.quyCheId,
+          soNhanVien: ketQua.soNhanVien,
+          thoiGianXuLy: ketQua.thoiGianXuLy,
+        }).catch((err) => {
+          console.error('Lỗi ghi audit log rule engine:', err.message);
+        });
+        
+        return ketQua;
       },
+      {
+        // Transaction options
+        maxWait: 5000, // Thời gian chờ lock tối đa 5s
+        timeout: 120000, // Timeout transaction 2 phút (cho bảng lương lớn)
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      }
+    ).catch((error) => {
+      // Xử lý lỗi lock conflict
+      if (error.code === 'P2034' || error.message?.includes('NOWAIT')) {
+        throw new ConflictException(
+          'Bảng lương đang được xử lý bởi người dùng khác. Vui lòng thử lại sau.'
+        );
+      }
+      throw error;
     });
+  }
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
-    }
-
-    // Kiểm tra trạng thái
-    if (bangLuong.trangThai !== TrangThaiBangLuong.NHAP) {
-      throw new BadRequestException(
-        'Chỉ có thể chạy Rule Engine cho bảng lương đang ở trạng thái Nhập'
-      );
-    }
+  // ============================================
+  // THỰC HIỆN RULE ENGINE (PRIVATE - trong transaction)
+  // ============================================
+  private async thucHienRuleEngine(
+    tx: Prisma.TransactionClient,
+    bangLuong: {
+      id: number;
+      thang: number;
+      nam: number;
+      phongBanId: number;
+      phongBan: { id: number; tenPhongBan: string; maPhongBan: string };
+    },
+    nguoiThucHien: string | undefined,
+    batDau: number,
+  ): Promise<KetQuaEngine> {
+    const bangLuongId = bangLuong.id;
 
     // 2. Lấy quy chế hiệu lực
     const quyChe = await this.quyCheService.layQuyCheHieuLuc(
@@ -125,7 +209,7 @@ export class RuleEngineExecutor {
     }
 
     // 3. Lấy danh sách nhân viên thuộc phòng ban
-    const nhanViens = await this.prisma.nhanVien.findMany({
+    const nhanViens = await tx.nhanVien.findMany({
       where: {
         phongBanId: bangLuong.phongBanId,
         trangThai: 'DANG_LAM',
@@ -146,7 +230,7 @@ export class RuleEngineExecutor {
     });
 
     // 4. Xóa chi tiết bảng lương cũ từ RULE (giữ lại các nguồn khác)
-    await this.prisma.chiTietBangLuong.deleteMany({
+    await tx.chiTietBangLuong.deleteMany({
       where: {
         bangLuongId,
         nguon: NguonChiTiet.RULE,
@@ -154,7 +238,7 @@ export class RuleEngineExecutor {
     });
 
     // Xóa trace cũ
-    await this.prisma.ruleTrace.deleteMany({
+    await tx.ruleTrace.deleteMany({
       where: { bangLuongId },
     });
 
@@ -166,6 +250,7 @@ export class RuleEngineExecutor {
     for (const nhanVien of nhanViens) {
       // Chuẩn bị dữ liệu nhân viên
       const duLieu = await this.chuanBiDuLieuNhanVien(
+        tx,
         nhanVien,
         bangLuong.thang,
         bangLuong.nam,
@@ -184,7 +269,7 @@ export class RuleEngineExecutor {
 
           // Tính toán
           const congThuc = JSON.parse(rule.congThucJson);
-          const ketQua = this.tinhToanRule(
+          const ketQua = await this.tinhToanRule(
             rule.loaiRule,
             congThuc,
             duLieu,
@@ -198,7 +283,7 @@ export class RuleEngineExecutor {
             ketQuaTheoKhoan.get(rule.khoanLuongId)!.push(ketQua);
 
             // Ghi trace
-            await this.prisma.ruleTrace.create({
+            await tx.ruleTrace.create({
               data: {
                 bangLuongId,
                 nhanVienId: nhanVien.id,
@@ -214,7 +299,7 @@ export class RuleEngineExecutor {
           }
         } catch (error) {
           // Ghi trace lỗi
-          await this.prisma.ruleTrace.create({
+          await tx.ruleTrace.create({
             data: {
               bangLuongId,
               nhanVienId: nhanVien.id,
@@ -255,7 +340,7 @@ export class RuleEngineExecutor {
         }
 
         // Kiểm tra có chi tiết cũ không (từ nguồn khác)
-        const chiTietCu = await this.prisma.chiTietBangLuong.findUnique({
+        const chiTietCu = await tx.chiTietBangLuong.findUnique({
           where: {
             bangLuongId_nhanVienId_khoanLuongId: {
               bangLuongId,
@@ -270,7 +355,7 @@ export class RuleEngineExecutor {
           if (chiTietCu.nguon === NguonChiTiet.NHAP_TAY) {
             // Giữ nguyên giá trị nhập tay
           } else {
-            await this.prisma.chiTietBangLuong.update({
+            await tx.chiTietBangLuong.update({
               where: { id: chiTietCu.id },
               data: {
                 soTien: soTienCuoiCung,
@@ -281,7 +366,7 @@ export class RuleEngineExecutor {
           }
         } else {
           // Tạo mới
-          await this.prisma.chiTietBangLuong.create({
+          await tx.chiTietBangLuong.create({
             data: {
               bangLuongId,
               nhanVienId: nhanVien.id,
@@ -321,7 +406,7 @@ export class RuleEngineExecutor {
     }
 
     // 6. Ghi liên kết bảng lương - quy chế
-    await this.prisma.bangLuongQuyChe.upsert({
+    await tx.bangLuongQuyChe.upsert({
       where: {
         bangLuongId_quyCheId: {
           bangLuongId,
@@ -354,6 +439,7 @@ export class RuleEngineExecutor {
   // CHUẨN BỊ DỮ LIỆU NHÂN VIÊN
   // ============================================
   private async chuanBiDuLieuNhanVien(
+    tx: Prisma.TransactionClient,
     nhanVien: {
       id: number;
       maNhanVien: string;
@@ -370,7 +456,7 @@ export class RuleEngineExecutor {
     nam: number,
   ): Promise<DuLieuNhanVien> {
     // Lấy dữ liệu chấm công
-    const chamCong = await this.prisma.chamCong.findUnique({
+    const chamCong = await tx.chamCong.findUnique({
       where: {
         nhanVienId_thang_nam: {
           nhanVienId: nhanVien.id,
@@ -381,7 +467,7 @@ export class RuleEngineExecutor {
     });
 
     // Lấy ngày công bảng lương (nếu có điều chỉnh)
-    const ngayCong = await this.prisma.ngayCongBangLuong.findFirst({
+    const ngayCong = await tx.ngayCongBangLuong.findFirst({
       where: {
         nhanVienId: nhanVien.id,
         bangLuong: {
@@ -410,8 +496,8 @@ export class RuleEngineExecutor {
       capTrachNhiem: trachNhiem?.capTrachNhiem || 0,
       heSoTrachNhiem: Number(trachNhiem?.heSoTrachNhiem || 1),
       vaiTro: trachNhiem?.vaiTro || null,
-      congChuan: ngayCong ? Number(ngayCong.ngayCongLyThuyet) : (chamCong ? Number(chamCong.soCongChuan) : 26),
-      congThucTe: ngayCong ? Number(ngayCong.soCongThucTe) : (chamCong ? Number(chamCong.soCongThucTe) : 26),
+      congChuan: ngayCong ? Number(ngayCong.ngayCongLyThuyet) : (chamCong ? Number(chamCong.soCongChuan) : NGAY_CONG_CHUAN_MAC_DINH),
+      congThucTe: ngayCong ? Number(ngayCong.soCongThucTe) : (chamCong ? Number(chamCong.soCongThucTe) : NGAY_CONG_CHUAN_MAC_DINH),
       soGioOT: chamCong ? Number(chamCong.soGioOT) : 0,
       soGioOTDem: chamCong ? Number(chamCong.soGioOTDem) : 0,
       soGioOTChuNhat: chamCong ? Number(chamCong.soGioOTChuNhat) : 0,
@@ -471,12 +557,12 @@ export class RuleEngineExecutor {
   // ============================================
   // TÍNH TOÁN RULE
   // ============================================
-  private tinhToanRule(
+  private async tinhToanRule(
     loaiRule: LoaiRule,
     congThuc: unknown,
     duLieu: DuLieuNhanVien,
     ruleId: number,
-  ): KetQuaRule {
+  ): Promise<KetQuaRule> {
     const input: Record<string, unknown> = {
       luongCoBan: duLieu.luongCoBan,
       capTrachNhiem: duLieu.capTrachNhiem,
@@ -614,11 +700,10 @@ export class RuleEngineExecutor {
           input[ten] = giaTri;
         }
 
-        // Tính toán an toàn
+        // Tính toán an toàn với expr-eval
         try {
-          const safeExpression = bieuThuc.replace(/[^0-9+\-*/().]/g, '');
-          const calculate = new Function(`return ${safeExpression}`);
-          const soTien = Math.round(calculate());
+          const { safeEval } = await import('../../common/utils/safe-eval');
+          const soTien = Math.round(safeEval(ct.bieuThuc, bienGiaTri));
 
           return {
             khoanLuongId: 0,

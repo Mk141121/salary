@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoaiNgayCong, TrangThaiChamCong } from '@prisma/client';
+import { NGAY_CONG_CHUAN_MAC_DINH } from '../../common/constants';
 
 @Injectable()
 export class ChamCongService {
@@ -252,6 +253,29 @@ export class ChamCongService {
     });
   }
 
+  /**
+   * Lấy chấm công của nhiều nhân viên cùng lúc (batch) - tránh N+1
+   */
+  async layChamCongNhieuNhanVien(nhanVienIds: number[], thang: number, nam: number) {
+    const chamCongs = await this.prisma.chamCong.findMany({
+      where: {
+        nhanVienId: { in: nhanVienIds },
+        thang,
+        nam,
+      },
+      include: {
+        nhanVien: true,
+      },
+    });
+
+    // Trả về Map để lookup nhanh
+    const map = new Map<number, typeof chamCongs[0]>();
+    for (const cc of chamCongs) {
+      map.set(cc.nhanVienId, cc);
+    }
+    return map;
+  }
+
   // Tạo/Cập nhật chấm công tháng
   async luuChamCong(data: {
     nhanVienId: number;
@@ -298,7 +322,7 @@ export class ChamCongService {
   }
 
   // Tạo chấm công cho tất cả nhân viên trong tháng
-  async khoiTaoChamCongThang(thang: number, nam: number, soCongChuan: number = 26) {
+  async khoiTaoChamCongThang(thang: number, nam: number, soCongChuan: number = NGAY_CONG_CHUAN_MAC_DINH) {
     // Lấy danh sách nhân viên đang làm việc
     const nhanViens = await this.prisma.nhanVien.findMany({
       where: { trangThai: 'DANG_LAM' },

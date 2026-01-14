@@ -13,12 +13,14 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { NhanVienService } from './nhan-vien.service';
 import { TaoNhanVienDto, CapNhatNhanVienDto, TimKiemNhanVienDto } from './dto/nhan-vien.dto';
+import { Quyen } from '../../common';
 
 @ApiTags('nhan-vien')
 @Controller('nhan-vien')
 export class NhanVienController {
   constructor(private readonly nhanVienService: NhanVienService) {}
 
+  @Quyen('NHANVIEN_XEM')
   @Get('ma-tu-dong')
   @ApiOperation({ summary: 'Lấy mã nhân viên tự động tiếp theo' })
   @ApiResponse({ status: 200, description: 'Thành công' })
@@ -27,6 +29,7 @@ export class NhanVienController {
     return { maNhanVien };
   }
 
+  @Quyen('NHANVIEN_XEM')
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách nhân viên' })
   @ApiQuery({ name: 'phongBanId', required: false, type: Number })
@@ -36,6 +39,7 @@ export class NhanVienController {
     return this.nhanVienService.layTatCa(query);
   }
 
+  @Quyen('NHANVIEN_XEM')
   @Get(':id')
   @ApiOperation({ summary: 'Lấy thông tin nhân viên theo ID' })
   @ApiResponse({ status: 200, description: 'Thành công' })
@@ -44,6 +48,7 @@ export class NhanVienController {
     return this.nhanVienService.layTheoId(id);
   }
 
+  @Quyen('NHANVIEN_XEM')
   @Get('ma/:maNhanVien')
   @ApiOperation({ summary: 'Lấy thông tin nhân viên theo mã' })
   @ApiResponse({ status: 200, description: 'Thành công' })
@@ -52,6 +57,7 @@ export class NhanVienController {
     return this.nhanVienService.layTheoMa(maNhanVien);
   }
 
+  @Quyen('NHANVIEN_THEM')
   @Post()
   @ApiOperation({ summary: 'Tạo nhân viên mới' })
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
@@ -59,6 +65,7 @@ export class NhanVienController {
     return this.nhanVienService.taoMoi(dto);
   }
 
+  @Quyen('NHANVIEN_SUA')
   @Put(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin nhân viên' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công' })
@@ -70,6 +77,7 @@ export class NhanVienController {
     return this.nhanVienService.capNhat(id, dto);
   }
 
+  @Quyen('NHANVIEN_XOA')
   @Delete(':id')
   @ApiOperation({ summary: 'Xóa nhân viên (chuyển trạng thái nghỉ việc)' })
   @ApiResponse({ status: 200, description: 'Xóa thành công' })
@@ -78,6 +86,7 @@ export class NhanVienController {
     return this.nhanVienService.xoa(id);
   }
 
+  @Quyen('NHANVIEN_XEM')
   @Get('thong-ke/theo-phong-ban')
   @ApiOperation({ summary: 'Thống kê số nhân viên theo phòng ban' })
   async thongKeTheoPhongBan() {

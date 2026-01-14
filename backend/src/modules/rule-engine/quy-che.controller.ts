@@ -37,9 +37,11 @@ import {
   TaoDanhMucSuKienDto,
 } from './dto/su-kien.dto';
 import { LoaiSuKien } from '@prisma/client';
+import { VaiTro } from '../../common';
 
 @ApiTags('Quy chế lương')
 @Controller('quy-che-luong')
+@VaiTro('ADMIN', 'KETOAN') // Chỉ admin và kế toán mới quản lý quy chế
 export class QuyCheController {
   constructor(
     private readonly quyCheService: QuyCheService,

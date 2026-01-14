@@ -388,7 +388,7 @@ let QuyCheRuleService = class QuyCheRuleService {
             try {
                 const congThuc = JSON.parse(rule.congThucJson);
                 const dieuKien = rule.dieuKienJson ? JSON.parse(rule.dieuKienJson) : null;
-                const ketQua = this.tinhToanRule(rule.loaiRule, congThuc, duLieu);
+                const ketQua = await this.tinhToanRule(rule.loaiRule, congThuc, duLieu);
                 if (ketQua.soTien !== 0) {
                     chiTiet.push({
                         khoanLuong: rule.khoanLuong.tenKhoan,
@@ -424,7 +424,7 @@ let QuyCheRuleService = class QuyCheRuleService {
             trace,
         };
     }
-    tinhToanRule(loaiRule, congThuc, duLieu) {
+    async tinhToanRule(loaiRule, congThuc, duLieu) {
         switch (loaiRule) {
             case client_1.LoaiRule.CO_DINH: {
                 const ct = congThuc;
@@ -484,24 +484,24 @@ let QuyCheRuleService = class QuyCheRuleService {
             }
             case client_1.LoaiRule.CONG_THUC: {
                 const ct = congThuc;
-                let bieuThuc = ct.bieuThuc;
-                for (const [ten, giaTri] of Object.entries(duLieu)) {
-                    const regex = new RegExp(`\\b${ten}\\b`, 'g');
-                    bieuThuc = bieuThuc.replace(regex, String(giaTri));
-                }
                 try {
-                    const safeExpression = bieuThuc.replace(/[^0-9+\-*/().]/g, '');
-                    const calculate = new Function(`return ${safeExpression}`);
-                    const soTien = Math.round(calculate());
+                    const { safeEval } = await Promise.resolve().then(() => require('../../common/utils/safe-eval'));
+                    const numericDuLieu = {};
+                    for (const [ten, giaTri] of Object.entries(duLieu)) {
+                        if (typeof giaTri === 'number') {
+                            numericDuLieu[ten] = giaTri;
+                        }
+                    }
+                    const soTien = Math.round(safeEval(ct.bieuThuc, numericDuLieu));
                     return {
                         soTien,
                         giaiThich: `${ct.bieuThuc} = ${this.formatTien(soTien)}`,
                     };
                 }
-                catch {
+                catch (error) {
                     return {
                         soTien: 0,
-                        giaiThich: `Lỗi tính biểu thức: ${ct.bieuThuc}`,
+                        giaiThich: `Lỗi tính biểu thức: ${ct.bieuThuc} - ${error.message}`,
                     };
                 }
             }

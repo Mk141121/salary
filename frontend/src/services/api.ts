@@ -1,12 +1,48 @@
 // API Service - Kết nối với Backend
 import axios from 'axios'
 
+const AUTH_STORAGE_KEY = 'tinh_luong_auth'
+
 const api = axios.create({
   baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
+// Interceptor để tự động thêm token vào header
+api.interceptors.request.use(
+  (config) => {
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        if (data.token) {
+          config.headers.Authorization = `Bearer ${data.token}`
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// Interceptor để xử lý lỗi 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token hết hạn hoặc không hợp lệ
+      localStorage.removeItem(AUTH_STORAGE_KEY)
+      if (window.location.pathname !== '/dang-nhap') {
+        window.location.href = '/dang-nhap?expired=1'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 
 // ==================== PAGINATION TYPES ====================
 export interface PaginationMeta {
@@ -146,6 +182,7 @@ export interface ChiTietLuongNhanVien {
 }
 
 export interface BangLuongChiTiet {
+  id: number
   bangLuongId: number
   thang: number
   nam: number

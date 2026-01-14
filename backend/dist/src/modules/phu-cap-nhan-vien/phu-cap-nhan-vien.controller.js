@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const phu_cap_nhan_vien_service_1 = require("./phu-cap-nhan-vien.service");
 const phu_cap_nhan_vien_dto_1 = require("./phu-cap-nhan-vien.dto");
+const common_2 = require("../../common");
 let PhuCapNhanVienController = class PhuCapNhanVienController {
     constructor(phuCapService) {
         this.phuCapService = phuCapService;
@@ -157,6 +158,7 @@ __decorate([
 exports.PhuCapNhanVienController = PhuCapNhanVienController = __decorate([
     (0, swagger_1.ApiTags)('Phụ cấp nhân viên'),
     (0, common_1.Controller)('phu-cap-nhan-vien'),
+    (0, common_2.Quyen)('PHUCAP_XEM'),
     __metadata("design:paramtypes", [phu_cap_nhan_vien_service_1.PhuCapNhanVienService])
 ], PhuCapNhanVienController);
 //# sourceMappingURL=phu-cap-nhan-vien.controller.js.map

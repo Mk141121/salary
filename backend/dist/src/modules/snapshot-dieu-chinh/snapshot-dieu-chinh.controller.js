@@ -18,6 +18,7 @@ const swagger_1 = require("@nestjs/swagger");
 const snapshot_dieu_chinh_service_1 = require("./snapshot-dieu-chinh.service");
 const snapshot_dieu_chinh_dto_1 = require("./dto/snapshot-dieu-chinh.dto");
 const client_1 = require("@prisma/client");
+const common_2 = require("../../common");
 let SnapshotDieuChinhController = class SnapshotDieuChinhController {
     constructor(service) {
         this.service = service;
@@ -132,6 +133,7 @@ __decorate([
 exports.SnapshotDieuChinhController = SnapshotDieuChinhController = __decorate([
     (0, swagger_1.ApiTags)('Snapshot & Phiếu Điều Chỉnh'),
     (0, common_1.Controller)('snapshot-dieu-chinh'),
+    (0, common_2.VaiTro)('ADMIN', 'KETOAN'),
     __metadata("design:paramtypes", [snapshot_dieu_chinh_service_1.SnapshotDieuChinhService])
 ], SnapshotDieuChinhController);
 //# sourceMappingURL=snapshot-dieu-chinh.controller.js.map

@@ -140,6 +140,9 @@ export class QuyCheService {
       throw new NotFoundException(`Không tìm thấy phòng ban với ID: ${dto.phongBanId}`);
     }
 
+    // Kiểm tra overlap thời gian với quy chế hiệu lực khác cùng phòng ban
+    await this.kiemTraOverlapQuyChe(dto.phongBanId, dto.tuNgay, dto.denNgay);
+
     // Lấy phiên bản tiếp theo
     const quyCheHienTai = await this.prisma.quyChe.findFirst({
       where: { phongBanId: dto.phongBanId },
@@ -165,6 +168,48 @@ export class QuyCheService {
     });
   }
 
+  /**
+   * Kiểm tra overlap thời gian quy chế trong cùng phòng ban
+   */
+  private async kiemTraOverlapQuyChe(
+    phongBanId: number,
+    tuNgay: Date,
+    denNgay?: Date | null,
+    excludeId?: number,
+  ) {
+    const tuNgayDate = new Date(tuNgay);
+    const denNgayDate = denNgay ? new Date(denNgay) : null;
+
+    // Tìm quy chế hiệu lực trong cùng phòng ban có overlap thời gian
+    const overlapping = await this.prisma.quyChe.findFirst({
+      where: {
+        phongBanId,
+        id: excludeId ? { not: excludeId } : undefined,
+        trangThai: TrangThaiQuyChe.HIEU_LUC,
+        OR: [
+          // Quy chế mới bắt đầu trong khoảng thời gian của quy chế hiện tại
+          {
+            tuNgay: { lte: tuNgayDate },
+            OR: [
+              { denNgay: null },
+              { denNgay: { gte: tuNgayDate } },
+            ],
+          },
+          // Quy chế hiện tại bắt đầu trong khoảng thời gian của quy chế mới
+          denNgayDate ? {
+            tuNgay: { gte: tuNgayDate, lte: denNgayDate },
+          } : {},
+        ],
+      },
+    });
+
+    if (overlapping) {
+      throw new BadRequestException(
+        `Thời gian quy chế bị trùng với quy chế "${overlapping.tenQuyChe}" (${overlapping.tuNgay.toLocaleDateString('vi-VN')} - ${overlapping.denNgay?.toLocaleDateString('vi-VN') || 'không giới hạn'})`
+      );
+    }
+  }
+
   // ============================================
   // CẬP NHẬT QUY CHẾ
   // ============================================
@@ -175,6 +220,16 @@ export class QuyCheService {
     if (quyChe.daChotLuong && quyChe.trangThai !== TrangThaiQuyChe.NHAP) {
       throw new BadRequestException(
         'Không thể sửa quy chế đã áp dụng cho bảng lương đã chốt. Vui lòng tạo phiên bản mới.'
+      );
+    }
+
+    // Kiểm tra overlap nếu đang cập nhật thời gian và trạng thái HIEU_LUC
+    if (dto.tuNgay || dto.denNgay) {
+      await this.kiemTraOverlapQuyChe(
+        quyChe.phongBanId,
+        dto.tuNgay || quyChe.tuNgay,
+        dto.denNgay !== undefined ? dto.denNgay : quyChe.denNgay,
+        id,
       );
     }
 

@@ -24,9 +24,11 @@ import {
   TaoCauHinhThuongDto,
   TinhThuongKPIDto,
 } from './dto/kpi.dto';
+import { Quyen, VaiTro } from '../../common';
 
 @ApiTags('KPI & Thưởng')
 @Controller('kpi')
+@Quyen('KPI_XEM') // Mặc định cần quyền xem KPI
 export class KPIController {
   constructor(private readonly kpiService: KPIService) {}
 

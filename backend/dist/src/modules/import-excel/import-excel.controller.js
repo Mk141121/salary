@@ -17,20 +17,15 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const import_excel_service_1 = require("./import-excel.service");
+const common_2 = require("../../common");
 let ImportExcelController = class ImportExcelController {
     constructor(importExcelService) {
         this.importExcelService = importExcelService;
     }
     async docHeader(file) {
-        if (!file) {
-            throw new common_1.BadRequestException('Vui lòng upload file Excel');
-        }
         return this.importExcelService.docHeaderExcel(file.buffer);
     }
     async goiYMapping(file) {
-        if (!file) {
-            throw new common_1.BadRequestException('Vui lòng upload file Excel');
-        }
         const { headers } = await this.importExcelService.docHeaderExcel(file.buffer);
         return this.importExcelService.goiYMapping(headers);
     }
@@ -38,9 +33,6 @@ let ImportExcelController = class ImportExcelController {
         return this.importExcelService.layDanhSachMapping();
     }
     async importExcel(file, thang, nam, phongBanId, mappingsJson) {
-        if (!file) {
-            throw new common_1.BadRequestException('Vui lòng upload file Excel');
-        }
         if (!thang || !nam || !phongBanId || !mappingsJson) {
             throw new common_1.BadRequestException('Thiếu thông tin: thang, nam, phongBanId, mappings');
         }
@@ -75,7 +67,7 @@ __decorate([
         },
     }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Đọc header thành công' }),
-    __param(0, (0, common_1.UploadedFile)()),
+    __param(0, (0, common_1.UploadedFile)(new common_2.ExcelFileValidationPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -86,7 +78,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Gợi ý mapping tự động từ tên cột' }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Gợi ý mapping thành công' }),
-    __param(0, (0, common_1.UploadedFile)()),
+    __param(0, (0, common_1.UploadedFile)(new common_2.ExcelFileValidationPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -117,7 +109,7 @@ __decorate([
         },
     }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Import thành công' }),
-    __param(0, (0, common_1.UploadedFile)()),
+    __param(0, (0, common_1.UploadedFile)(new common_2.ExcelFileValidationPipe())),
     __param(1, (0, common_1.Body)('thang')),
     __param(2, (0, common_1.Body)('nam')),
     __param(3, (0, common_1.Body)('phongBanId')),
@@ -139,6 +131,7 @@ __decorate([
 exports.ImportExcelController = ImportExcelController = __decorate([
     (0, swagger_1.ApiTags)('import-excel'),
     (0, common_1.Controller)('import-excel'),
+    (0, common_2.VaiTro)('ADMIN', 'KETOAN'),
     __metadata("design:paramtypes", [import_excel_service_1.ImportExcelService])
 ], ImportExcelController);
 //# sourceMappingURL=import-excel.controller.js.map

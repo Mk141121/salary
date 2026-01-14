@@ -13,9 +13,11 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { KhoanLuongService } from './khoan-luong.service';
 import { TaoKhoanLuongDto, CapNhatKhoanLuongDto, CapNhatThuTuDto } from './dto/khoan-luong.dto';
+import { Quyen, VaiTro } from '../../common';
 
 @ApiTags('khoan-luong')
 @Controller('khoan-luong')
+@VaiTro('ADMIN', 'KETOAN') // Chỉ admin và kế toán mới quản lý khoản lương
 export class KhoanLuongController {
   constructor(private readonly khoanLuongService: KhoanLuongService) {}
 

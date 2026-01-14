@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const kpi_service_1 = require("./kpi.service");
 const kpi_dto_1 = require("./dto/kpi.dto");
+const common_2 = require("../../common");
 let KPIController = class KPIController {
     constructor(kpiService) {
         this.kpiService = kpiService;
@@ -254,6 +255,7 @@ __decorate([
 exports.KPIController = KPIController = __decorate([
     (0, swagger_1.ApiTags)('KPI & Thưởng'),
     (0, common_1.Controller)('kpi'),
+    (0, common_2.Quyen)('KPI_XEM'),
     __metadata("design:paramtypes", [kpi_service_1.KPIService])
 ], KPIController);
 //# sourceMappingURL=kpi.controller.js.map

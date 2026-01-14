@@ -400,13 +400,13 @@ export declare class RBACController {
             ngayTao: Date;
             tenDangNhap: string;
             nguoiDungId: number | null;
+            diaChiIP: string | null;
+            userAgent: string | null;
             hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
             bangDuLieu: string;
             banGhiId: string | null;
             duLieuCu: string | null;
             duLieuMoi: string | null;
-            diaChiIP: string | null;
-            userAgent: string | null;
         })[];
         total: number;
     }>;
@@ -416,13 +416,13 @@ export declare class RBACController {
         ngayTao: Date;
         tenDangNhap: string;
         nguoiDungId: number | null;
+        diaChiIP: string | null;
+        userAgent: string | null;
         hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
         bangDuLieu: string;
         banGhiId: string | null;
         duLieuCu: string | null;
         duLieuMoi: string | null;
-        diaChiIP: string | null;
-        userAgent: string | null;
     }[]>;
     layAuditLogTheoBanGhi(bangDuLieu: string, banGhiId: string): Promise<({
         nguoiDung: {
@@ -434,13 +434,13 @@ export declare class RBACController {
         ngayTao: Date;
         tenDangNhap: string;
         nguoiDungId: number | null;
+        diaChiIP: string | null;
+        userAgent: string | null;
         hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
         bangDuLieu: string;
         banGhiId: string | null;
         duLieuCu: string | null;
         duLieuMoi: string | null;
-        diaChiIP: string | null;
-        userAgent: string | null;
     })[]>;
     khoiTaoQuyenMacDinh(): Promise<{
         id: number;

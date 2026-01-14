@@ -22,6 +22,7 @@ import {
   ChotBangLuongDto,
   CapNhatNhieuChiTietDto,
 } from './dto/bang-luong.dto';
+import { Quyen, VaiTro, NguoiDungHienTai } from '../../common';
 
 @ApiTags('bang-luong')
 @Controller('bang-luong')
@@ -120,22 +121,32 @@ export class BangLuongController {
   async chotBangLuong(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ChotBangLuongDto,
+    @NguoiDungHienTai() nguoiDung: { id: number; tenDangNhap: string },
   ) {
-    return this.bangLuongService.chotBangLuong(id, dto);
+    return this.bangLuongService.chotBangLuong(id, dto, nguoiDung?.id);
   }
 
   @Post(':id/mo-khoa')
-  @ApiOperation({ summary: 'Mở khóa bảng lương đã chốt' })
+  @VaiTro('ADMIN')
+  @ApiOperation({ summary: 'Mở khóa bảng lương đã chốt (chỉ ADMIN)' })
   @ApiResponse({ status: 200, description: 'Mở khóa thành công' })
-  async moKhoa(@Param('id', ParseIntPipe) id: number) {
-    return this.bangLuongService.moKhoaBangLuong(id);
+  async moKhoa(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('lyDo') lyDo: string,
+    @NguoiDungHienTai() nguoiDung: { id: number; tenDangNhap: string },
+  ) {
+    return this.bangLuongService.moKhoaBangLuong(id, lyDo, nguoiDung?.id, nguoiDung?.tenDangNhap);
   }
 
   @Post(':id/khoa')
-  @ApiOperation({ summary: 'Khóa vĩnh viễn bảng lương' })
+  @VaiTro('ADMIN')
+  @ApiOperation({ summary: 'Khóa vĩnh viễn bảng lương (chỉ ADMIN)' })
   @ApiResponse({ status: 200, description: 'Khóa thành công' })
-  async khoa(@Param('id', ParseIntPipe) id: number) {
-    return this.bangLuongService.khoaBangLuong(id);
+  async khoa(
+    @Param('id', ParseIntPipe) id: number,
+    @NguoiDungHienTai() nguoiDung: { id: number; tenDangNhap: string },
+  ) {
+    return this.bangLuongService.khoaBangLuong(id, nguoiDung?.id, nguoiDung?.tenDangNhap);
   }
 
   @Delete(':id')

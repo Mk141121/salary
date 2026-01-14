@@ -38,7 +38,7 @@ export default function ImportExcel() {
   // State
   const [step, setStep] = useState<'upload' | 'mapping' | 'result'>('upload')
   const [file, setFile] = useState<File | null>(null)
-  const [headers, setHeaders] = useState<string[]>([])
+  const [_headers, setHeaders] = useState<string[]>([])
   const [sampleData, setSampleData] = useState<string[][]>([])
   const [mappings, setMappings] = useState<CotExcel[]>([])
   const [thang, setThang] = useState(new Date().getMonth() + 1)

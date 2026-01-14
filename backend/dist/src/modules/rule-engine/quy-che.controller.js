@@ -23,6 +23,7 @@ const quy_che_dto_1 = require("./dto/quy-che.dto");
 const quy_che_rule_dto_1 = require("./dto/quy-che-rule.dto");
 const su_kien_dto_1 = require("./dto/su-kien.dto");
 const client_1 = require("@prisma/client");
+const common_2 = require("../../common");
 let QuyCheController = class QuyCheController {
     constructor(quyCheService, quyCheRuleService) {
         this.quyCheService = quyCheService;
@@ -158,6 +159,7 @@ __decorate([
 exports.QuyCheController = QuyCheController = __decorate([
     (0, swagger_1.ApiTags)('Quy chế lương'),
     (0, common_1.Controller)('quy-che-luong'),
+    (0, common_2.VaiTro)('ADMIN', 'KETOAN'),
     __metadata("design:paramtypes", [quy_che_service_1.QuyCheService,
         quy_che_rule_service_1.QuyCheRuleService])
 ], QuyCheController);

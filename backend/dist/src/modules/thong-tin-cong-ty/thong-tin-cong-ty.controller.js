@@ -16,6 +16,7 @@ exports.ThongTinCongTyController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const thong_tin_cong_ty_service_1 = require("./thong-tin-cong-ty.service");
+const common_2 = require("../../common");
 let ThongTinCongTyController = class ThongTinCongTyController {
     constructor(service) {
         this.service = service;
@@ -37,6 +38,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ThongTinCongTyController.prototype, "layThongTin", null);
 __decorate([
+    (0, common_2.VaiTro)('ADMIN'),
     (0, common_1.Put)(),
     (0, swagger_1.ApiOperation)({ summary: 'Cập nhật thông tin công ty' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Cập nhật thành công' }),

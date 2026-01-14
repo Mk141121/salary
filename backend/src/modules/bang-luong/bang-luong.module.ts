@@ -10,6 +10,7 @@ import { BHXHThueModule } from '../bhxh-thue/bhxh-thue.module';
 import { SnapshotDieuChinhModule } from '../snapshot-dieu-chinh/snapshot-dieu-chinh.module';
 import { ChamCongModule } from '../cham-cong/cham-cong.module';
 import { EmailModule } from '../email/email.module';
+import { AuditLogService } from '../../common/services/audit-log.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
   ],
   controllers: [BangLuongController],
-  providers: [BangLuongService, TinhLuongService, PhieuLuongService, NgayCongService],
+  providers: [BangLuongService, TinhLuongService, PhieuLuongService, NgayCongService, AuditLogService],
   exports: [BangLuongService, TinhLuongService, PhieuLuongService, NgayCongService],
 })
 export class BangLuongModule {}

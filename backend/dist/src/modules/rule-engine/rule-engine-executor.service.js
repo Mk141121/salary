@@ -13,13 +13,17 @@ exports.RuleEngineExecutor = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const client_2 = require("@prisma/client");
 const quy_che_service_1 = require("./quy-che.service");
 const su_kien_thuong_phat_service_1 = require("./su-kien-thuong-phat.service");
+const audit_log_service_1 = require("../../common/services/audit-log.service");
+const constants_1 = require("../../common/constants");
 let RuleEngineExecutor = class RuleEngineExecutor {
-    constructor(prisma, quyCheService, suKienService) {
+    constructor(prisma, quyCheService, suKienService, auditLogService) {
         this.prisma = prisma;
         this.quyCheService = quyCheService;
         this.suKienService = suKienService;
+        this.auditLogService = auditLogService;
         this.BIEN_CHO_PHEP = [
             'LUONG_CO_BAN', 'HE_SO_TRACH_NHIEM', 'CAP_TRACH_NHIEM',
             'CONG_CHUAN', 'CONG_THUC_TE', 'SO_GIO_OT', 'SO_GIO_OT_DEM',
@@ -27,20 +31,54 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             'DOANH_SO', 'TY_LE_HOA_HONG', 'DIEM_KPI', 'HE_SO_KPI',
         ];
     }
-    async chayRuleEngine(bangLuongId, nguoiThucHien) {
+    async chayRuleEngine(bangLuongId, nguoiThucHien, nguoiDungId) {
         const batDau = Date.now();
-        const bangLuong = await this.prisma.bangLuong.findUnique({
-            where: { id: bangLuongId },
-            include: {
-                phongBan: true,
-            },
+        return await this.prisma.$transaction(async (tx) => {
+            const lockedBangLuong = await tx.$queryRaw `SELECT id, thang, nam, phong_ban_id, trang_thai 
+          FROM bang_luong 
+          WHERE id = ${bangLuongId} 
+          FOR UPDATE NOWAIT`;
+            if (!lockedBangLuong || lockedBangLuong.length === 0) {
+                throw new common_1.NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
+            }
+            const bangLuongRow = lockedBangLuong[0];
+            if (bangLuongRow.trang_thai !== client_2.TrangThaiBangLuong.NHAP) {
+                throw new common_1.BadRequestException('Chỉ có thể chạy Rule Engine cho bảng lương đang ở trạng thái Nhập');
+            }
+            const bangLuong = await tx.bangLuong.findUnique({
+                where: { id: bangLuongId },
+                include: {
+                    phongBan: true,
+                },
+            });
+            if (!bangLuong) {
+                throw new common_1.NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
+            }
+            const ketQua = await this.thucHienRuleEngine(tx, bangLuong, nguoiThucHien, batDau);
+            this.auditLogService.ghiLogRuleEngine({
+                nguoiDungId,
+                tenDangNhap: nguoiThucHien,
+                bangLuongId,
+                quyCheId: ketQua.quyCheId,
+                soNhanVien: ketQua.soNhanVien,
+                thoiGianXuLy: ketQua.thoiGianXuLy,
+            }).catch((err) => {
+                console.error('Lỗi ghi audit log rule engine:', err.message);
+            });
+            return ketQua;
+        }, {
+            maxWait: 5000,
+            timeout: 120000,
+            isolationLevel: client_1.Prisma.TransactionIsolationLevel.Serializable,
+        }).catch((error) => {
+            if (error.code === 'P2034' || error.message?.includes('NOWAIT')) {
+                throw new common_1.ConflictException('Bảng lương đang được xử lý bởi người dùng khác. Vui lòng thử lại sau.');
+            }
+            throw error;
         });
-        if (!bangLuong) {
-            throw new common_1.NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
-        }
-        if (bangLuong.trangThai !== client_1.TrangThaiBangLuong.NHAP) {
-            throw new common_1.BadRequestException('Chỉ có thể chạy Rule Engine cho bảng lương đang ở trạng thái Nhập');
-        }
+    }
+    async thucHienRuleEngine(tx, bangLuong, nguoiThucHien, batDau) {
+        const bangLuongId = bangLuong.id;
         const quyChe = await this.quyCheService.layQuyCheHieuLuc(bangLuong.phongBanId, bangLuong.thang, bangLuong.nam);
         if (!quyChe) {
             throw new common_1.BadRequestException(`Không tìm thấy quy chế hiệu lực cho phòng ban ${bangLuong.phongBan.tenPhongBan} tháng ${bangLuong.thang}/${bangLuong.nam}`);
@@ -48,7 +86,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
         if (quyChe.rules.length === 0) {
             throw new common_1.BadRequestException('Quy chế không có rule nào');
         }
-        const nhanViens = await this.prisma.nhanVien.findMany({
+        const nhanViens = await tx.nhanVien.findMany({
             where: {
                 phongBanId: bangLuong.phongBanId,
                 trangThai: 'DANG_LAM',
@@ -67,20 +105,20 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 },
             },
         });
-        await this.prisma.chiTietBangLuong.deleteMany({
+        await tx.chiTietBangLuong.deleteMany({
             where: {
                 bangLuongId,
-                nguon: client_1.NguonChiTiet.RULE,
+                nguon: client_2.NguonChiTiet.RULE,
             },
         });
-        await this.prisma.ruleTrace.deleteMany({
+        await tx.ruleTrace.deleteMany({
             where: { bangLuongId },
         });
         const ketQuaChiTiet = [];
         let soDongTao = 0;
         let soTraceGhi = 0;
         for (const nhanVien of nhanViens) {
-            const duLieu = await this.chuanBiDuLieuNhanVien(nhanVien, bangLuong.thang, bangLuong.nam);
+            const duLieu = await this.chuanBiDuLieuNhanVien(tx, nhanVien, bangLuong.thang, bangLuong.nam);
             const ketQuaTheoKhoan = new Map();
             for (const rule of quyChe.rules) {
                 try {
@@ -88,13 +126,13 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                         continue;
                     }
                     const congThuc = JSON.parse(rule.congThucJson);
-                    const ketQua = this.tinhToanRule(rule.loaiRule, congThuc, duLieu, rule.id);
+                    const ketQua = await this.tinhToanRule(rule.loaiRule, congThuc, duLieu, rule.id);
                     if (ketQua.soTien !== 0) {
                         if (!ketQuaTheoKhoan.has(rule.khoanLuongId)) {
                             ketQuaTheoKhoan.set(rule.khoanLuongId, []);
                         }
                         ketQuaTheoKhoan.get(rule.khoanLuongId).push(ketQua);
-                        await this.prisma.ruleTrace.create({
+                        await tx.ruleTrace.create({
                             data: {
                                 bangLuongId,
                                 nhanVienId: nhanVien.id,
@@ -110,7 +148,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     }
                 }
                 catch (error) {
-                    await this.prisma.ruleTrace.create({
+                    await tx.ruleTrace.create({
                         data: {
                             bangLuongId,
                             nhanVienId: nhanVien.id,
@@ -130,10 +168,10 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             let tongKhauTru = 0;
             for (const [khoanLuongId, ketQuas] of ketQuaTheoKhoan) {
                 const ruleCuoi = quyChe.rules.find((r) => r.khoanLuongId === khoanLuongId);
-                const cheDoGop = ruleCuoi?.cheDoGop || client_1.CheDoGop.GHI_DE;
+                const cheDoGop = ruleCuoi?.cheDoGop || client_2.CheDoGop.GHI_DE;
                 let soTienCuoiCung = 0;
                 let ghiChu = '';
-                if (cheDoGop === client_1.CheDoGop.CONG_DON) {
+                if (cheDoGop === client_2.CheDoGop.CONG_DON) {
                     soTienCuoiCung = ketQuas.reduce((sum, kq) => sum + kq.soTien, 0);
                     ghiChu = ketQuas.map((kq) => kq.giaiThich).join(' + ');
                 }
@@ -142,7 +180,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     soTienCuoiCung = kqCuoi.soTien;
                     ghiChu = kqCuoi.giaiThich;
                 }
-                const chiTietCu = await this.prisma.chiTietBangLuong.findUnique({
+                const chiTietCu = await tx.chiTietBangLuong.findUnique({
                     where: {
                         bangLuongId_nhanVienId_khoanLuongId: {
                             bangLuongId,
@@ -152,27 +190,27 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     },
                 });
                 if (chiTietCu) {
-                    if (chiTietCu.nguon === client_1.NguonChiTiet.NHAP_TAY) {
+                    if (chiTietCu.nguon === client_2.NguonChiTiet.NHAP_TAY) {
                     }
                     else {
-                        await this.prisma.chiTietBangLuong.update({
+                        await tx.chiTietBangLuong.update({
                             where: { id: chiTietCu.id },
                             data: {
                                 soTien: soTienCuoiCung,
-                                nguon: client_1.NguonChiTiet.RULE,
+                                nguon: client_2.NguonChiTiet.RULE,
                                 ghiChu,
                             },
                         });
                     }
                 }
                 else {
-                    await this.prisma.chiTietBangLuong.create({
+                    await tx.chiTietBangLuong.create({
                         data: {
                             bangLuongId,
                             nhanVienId: nhanVien.id,
                             khoanLuongId,
                             soTien: soTienCuoiCung,
-                            nguon: client_1.NguonChiTiet.RULE,
+                            nguon: client_2.NguonChiTiet.RULE,
                             ghiChu,
                         },
                     });
@@ -201,7 +239,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 cacKhoan,
             });
         }
-        await this.prisma.bangLuongQuyChe.upsert({
+        await tx.bangLuongQuyChe.upsert({
             where: {
                 bangLuongId_quyCheId: {
                     bangLuongId,
@@ -228,8 +266,8 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             thoiGianXuLy: Date.now() - batDau,
         };
     }
-    async chuanBiDuLieuNhanVien(nhanVien, thang, nam) {
-        const chamCong = await this.prisma.chamCong.findUnique({
+    async chuanBiDuLieuNhanVien(tx, nhanVien, thang, nam) {
+        const chamCong = await tx.chamCong.findUnique({
             where: {
                 nhanVienId_thang_nam: {
                     nhanVienId: nhanVien.id,
@@ -238,7 +276,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 },
             },
         });
-        const ngayCong = await this.prisma.ngayCongBangLuong.findFirst({
+        const ngayCong = await tx.ngayCongBangLuong.findFirst({
             where: {
                 nhanVienId: nhanVien.id,
                 bangLuong: {
@@ -258,8 +296,8 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             capTrachNhiem: trachNhiem?.capTrachNhiem || 0,
             heSoTrachNhiem: Number(trachNhiem?.heSoTrachNhiem || 1),
             vaiTro: trachNhiem?.vaiTro || null,
-            congChuan: ngayCong ? Number(ngayCong.ngayCongLyThuyet) : (chamCong ? Number(chamCong.soCongChuan) : 26),
-            congThucTe: ngayCong ? Number(ngayCong.soCongThucTe) : (chamCong ? Number(chamCong.soCongThucTe) : 26),
+            congChuan: ngayCong ? Number(ngayCong.ngayCongLyThuyet) : (chamCong ? Number(chamCong.soCongChuan) : constants_1.NGAY_CONG_CHUAN_MAC_DINH),
+            congThucTe: ngayCong ? Number(ngayCong.soCongThucTe) : (chamCong ? Number(chamCong.soCongThucTe) : constants_1.NGAY_CONG_CHUAN_MAC_DINH),
             soGioOT: chamCong ? Number(chamCong.soGioOT) : 0,
             soGioOTDem: chamCong ? Number(chamCong.soGioOTDem) : 0,
             soGioOTChuNhat: chamCong ? Number(chamCong.soGioOTChuNhat) : 0,
@@ -300,25 +338,25 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             return true;
         }
     }
-    tinhToanRule(loaiRule, congThuc, duLieu, ruleId) {
+    async tinhToanRule(loaiRule, congThuc, duLieu, ruleId) {
         const input = {
             luongCoBan: duLieu.luongCoBan,
             capTrachNhiem: duLieu.capTrachNhiem,
             heSoTrachNhiem: duLieu.heSoTrachNhiem,
         };
         switch (loaiRule) {
-            case client_1.LoaiRule.CO_DINH: {
+            case client_2.LoaiRule.CO_DINH: {
                 const ct = congThuc;
                 return {
                     khoanLuongId: 0,
                     soTien: ct.soTien,
-                    nguon: client_1.NguonChiTiet.RULE,
+                    nguon: client_2.NguonChiTiet.RULE,
                     thamChieuId: ruleId,
                     giaiThich: `Số tiền cố định: ${this.formatTien(ct.soTien)}`,
                     input,
                 };
             }
-            case client_1.LoaiRule.THEO_HE_SO: {
+            case client_2.LoaiRule.THEO_HE_SO: {
                 const ct = congThuc;
                 const base = this.layGiaTriBien(ct.base, duLieu);
                 input[ct.base] = base;
@@ -326,13 +364,13 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 return {
                     khoanLuongId: 0,
                     soTien,
-                    nguon: client_1.NguonChiTiet.RULE,
+                    nguon: client_2.NguonChiTiet.RULE,
                     thamChieuId: ruleId,
                     giaiThich: `${ct.base}(${this.formatTien(base)}) × ${ct.heSo}${ct.congThem ? ` + ${this.formatTien(ct.congThem)}` : ''} = ${this.formatTien(soTien)}`,
                     input,
                 };
             }
-            case client_1.LoaiRule.BAC_THANG: {
+            case client_2.LoaiRule.BAC_THANG: {
                 const ct = congThuc;
                 const giaTriField = this.layGiaTriBien(ct.field, duLieu);
                 input[ct.field] = giaTriField;
@@ -341,7 +379,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     return {
                         khoanLuongId: 0,
                         soTien: 0,
-                        nguon: client_1.NguonChiTiet.RULE,
+                        nguon: client_2.NguonChiTiet.RULE,
                         thamChieuId: ruleId,
                         giaiThich: `${ct.field} = ${giaTriField}, không thuộc bậc nào`,
                         input,
@@ -351,13 +389,13 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 return {
                     khoanLuongId: 0,
                     soTien,
-                    nguon: client_1.NguonChiTiet.RULE,
+                    nguon: client_2.NguonChiTiet.RULE,
                     thamChieuId: ruleId,
                     giaiThich: `${ct.field} = ${giaTriField} thuộc bậc ${bacPhuHop.from}-${bacPhuHop.to} → ${this.formatTien(soTien)}`,
                     input,
                 };
             }
-            case client_1.LoaiRule.THEO_SU_KIEN: {
+            case client_2.LoaiRule.THEO_SU_KIEN: {
                 const ct = congThuc;
                 const suKien = duLieu.suKien[ct.maSuKien];
                 const soLan = suKien?.soLan || 0;
@@ -367,7 +405,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     return {
                         khoanLuongId: 0,
                         soTien: 0,
-                        nguon: client_1.NguonChiTiet.RULE,
+                        nguon: client_2.NguonChiTiet.RULE,
                         thamChieuId: ruleId,
                         giaiThich: `Không có sự kiện ${ct.maSuKien}`,
                         input,
@@ -386,13 +424,13 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 return {
                     khoanLuongId: 0,
                     soTien,
-                    nguon: client_1.NguonChiTiet.RULE,
+                    nguon: client_2.NguonChiTiet.RULE,
                     thamChieuId: ruleId,
                     giaiThich: `${ct.maSuKien}: ${soLan} lần → ${this.formatTien(soTien)}`,
                     input,
                 };
             }
-            case client_1.LoaiRule.CONG_THUC: {
+            case client_2.LoaiRule.CONG_THUC: {
                 const ct = congThuc;
                 let bieuThuc = ct.bieuThuc;
                 const bienGiaTri = {
@@ -414,13 +452,12 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     input[ten] = giaTri;
                 }
                 try {
-                    const safeExpression = bieuThuc.replace(/[^0-9+\-*/().]/g, '');
-                    const calculate = new Function(`return ${safeExpression}`);
-                    const soTien = Math.round(calculate());
+                    const { safeEval } = await Promise.resolve().then(() => require('../../common/utils/safe-eval'));
+                    const soTien = Math.round(safeEval(ct.bieuThuc, bienGiaTri));
                     return {
                         khoanLuongId: 0,
                         soTien,
-                        nguon: client_1.NguonChiTiet.RULE,
+                        nguon: client_2.NguonChiTiet.RULE,
                         thamChieuId: ruleId,
                         giaiThich: `${ct.bieuThuc} = ${this.formatTien(soTien)}`,
                         input,
@@ -434,7 +471,7 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                 return {
                     khoanLuongId: 0,
                     soTien: 0,
-                    nguon: client_1.NguonChiTiet.RULE,
+                    nguon: client_2.NguonChiTiet.RULE,
                     thamChieuId: ruleId,
                     giaiThich: 'Loại rule không hỗ trợ',
                     input,
@@ -515,6 +552,7 @@ exports.RuleEngineExecutor = RuleEngineExecutor = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         quy_che_service_1.QuyCheService,
-        su_kien_thuong_phat_service_1.SuKienThuongPhatService])
+        su_kien_thuong_phat_service_1.SuKienThuongPhatService,
+        audit_log_service_1.AuditLogService])
 ], RuleEngineExecutor);
 //# sourceMappingURL=rule-engine-executor.service.js.map

@@ -1,8 +1,12 @@
 // App Module - Module chính của ứng dụng
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from './common/cache/cache.module';
+import { JwtAuthGuard, RolesGuard, PermissionsGuard } from './common/guards';
+import { AuditLogService } from './common/services/audit-log.service';
 import { PhongBanModule } from './modules/phong-ban/phong-ban.module';
 import { NhanVienModule } from './modules/nhan-vien/nhan-vien.module';
 import { KhoanLuongModule } from './modules/khoan-luong/khoan-luong.module';
@@ -17,12 +21,31 @@ import { KPIModule } from './modules/kpi/kpi.module';
 import { RBACModule } from './modules/rbac/rbac.module';
 import { EmailModule } from './modules/email/email.module';
 import { ThongTinCongTyModule } from './modules/thong-tin-cong-ty/thong-tin-cong-ty.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Rate limiting - chống brute force
+    ThrottlerModule.forRoot([
+      {
+        name: 'short', // Cho API bình thường
+        ttl: 1000,     // 1 giây
+        limit: 10,     // Tối đa 10 requests/giây
+      },
+      {
+        name: 'medium',
+        ttl: 10000,    // 10 giây
+        limit: 50,     // Tối đa 50 requests/10 giây
+      },
+      {
+        name: 'long',
+        ttl: 60000,    // 1 phút
+        limit: 100,    // Tối đa 100 requests/phút
+      },
+    ]),
     CacheModule,
     PrismaModule,
     PhongBanModule,
@@ -40,5 +63,29 @@ import { ThongTinCongTyModule } from './modules/thong-tin-cong-ty/thong-tin-cong
     EmailModule,
     ThongTinCongTyModule,
   ],
+  controllers: [HealthController],
+  providers: [
+    // Rate Limiting Guard - Áp dụng cho tất cả routes
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    // Global Guards - Áp dụng cho tất cả routes
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
+    // Audit Log Service - Global provider
+    AuditLogService,
+  ],
+  exports: [AuditLogService],
 })
 export class AppModule {}

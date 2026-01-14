@@ -1,6 +1,7 @@
 // Module Rule Engine - Công thức tính lương động & Quy chế lương
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { AuditLogService } from '../../common/services/audit-log.service';
 
 // Services
 import { RuleEngineService } from './rule-engine.service';
@@ -37,6 +38,7 @@ import { TroLyAiController } from './tro-ly-ai.controller';
     SuKienThuongPhatService,
     RuleEngineExecutor,
     TroLyAiService,
+    AuditLogService,
   ],
   exports: [
     RuleEngineService,

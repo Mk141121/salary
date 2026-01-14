@@ -9,8 +9,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const core_1 = require("@nestjs/core");
+const throttler_1 = require("@nestjs/throttler");
 const prisma_module_1 = require("./prisma/prisma.module");
 const cache_module_1 = require("./common/cache/cache.module");
+const guards_1 = require("./common/guards");
+const audit_log_service_1 = require("./common/services/audit-log.service");
 const phong_ban_module_1 = require("./modules/phong-ban/phong-ban.module");
 const nhan_vien_module_1 = require("./modules/nhan-vien/nhan-vien.module");
 const khoan_luong_module_1 = require("./modules/khoan-luong/khoan-luong.module");
@@ -25,6 +29,7 @@ const kpi_module_1 = require("./modules/kpi/kpi.module");
 const rbac_module_1 = require("./modules/rbac/rbac.module");
 const email_module_1 = require("./modules/email/email.module");
 const thong_tin_cong_ty_module_1 = require("./modules/thong-tin-cong-ty/thong-tin-cong-ty.module");
+const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -34,6 +39,23 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
+            throttler_1.ThrottlerModule.forRoot([
+                {
+                    name: 'short',
+                    ttl: 1000,
+                    limit: 10,
+                },
+                {
+                    name: 'medium',
+                    ttl: 10000,
+                    limit: 50,
+                },
+                {
+                    name: 'long',
+                    ttl: 60000,
+                    limit: 100,
+                },
+            ]),
             cache_module_1.CacheModule,
             prisma_module_1.PrismaModule,
             phong_ban_module_1.PhongBanModule,
@@ -51,6 +73,27 @@ exports.AppModule = AppModule = __decorate([
             email_module_1.EmailModule,
             thong_tin_cong_ty_module_1.ThongTinCongTyModule,
         ],
+        controllers: [health_controller_1.HealthController],
+        providers: [
+            {
+                provide: core_1.APP_GUARD,
+                useClass: throttler_1.ThrottlerGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: guards_1.JwtAuthGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: guards_1.RolesGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: guards_1.PermissionsGuard,
+            },
+            audit_log_service_1.AuditLogService,
+        ],
+        exports: [audit_log_service_1.AuditLogService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

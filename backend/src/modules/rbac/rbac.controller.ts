@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiHeader } from '@nestjs/swagger';
 import { RBACService } from './rbac.service';
+import { CongKhai, VaiTro, ThrottleLogin } from '../../common/decorators';
 import {
   TaoNguoiDungDto,
   CapNhatNguoiDungDto,
@@ -35,6 +36,8 @@ export class RBACController {
   // XÁC THỰC
   // ============================================
 
+  @CongKhai()
+  @ThrottleLogin() // Rate limit: 5 lần/phút chống brute force
   @Post('dang-nhap')
   @ApiOperation({ summary: 'Đăng nhập' })
   dangNhap(
@@ -65,24 +68,28 @@ export class RBACController {
   // NGƯỜI DÙNG
   // ============================================
 
+  @VaiTro('ADMIN')
   @Get('nguoi-dung')
   @ApiOperation({ summary: 'Lấy danh sách người dùng' })
   layDanhSachNguoiDung() {
     return this.rbacService.layDanhSachNguoiDung();
   }
 
+  @VaiTro('ADMIN')
   @Get('nguoi-dung/:id')
   @ApiOperation({ summary: 'Lấy thông tin người dùng' })
   layNguoiDungTheoId(@Param('id', ParseIntPipe) id: number) {
     return this.rbacService.layNguoiDungTheoId(id);
   }
 
+  @VaiTro('ADMIN')
   @Post('nguoi-dung')
   @ApiOperation({ summary: 'Tạo người dùng mới' })
   taoNguoiDung(@Body() dto: TaoNguoiDungDto) {
     return this.rbacService.taoNguoiDung(dto);
   }
 
+  @VaiTro('ADMIN')
   @Put('nguoi-dung/:id')
   @ApiOperation({ summary: 'Cập nhật người dùng' })
   capNhatNguoiDung(
@@ -105,24 +112,28 @@ export class RBACController {
   // VAI TRÒ
   // ============================================
 
+  @VaiTro('ADMIN')
   @Get('vai-tro')
   @ApiOperation({ summary: 'Lấy danh sách vai trò' })
   layDanhSachVaiTro() {
     return this.rbacService.layDanhSachVaiTro();
   }
 
+  @VaiTro('ADMIN')
   @Get('vai-tro/:id')
   @ApiOperation({ summary: 'Lấy thông tin vai trò' })
   layVaiTroTheoId(@Param('id', ParseIntPipe) id: number) {
     return this.rbacService.layVaiTroTheoId(id);
   }
 
+  @VaiTro('ADMIN')
   @Post('vai-tro')
   @ApiOperation({ summary: 'Tạo vai trò mới' })
   taoVaiTro(@Body() dto: TaoVaiTroDto) {
     return this.rbacService.taoVaiTro(dto);
   }
 
+  @VaiTro('ADMIN')
   @Put('vai-tro/:id')
   @ApiOperation({ summary: 'Cập nhật vai trò' })
   capNhatVaiTro(
@@ -132,12 +143,14 @@ export class RBACController {
     return this.rbacService.capNhatVaiTro(id, dto);
   }
 
+  @VaiTro('ADMIN')
   @Post('vai-tro/gan')
   @ApiOperation({ summary: 'Gán vai trò cho người dùng' })
   ganVaiTroChoNguoiDung(@Body() dto: GanVaiTroDto) {
     return this.rbacService.ganVaiTroChoNguoiDung(dto);
   }
 
+  @VaiTro('ADMIN')
   @Delete('vai-tro/go')
   @ApiOperation({ summary: 'Gỡ vai trò khỏi người dùng' })
   goVaiTroKhoiNguoiDung(@Body() dto: GanVaiTroDto) {
@@ -148,30 +161,35 @@ export class RBACController {
   // QUYỀN
   // ============================================
 
+  @VaiTro('ADMIN')
   @Get('quyen')
   @ApiOperation({ summary: 'Lấy danh sách quyền' })
   layDanhSachQuyen() {
     return this.rbacService.layDanhSachQuyen();
   }
 
+  @VaiTro('ADMIN')
   @Get('quyen/theo-nhom')
   @ApiOperation({ summary: 'Lấy quyền theo nhóm' })
   layQuyenTheoNhom() {
     return this.rbacService.layQuyenTheoNhom();
   }
 
+  @VaiTro('ADMIN')
   @Post('quyen')
   @ApiOperation({ summary: 'Tạo quyền mới' })
   taoQuyen(@Body() dto: TaoQuyenDto) {
     return this.rbacService.taoQuyen(dto);
   }
 
+  @VaiTro('ADMIN')
   @Post('quyen/gan-cho-vai-tro')
   @ApiOperation({ summary: 'Gán quyền cho vai trò' })
   ganQuyenChoVaiTro(@Body() dto: GanQuyenChoVaiTroDto) {
     return this.rbacService.ganQuyenChoVaiTro(dto);
   }
 
+  @VaiTro('ADMIN')
   @Get('kiem-tra-quyen/:nguoiDungId/:maQuyen')
   @ApiOperation({ summary: 'Kiểm tra quyền của người dùng' })
   async kiemTraQuyen(
@@ -186,12 +204,14 @@ export class RBACController {
   // AUDIT LOG
   // ============================================
 
+  @VaiTro('ADMIN')
   @Get('audit-log')
   @ApiOperation({ summary: 'Tìm kiếm audit log' })
   timKiemAuditLog(@Query() dto: TimKiemAuditLogDto) {
     return this.rbacService.timKiemAuditLog(dto);
   }
 
+  @VaiTro('ADMIN')
   @Get('audit-log/nguoi-dung/:nguoiDungId')
   @ApiOperation({ summary: 'Lấy audit log theo người dùng' })
   layAuditLogTheoNguoiDung(
@@ -204,6 +224,7 @@ export class RBACController {
     );
   }
 
+  @VaiTro('ADMIN')
   @Get('audit-log/ban-ghi/:bangDuLieu/:banGhiId')
   @ApiOperation({ summary: 'Lấy audit log theo bản ghi' })
   layAuditLogTheoBanGhi(
@@ -217,24 +238,28 @@ export class RBACController {
   // KHỞI TẠO
   // ============================================
 
+  @CongKhai()
   @Post('khoi-tao/quyen')
   @ApiOperation({ summary: 'Khởi tạo quyền mặc định' })
   khoiTaoQuyenMacDinh() {
     return this.rbacService.khoiTaoQuyenMacDinh();
   }
 
+  @CongKhai()
   @Post('khoi-tao/vai-tro')
   @ApiOperation({ summary: 'Khởi tạo vai trò mặc định' })
   khoiTaoVaiTroMacDinh() {
     return this.rbacService.khoiTaoVaiTroMacDinh();
   }
 
+  @CongKhai()
   @Post('khoi-tao/admin')
   @ApiOperation({ summary: 'Khởi tạo admin mặc định' })
   khoiTaoAdminMacDinh() {
     return this.rbacService.khoiTaoAdminMacDinh();
   }
 
+  @CongKhai()
   @Post('khoi-tao/tat-ca')
   @ApiOperation({ summary: 'Khởi tạo tất cả dữ liệu mặc định' })
   async khoiTaoTatCa() {

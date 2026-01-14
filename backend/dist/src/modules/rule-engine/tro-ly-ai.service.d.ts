@@ -20,11 +20,11 @@ export declare class TroLyAiService {
     private xacDinhCheDoGop;
     apDungRule(dto: ApDungRuleDeXuatDto, quyCheId: number, nguoiTaoId?: number): Promise<{
         khoanLuong: {
+            id: number;
             moTa: string | null;
             trangThai: boolean;
             ngayTao: Date;
             ngayCapNhat: Date;
-            id: number;
             maKhoan: string;
             tenKhoan: string;
             loai: import(".prisma/client").$Enums.LoaiKhoanLuong;
@@ -34,32 +34,32 @@ export declare class TroLyAiService {
             thuTu: number;
         };
     } & {
-        tenRule: string;
+        id: number;
         moTa: string | null;
+        trangThai: boolean;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        khoanLuongId: number;
+        nguoiTao: string | null;
+        thuTuUuTien: number;
+        quyCheId: number;
+        tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
-        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
-        trangThai: boolean;
-        nguoiTao: string | null;
-        ngayTao: Date;
-        ngayCapNhat: Date;
-        id: number;
-        quyCheId: number;
-        khoanLuongId: number;
     }>;
     huyDeXuat(auditId: number): Promise<{
-        trangThai: import(".prisma/client").$Enums.TrangThaiAiAudit;
         id: number;
-        quyCheId: number | null;
-        nguoiTaoId: number | null;
+        trangThai: import(".prisma/client").$Enums.TrangThaiAiAudit;
         phongBanId: number | null;
+        quyCheId: number | null;
+        taoLuc: Date;
         promptGoc: string;
         responseJson: string;
+        nguoiTaoId: number | null;
         ruleApDungId: number | null;
-        taoLuc: Date;
     }>;
     lichSuDeXuat(quyCheId: number): Promise<({
         nguoiTao: {
@@ -67,18 +67,18 @@ export declare class TroLyAiService {
             hoTen: string;
         } | null;
         rule: {
-            tenRule: string;
             id: number;
+            tenRule: string;
         } | null;
     } & {
-        trangThai: import(".prisma/client").$Enums.TrangThaiAiAudit;
         id: number;
-        quyCheId: number | null;
-        nguoiTaoId: number | null;
+        trangThai: import(".prisma/client").$Enums.TrangThaiAiAudit;
         phongBanId: number | null;
+        quyCheId: number | null;
+        taoLuc: Date;
         promptGoc: string;
         responseJson: string;
+        nguoiTaoId: number | null;
         ruleApDungId: number | null;
-        taoLuc: Date;
     })[]>;
 }

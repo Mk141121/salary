@@ -113,6 +113,7 @@ let QuyCheService = class QuyCheService {
         if (!phongBan) {
             throw new common_1.NotFoundException(`Không tìm thấy phòng ban với ID: ${dto.phongBanId}`);
         }
+        await this.kiemTraOverlapQuyChe(dto.phongBanId, dto.tuNgay, dto.denNgay);
         const quyCheHienTai = await this.prisma.quyChe.findFirst({
             where: { phongBanId: dto.phongBanId },
             orderBy: { phienBan: 'desc' },
@@ -134,10 +135,39 @@ let QuyCheService = class QuyCheService {
             },
         });
     }
+    async kiemTraOverlapQuyChe(phongBanId, tuNgay, denNgay, excludeId) {
+        const tuNgayDate = new Date(tuNgay);
+        const denNgayDate = denNgay ? new Date(denNgay) : null;
+        const overlapping = await this.prisma.quyChe.findFirst({
+            where: {
+                phongBanId,
+                id: excludeId ? { not: excludeId } : undefined,
+                trangThai: client_1.TrangThaiQuyChe.HIEU_LUC,
+                OR: [
+                    {
+                        tuNgay: { lte: tuNgayDate },
+                        OR: [
+                            { denNgay: null },
+                            { denNgay: { gte: tuNgayDate } },
+                        ],
+                    },
+                    denNgayDate ? {
+                        tuNgay: { gte: tuNgayDate, lte: denNgayDate },
+                    } : {},
+                ],
+            },
+        });
+        if (overlapping) {
+            throw new common_1.BadRequestException(`Thời gian quy chế bị trùng với quy chế "${overlapping.tenQuyChe}" (${overlapping.tuNgay.toLocaleDateString('vi-VN')} - ${overlapping.denNgay?.toLocaleDateString('vi-VN') || 'không giới hạn'})`);
+        }
+    }
     async capNhat(id, dto) {
         const quyChe = await this.layChiTiet(id);
         if (quyChe.daChotLuong && quyChe.trangThai !== client_1.TrangThaiQuyChe.NHAP) {
             throw new common_1.BadRequestException('Không thể sửa quy chế đã áp dụng cho bảng lương đã chốt. Vui lòng tạo phiên bản mới.');
+        }
+        if (dto.tuNgay || dto.denNgay) {
+            await this.kiemTraOverlapQuyChe(quyChe.phongBanId, dto.tuNgay || quyChe.tuNgay, dto.denNgay !== undefined ? dto.denNgay : quyChe.denNgay, id);
         }
         return this.prisma.quyChe.update({
             where: { id },

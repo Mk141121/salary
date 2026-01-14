@@ -13,15 +13,27 @@ exports.RBACService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const crypto = require("crypto");
+const bcrypt = require("bcrypt");
+const BCRYPT_SALT_ROUNDS = 12;
 let RBACService = class RBACService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    hashPassword(password) {
-        return crypto.createHash('sha256').update(password).digest('hex');
+    async hashPassword(password) {
+        return bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+    }
+    async verifyPassword(password, hash) {
+        if (hash.length === 64 && !hash.startsWith('$2')) {
+            const sha256Hash = crypto.createHash('sha256').update(password).digest('hex');
+            return sha256Hash === hash;
+        }
+        return bcrypt.compare(password, hash);
     }
     generateToken() {
         return crypto.randomBytes(32).toString('hex');
+    }
+    hashToken(token) {
+        return crypto.createHash('sha256').update(token).digest('hex');
     }
     async layDanhSachNguoiDung() {
         return this.prisma.nguoiDung.findMany({
@@ -89,7 +101,7 @@ let RBACService = class RBACService {
         const nguoiDung = await this.prisma.nguoiDung.create({
             data: {
                 tenDangNhap: dto.tenDangNhap,
-                matKhau: this.hashPassword(dto.matKhau),
+                matKhau: await this.hashPassword(dto.matKhau),
                 email: dto.email,
                 hoTen: dto.hoTen,
                 nhanVienId: dto.nhanVienId,
@@ -132,13 +144,14 @@ let RBACService = class RBACService {
         if (!nguoiDung) {
             throw new common_1.NotFoundException(`Không tìm thấy người dùng với ID ${id}`);
         }
-        if (nguoiDung.matKhau !== this.hashPassword(dto.matKhauCu)) {
+        const isValidPassword = await this.verifyPassword(dto.matKhauCu, nguoiDung.matKhau);
+        if (!isValidPassword) {
             throw new common_1.BadRequestException('Mật khẩu cũ không đúng');
         }
         await this.prisma.nguoiDung.update({
             where: { id },
             data: {
-                matKhau: this.hashPassword(dto.matKhauMoi),
+                matKhau: await this.hashPassword(dto.matKhauMoi),
             },
         });
         return { message: 'Đổi mật khẩu thành công' };
@@ -160,12 +173,24 @@ let RBACService = class RBACService {
                 },
             },
         });
-        if (!nguoiDung || nguoiDung.matKhau !== this.hashPassword(dto.matKhau)) {
+        if (!nguoiDung) {
             await this.ghiAuditLog({
                 tenDangNhap: dto.tenDangNhap,
                 hanhDong: 'DANG_NHAP',
                 bangDuLieu: 'nguoi_dung',
-                moTa: 'Đăng nhập thất bại - Sai thông tin',
+                moTa: 'Đăng nhập thất bại - Không tìm thấy user',
+                diaChiIP: ip,
+                userAgent,
+            });
+            throw new common_1.UnauthorizedException('Tên đăng nhập hoặc mật khẩu không đúng');
+        }
+        const isValidPassword = await this.verifyPassword(dto.matKhau, nguoiDung.matKhau);
+        if (!isValidPassword) {
+            await this.ghiAuditLog({
+                tenDangNhap: dto.tenDangNhap,
+                hanhDong: 'DANG_NHAP',
+                bangDuLieu: 'nguoi_dung',
+                moTa: 'Đăng nhập thất bại - Sai mật khẩu',
                 diaChiIP: ip,
                 userAgent,
             });
@@ -175,12 +200,13 @@ let RBACService = class RBACService {
             throw new common_1.UnauthorizedException('Tài khoản đã bị khóa hoặc vô hiệu hóa');
         }
         const token = this.generateToken();
+        const tokenHash = this.hashToken(token);
         const hetHan = new Date();
         hetHan.setHours(hetHan.getHours() + 8);
         await this.prisma.phienDangNhap.create({
             data: {
                 nguoiDungId: nguoiDung.id,
-                token,
+                token: tokenHash,
                 diaChiIP: ip,
                 userAgent,
                 thoiGianHetHan: hetHan,
@@ -222,13 +248,14 @@ let RBACService = class RBACService {
         };
     }
     async dangXuat(token) {
+        const tokenHash = this.hashToken(token);
         const phien = await this.prisma.phienDangNhap.findUnique({
-            where: { token },
+            where: { token: tokenHash },
             include: { nguoiDung: true },
         });
         if (phien) {
             await this.prisma.phienDangNhap.update({
-                where: { token },
+                where: { token: tokenHash },
                 data: { trangThai: 'DANG_XUAT' },
             });
             await this.ghiAuditLog({
@@ -242,8 +269,9 @@ let RBACService = class RBACService {
         return { message: 'Đăng xuất thành công' };
     }
     async kiemTraToken(token) {
+        const tokenHash = this.hashToken(token);
         const phien = await this.prisma.phienDangNhap.findUnique({
-            where: { token },
+            where: { token: tokenHash },
             include: {
                 nguoiDung: {
                     include: {
@@ -267,7 +295,7 @@ let RBACService = class RBACService {
         }
         if (phien.thoiGianHetHan < new Date()) {
             await this.prisma.phienDangNhap.update({
-                where: { token },
+                where: { token: tokenHash },
                 data: { trangThai: 'HET_HAN' },
             });
             throw new common_1.UnauthorizedException('Token đã hết hạn');

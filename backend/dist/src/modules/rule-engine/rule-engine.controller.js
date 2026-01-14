@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const rule_engine_service_1 = require("./rule-engine.service");
 const rule_engine_dto_1 = require("./dto/rule-engine.dto");
+const common_2 = require("../../common");
 let RuleEngineController = class RuleEngineController {
     constructor(ruleEngineService) {
         this.ruleEngineService = ruleEngineService;
@@ -138,6 +139,7 @@ __decorate([
 exports.RuleEngineController = RuleEngineController = __decorate([
     (0, swagger_1.ApiTags)('Rule Engine - Công thức lương'),
     (0, common_1.Controller)('rule-engine'),
+    (0, common_2.VaiTro)('ADMIN', 'KETOAN'),
     __metadata("design:paramtypes", [rule_engine_service_1.RuleEngineService])
 ], RuleEngineController);
 //# sourceMappingURL=rule-engine.controller.js.map

@@ -18,6 +18,7 @@ const bhxh_thue_module_1 = require("../bhxh-thue/bhxh-thue.module");
 const snapshot_dieu_chinh_module_1 = require("../snapshot-dieu-chinh/snapshot-dieu-chinh.module");
 const cham_cong_module_1 = require("../cham-cong/cham-cong.module");
 const email_module_1 = require("../email/email.module");
+const audit_log_service_1 = require("../../common/services/audit-log.service");
 let BangLuongModule = class BangLuongModule {
 };
 exports.BangLuongModule = BangLuongModule;
@@ -31,7 +32,7 @@ exports.BangLuongModule = BangLuongModule = __decorate([
             email_module_1.EmailModule,
         ],
         controllers: [bang_luong_controller_1.BangLuongController],
-        providers: [bang_luong_service_1.BangLuongService, tinh_luong_service_1.TinhLuongService, phieu_luong_service_1.PhieuLuongService, ngay_cong_service_1.NgayCongService],
+        providers: [bang_luong_service_1.BangLuongService, tinh_luong_service_1.TinhLuongService, phieu_luong_service_1.PhieuLuongService, ngay_cong_service_1.NgayCongService, audit_log_service_1.AuditLogService],
         exports: [bang_luong_service_1.BangLuongService, tinh_luong_service_1.TinhLuongService, phieu_luong_service_1.PhieuLuongService, ngay_cong_service_1.NgayCongService],
     })
 ], BangLuongModule);

@@ -21,9 +21,11 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ImportExcelService, CotExcel } from './import-excel.service';
+import { VaiTro, ExcelFileValidationPipe } from '../../common';
 
 @ApiTags('import-excel')
 @Controller('import-excel')
+@VaiTro('ADMIN', 'KETOAN') // Chỉ admin và kế toán mới được import
 export class ImportExcelController {
   constructor(private readonly importExcelService: ImportExcelService) {}
 
@@ -40,11 +42,9 @@ export class ImportExcelController {
     },
   })
   @ApiResponse({ status: 200, description: 'Đọc header thành công' })
-  async docHeader(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('Vui lòng upload file Excel');
-    }
-
+  async docHeader(
+    @UploadedFile(new ExcelFileValidationPipe()) file: Express.Multer.File,
+  ) {
     return this.importExcelService.docHeaderExcel(file.buffer);
   }
 
@@ -53,11 +53,9 @@ export class ImportExcelController {
   @ApiOperation({ summary: 'Gợi ý mapping tự động từ tên cột' })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 200, description: 'Gợi ý mapping thành công' })
-  async goiYMapping(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('Vui lòng upload file Excel');
-    }
-
+  async goiYMapping(
+    @UploadedFile(new ExcelFileValidationPipe()) file: Express.Multer.File,
+  ) {
     const { headers } = await this.importExcelService.docHeaderExcel(file.buffer);
     return this.importExcelService.goiYMapping(headers);
   }
@@ -87,16 +85,12 @@ export class ImportExcelController {
   })
   @ApiResponse({ status: 200, description: 'Import thành công' })
   async importExcel(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ExcelFileValidationPipe()) file: Express.Multer.File,
     @Body('thang') thang: string,
     @Body('nam') nam: string,
     @Body('phongBanId') phongBanId: string,
     @Body('mappings') mappingsJson: string,
   ) {
-    if (!file) {
-      throw new BadRequestException('Vui lòng upload file Excel');
-    }
-
     if (!thang || !nam || !phongBanId || !mappingsJson) {
       throw new BadRequestException('Thiếu thông tin: thang, nam, phongBanId, mappings');
     }

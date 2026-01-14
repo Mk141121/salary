@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const cham_cong_service_1 = require("./cham-cong.service");
 const cham_cong_dto_1 = require("./dto/cham-cong.dto");
+const common_2 = require("../../common");
 let ChamCongController = class ChamCongController {
     constructor(chamCongService) {
         this.chamCongService = chamCongService;
@@ -194,6 +195,7 @@ __decorate([
 exports.ChamCongController = ChamCongController = __decorate([
     (0, swagger_1.ApiTags)('Chấm công'),
     (0, common_1.Controller)('cham-cong'),
+    (0, common_2.Quyen)('CHAMCONG_XEM'),
     __metadata("design:paramtypes", [cham_cong_service_1.ChamCongService])
 ], ChamCongController);
 //# sourceMappingURL=cham-cong.controller.js.map

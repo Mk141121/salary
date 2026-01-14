@@ -12,12 +12,14 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PhongBanService } from './phong-ban.service';
 import { TaoPhongBanDto, CapNhatPhongBanDto } from './dto/phong-ban.dto';
+import { Quyen } from '../../common';
 
 @ApiTags('phong-ban')
 @Controller('phong-ban')
 export class PhongBanController {
   constructor(private readonly phongBanService: PhongBanService) {}
 
+  @Quyen('PHONGBAN_XEM')
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách tất cả phòng ban' })
   @ApiResponse({ status: 200, description: 'Thành công' })
@@ -25,6 +27,7 @@ export class PhongBanController {
     return this.phongBanService.layTatCa();
   }
 
+  @Quyen('PHONGBAN_XEM')
   @Get(':id')
   @ApiOperation({ summary: 'Lấy thông tin phòng ban theo ID' })
   @ApiResponse({ status: 200, description: 'Thành công' })
@@ -33,6 +36,7 @@ export class PhongBanController {
     return this.phongBanService.layTheoId(id);
   }
 
+  @Quyen('PHONGBAN_THEM')
   @Post()
   @ApiOperation({ summary: 'Tạo phòng ban mới' })
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
@@ -40,6 +44,7 @@ export class PhongBanController {
     return this.phongBanService.taoMoi(dto);
   }
 
+  @Quyen('PHONGBAN_SUA')
   @Put(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin phòng ban' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công' })
@@ -51,6 +56,7 @@ export class PhongBanController {
     return this.phongBanService.capNhat(id, dto);
   }
 
+  @Quyen('PHONGBAN_XOA')
   @Delete(':id')
   @ApiOperation({ summary: 'Xóa phòng ban' })
   @ApiResponse({ status: 200, description: 'Xóa thành công' })
@@ -59,6 +65,7 @@ export class PhongBanController {
     return this.phongBanService.xoa(id);
   }
 
+  @Quyen('PHONGBAN_XEM')
   @Get(':id/nhan-vien')
   @ApiOperation({ summary: 'Lấy danh sách nhân viên theo phòng ban' })
   @ApiResponse({ status: 200, description: 'Thành công' })

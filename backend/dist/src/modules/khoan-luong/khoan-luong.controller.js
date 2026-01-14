@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const khoan_luong_service_1 = require("./khoan-luong.service");
 const khoan_luong_dto_1 = require("./dto/khoan-luong.dto");
+const common_2 = require("../../common");
 let KhoanLuongController = class KhoanLuongController {
     constructor(khoanLuongService) {
         this.khoanLuongService = khoanLuongService;
@@ -121,6 +122,7 @@ __decorate([
 exports.KhoanLuongController = KhoanLuongController = __decorate([
     (0, swagger_1.ApiTags)('khoan-luong'),
     (0, common_1.Controller)('khoan-luong'),
+    (0, common_2.VaiTro)('ADMIN', 'KETOAN'),
     __metadata("design:paramtypes", [khoan_luong_service_1.KhoanLuongService])
 ], KhoanLuongController);
 //# sourceMappingURL=khoan-luong.controller.js.map

@@ -210,7 +210,10 @@ export declare class BangLuongController {
             thucLinh: number;
         };
     }[]>;
-    chotBangLuong(id: number, dto: ChotBangLuongDto): Promise<{
+    chotBangLuong(id: number, dto: ChotBangLuongDto, nguoiDung: {
+        id: number;
+        tenDangNhap: string;
+    }): Promise<{
         ghiChu: string | undefined;
         message: string;
         bangLuongId: number;
@@ -218,7 +221,10 @@ export declare class BangLuongController {
         ngayChot: Date;
         nguoiChot: string;
     }>;
-    moKhoa(id: number): Promise<{
+    moKhoa(id: number, lyDo: string, nguoiDung: {
+        id: number;
+        tenDangNhap: string;
+    }): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
         ngayTao: Date;
@@ -231,7 +237,10 @@ export declare class BangLuongController {
         ngayChot: Date | null;
         nguoiChot: string | null;
     }>;
-    khoa(id: number): Promise<{
+    khoa(id: number, nguoiDung: {
+        id: number;
+        tenDangNhap: string;
+    }): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
         ngayTao: Date;

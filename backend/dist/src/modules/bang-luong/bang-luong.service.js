@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var BangLuongService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BangLuongService = void 0;
 const common_1 = require("@nestjs/common");
@@ -18,9 +19,10 @@ const phu_cap_nhan_vien_service_1 = require("../phu-cap-nhan-vien/phu-cap-nhan-v
 const bhxh_thue_service_1 = require("../bhxh-thue/bhxh-thue.service");
 const snapshot_dieu_chinh_service_1 = require("../snapshot-dieu-chinh/snapshot-dieu-chinh.service");
 const cham_cong_service_1 = require("../cham-cong/cham-cong.service");
+const audit_log_service_1 = require("../../common/services/audit-log.service");
 const client_1 = require("@prisma/client");
-let BangLuongService = class BangLuongService {
-    constructor(prisma, tinhLuongService, ngayCongService, phuCapNhanVienService, bhxhThueService, snapshotService, chamCongService) {
+let BangLuongService = BangLuongService_1 = class BangLuongService {
+    constructor(prisma, tinhLuongService, ngayCongService, phuCapNhanVienService, bhxhThueService, snapshotService, chamCongService, auditLogService) {
         this.prisma = prisma;
         this.tinhLuongService = tinhLuongService;
         this.ngayCongService = ngayCongService;
@@ -28,6 +30,8 @@ let BangLuongService = class BangLuongService {
         this.bhxhThueService = bhxhThueService;
         this.snapshotService = snapshotService;
         this.chamCongService = chamCongService;
+        this.auditLogService = auditLogService;
+        this.logger = new common_1.Logger(BangLuongService_1.name);
     }
     async layDanhSach(thang, nam, phongBanId, trang = 1, soLuong = 20) {
         const where = {};
@@ -165,19 +169,16 @@ let BangLuongService = class BangLuongService {
             }
             phuCapTheoNhanVien.get(pc.nhanVienId).push(pc);
         }
+        const chamCongBatch = await this.chamCongService.layChamCongNhieuNhanVien(nhanVienIds, thang, nam);
         const chamCongMap = new Map();
         for (const nv of nhanViens) {
-            try {
-                const cc = await this.chamCongService.layChamCongNhanVien(nv.id, thang, nam);
-                if (cc) {
-                    chamCongMap.set(nv.id, {
-                        soNgayCongThucTe: Number(cc.soCongThucTe) || 0,
-                        soNgayNghiKhongLuong: Number(cc.soNgayNghiKhongLuong) || 0,
-                        soNgayNghiPhep: Number(cc.soNgayNghiPhep) || 0,
-                    });
-                }
-            }
-            catch {
+            const cc = chamCongBatch.get(nv.id);
+            if (cc) {
+                chamCongMap.set(nv.id, {
+                    soNgayCongThucTe: Number(cc.soCongThucTe) || 0,
+                    soNgayNghiKhongLuong: Number(cc.soNgayNghiKhongLuong) || 0,
+                    soNgayNghiPhep: Number(cc.soNgayNghiPhep) || 0,
+                });
             }
         }
         const chiTietData = [];
@@ -279,7 +280,7 @@ let BangLuongService = class BangLuongService {
                 }
             }
             catch (error) {
-                console.log(`Không có dữ liệu chấm công cho NV ${nv.maNhanVien}:`, error);
+                this.logger.warn(`Không có dữ liệu chấm công cho NV ${nv.maNhanVien}: ${error.message}`);
             }
         }
         if (chiTietData.length > 0) {
@@ -392,9 +393,10 @@ let BangLuongService = class BangLuongService {
         }
         return ketQua;
     }
-    async chotBangLuong(id, dto) {
+    async chotBangLuong(id, dto, nguoiDungId) {
         const bangLuong = await this.prisma.bangLuong.findUnique({
             where: { id },
+            include: { phongBan: true },
         });
         if (!bangLuong) {
             throw new common_1.NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
@@ -406,15 +408,26 @@ let BangLuongService = class BangLuongService {
             await this.bhxhThueService.tinhChoToBoNhanVien(id);
         }
         catch (error) {
-            console.log('Bỏ qua tính BHXH/Thuế:', error.message);
+            this.logger.warn(`Bỏ qua tính BHXH/Thuế: ${error.message}`);
         }
         const result = await this.snapshotService.taoSnapshot(id, dto.nguoiChot);
+        await this.auditLogService.ghiLogChotBangLuong({
+            nguoiDungId,
+            tenDangNhap: dto.nguoiChot,
+            bangLuongId: id,
+            thang: bangLuong.thang,
+            nam: bangLuong.nam,
+            phongBan: bangLuong.phongBan.tenPhongBan,
+        });
         return {
             ...result,
             ghiChu: dto.ghiChu,
         };
     }
-    async moKhoaBangLuong(id) {
+    async moKhoaBangLuong(id, lyDo, nguoiDungId, tenDangNhap) {
+        if (!lyDo || lyDo.trim().length < 10) {
+            throw new common_1.BadRequestException('Lý do mở khóa phải có ít nhất 10 ký tự');
+        }
         const bangLuong = await this.prisma.bangLuong.findUnique({
             where: { id },
         });
@@ -424,7 +437,7 @@ let BangLuongService = class BangLuongService {
         if (bangLuong.trangThai === 'KHOA') {
             throw new common_1.BadRequestException('Bảng lương đã khóa hoàn toàn, không thể mở');
         }
-        return this.prisma.bangLuong.update({
+        const result = await this.prisma.bangLuong.update({
             where: { id },
             data: {
                 trangThai: 'NHAP',
@@ -432,8 +445,15 @@ let BangLuongService = class BangLuongService {
                 nguoiChot: null,
             },
         });
+        await this.auditLogService.ghiLogMoKhoaBangLuong({
+            nguoiDungId,
+            tenDangNhap,
+            bangLuongId: id,
+            lyDo,
+        });
+        return result;
     }
-    async khoaBangLuong(id) {
+    async khoaBangLuong(id, nguoiDungId, tenDangNhap) {
         const bangLuong = await this.prisma.bangLuong.findUnique({
             where: { id },
         });
@@ -443,10 +463,16 @@ let BangLuongService = class BangLuongService {
         if (bangLuong.trangThai !== 'DA_CHOT') {
             throw new common_1.BadRequestException('Phải chốt bảng lương trước khi khóa');
         }
-        return this.prisma.bangLuong.update({
+        const result = await this.prisma.bangLuong.update({
             where: { id },
             data: { trangThai: 'KHOA' },
         });
+        await this.auditLogService.ghiLogKhoaBangLuong({
+            nguoiDungId,
+            tenDangNhap,
+            bangLuongId: id,
+        });
+        return result;
     }
     async xoa(id) {
         const bangLuong = await this.prisma.bangLuong.findUnique({
@@ -501,7 +527,7 @@ let BangLuongService = class BangLuongService {
     }
 };
 exports.BangLuongService = BangLuongService;
-exports.BangLuongService = BangLuongService = __decorate([
+exports.BangLuongService = BangLuongService = BangLuongService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         tinh_luong_service_1.TinhLuongService,
@@ -509,6 +535,7 @@ exports.BangLuongService = BangLuongService = __decorate([
         phu_cap_nhan_vien_service_1.PhuCapNhanVienService,
         bhxh_thue_service_1.BHXHThueService,
         snapshot_dieu_chinh_service_1.SnapshotDieuChinhService,
-        cham_cong_service_1.ChamCongService])
+        cham_cong_service_1.ChamCongService,
+        audit_log_service_1.AuditLogService])
 ], BangLuongService);
 //# sourceMappingURL=bang-luong.service.js.map

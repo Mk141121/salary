@@ -173,7 +173,7 @@ export declare class RuleEngineService {
         lyDoThayDoi: string | null;
     }[]>;
     private validateCongThuc;
-    tinhCongThuc(congThuc: string, bienSo: BienSoGiaTri): KetQuaTinhCongThuc;
+    tinhCongThuc(congThuc: string, bienSo: BienSoGiaTri): Promise<KetQuaTinhCongThuc>;
     private formatTien;
     layGiaTriBienSo(nhanVienId: number, thang: number, nam: number, bienSos: {
         tenBien: string;

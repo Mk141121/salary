@@ -1,6 +1,8 @@
 import { PrismaService } from '../../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { QuyCheService } from './quy-che.service';
 import { SuKienThuongPhatService } from './su-kien-thuong-phat.service';
+import { AuditLogService } from '../../common/services/audit-log.service';
 export interface KetQuaEngine {
     bangLuongId: number;
     quyCheId: number;
@@ -24,9 +26,11 @@ export declare class RuleEngineExecutor {
     private prisma;
     private quyCheService;
     private suKienService;
+    private auditLogService;
     private readonly BIEN_CHO_PHEP;
-    constructor(prisma: PrismaService, quyCheService: QuyCheService, suKienService: SuKienThuongPhatService);
-    chayRuleEngine(bangLuongId: number, nguoiThucHien?: string): Promise<KetQuaEngine>;
+    constructor(prisma: PrismaService, quyCheService: QuyCheService, suKienService: SuKienThuongPhatService, auditLogService: AuditLogService);
+    chayRuleEngine(bangLuongId: number, nguoiThucHien?: string, nguoiDungId?: number): Promise<KetQuaEngine>;
+    private thucHienRuleEngine;
     private chuanBiDuLieuNhanVien;
     private kiemTraDieuKien;
     private tinhToanRule;
@@ -60,7 +64,7 @@ export declare class RuleEngineExecutor {
         bangLuongId: number;
         quyCheId: number;
         inputJson: string;
-        outputSoTien: import("@prisma/client/runtime/library").Decimal;
+        outputSoTien: Prisma.Decimal;
         messageGiaiThich: string;
         taoLuc: Date;
         quyCheRuleId: number | null;

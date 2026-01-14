@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const nhan_vien_service_1 = require("./nhan-vien.service");
 const nhan_vien_dto_1 = require("./dto/nhan-vien.dto");
+const common_2 = require("../../common");
 let NhanVienController = class NhanVienController {
     constructor(nhanVienService) {
         this.nhanVienService = nhanVienService;
@@ -49,6 +50,7 @@ let NhanVienController = class NhanVienController {
 };
 exports.NhanVienController = NhanVienController;
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_XEM'),
     (0, common_1.Get)('ma-tu-dong'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy mã nhân viên tự động tiếp theo' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Thành công' }),
@@ -57,6 +59,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "layMaTuDong", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_XEM'),
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy danh sách nhân viên' }),
     (0, swagger_1.ApiQuery)({ name: 'phongBanId', required: false, type: Number }),
@@ -68,6 +71,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "layTatCa", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_XEM'),
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy thông tin nhân viên theo ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Thành công' }),
@@ -78,6 +82,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "layTheoId", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_XEM'),
     (0, common_1.Get)('ma/:maNhanVien'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy thông tin nhân viên theo mã' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Thành công' }),
@@ -88,6 +93,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "layTheoMa", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_THEM'),
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Tạo nhân viên mới' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Tạo thành công' }),
@@ -97,6 +103,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "taoMoi", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_SUA'),
     (0, common_1.Put)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Cập nhật thông tin nhân viên' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Cập nhật thành công' }),
@@ -108,6 +115,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "capNhat", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_XOA'),
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Xóa nhân viên (chuyển trạng thái nghỉ việc)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Xóa thành công' }),
@@ -118,6 +126,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], NhanVienController.prototype, "xoa", null);
 __decorate([
+    (0, common_2.Quyen)('NHANVIEN_XEM'),
     (0, common_1.Get)('thong-ke/theo-phong-ban'),
     (0, swagger_1.ApiOperation)({ summary: 'Thống kê số nhân viên theo phòng ban' }),
     __metadata("design:type", Function),

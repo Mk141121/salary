@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TinhLuongService } from './tinh-luong.service';
@@ -12,6 +13,7 @@ import { PhuCapNhanVienService } from '../phu-cap-nhan-vien/phu-cap-nhan-vien.se
 import { BHXHThueService } from '../bhxh-thue/bhxh-thue.service';
 import { SnapshotDieuChinhService } from '../snapshot-dieu-chinh/snapshot-dieu-chinh.service';
 import { ChamCongService } from '../cham-cong/cham-cong.service';
+import { AuditLogService } from '../../common/services/audit-log.service';
 import {
   TaoBangLuongDto,
   CapNhatBangLuongDto,
@@ -22,6 +24,8 @@ import { NguonChiTiet, CachTinhLuong } from '@prisma/client';
 
 @Injectable()
 export class BangLuongService {
+  private readonly logger = new Logger(BangLuongService.name);
+
   constructor(
     private prisma: PrismaService,
     private tinhLuongService: TinhLuongService,
@@ -30,6 +34,7 @@ export class BangLuongService {
     private bhxhThueService: BHXHThueService,
     private snapshotService: SnapshotDieuChinhService,
     private chamCongService: ChamCongService,
+    private auditLogService: AuditLogService,
   ) {}
 
   // Lấy danh sách bảng lương (có pagination)
@@ -226,20 +231,18 @@ export class BangLuongService {
       phuCapTheoNhanVien.get(pc.nhanVienId)!.push(pc);
     }
 
-    // Lấy chấm công của tất cả nhân viên
+    // Lấy chấm công của tất cả nhân viên (batch query - tránh N+1)
+    const chamCongBatch = await this.chamCongService.layChamCongNhieuNhanVien(nhanVienIds, thang, nam);
+    
     const chamCongMap = new Map<number, { soNgayCongThucTe: number; soNgayNghiKhongLuong: number; soNgayNghiPhep: number }>();
     for (const nv of nhanViens) {
-      try {
-        const cc = await this.chamCongService.layChamCongNhanVien(nv.id, thang, nam);
-        if (cc) {
-          chamCongMap.set(nv.id, {
-            soNgayCongThucTe: Number(cc.soCongThucTe) || 0,
-            soNgayNghiKhongLuong: Number(cc.soNgayNghiKhongLuong) || 0,
-            soNgayNghiPhep: Number(cc.soNgayNghiPhep) || 0,
-          });
-        }
-      } catch {
-        // Không có dữ liệu chấm công
+      const cc = chamCongBatch.get(nv.id);
+      if (cc) {
+        chamCongMap.set(nv.id, {
+          soNgayCongThucTe: Number(cc.soCongThucTe) || 0,
+          soNgayNghiKhongLuong: Number(cc.soNgayNghiKhongLuong) || 0,
+          soNgayNghiPhep: Number(cc.soNgayNghiPhep) || 0,
+        });
       }
     }
 
@@ -389,7 +392,7 @@ export class BangLuongService {
         }
       } catch (error) {
         // Không có dữ liệu chấm công, bỏ qua phạt
-        console.log(`Không có dữ liệu chấm công cho NV ${nv.maNhanVien}:`, error);
+        this.logger.warn(`Không có dữ liệu chấm công cho NV ${nv.maNhanVien}: ${error.message}`);
       }
     }
 
@@ -554,9 +557,10 @@ export class BangLuongService {
   }
 
   // Chốt bảng lương - Tính BHXH/Thuế và tạo snapshot
-  async chotBangLuong(id: number, dto: ChotBangLuongDto) {
+  async chotBangLuong(id: number, dto: ChotBangLuongDto, nguoiDungId?: number) {
     const bangLuong = await this.prisma.bangLuong.findUnique({
       where: { id },
+      include: { phongBan: true },
     });
 
     if (!bangLuong) {
@@ -572,11 +576,21 @@ export class BangLuongService {
       await this.bhxhThueService.tinhChoToBoNhanVien(id);
     } catch (error) {
       // Nếu chưa có cấu hình BHXH/Thuế, bỏ qua (cho phép chốt không tính)
-      console.log('Bỏ qua tính BHXH/Thuế:', error.message);
+      this.logger.warn(`Bỏ qua tính BHXH/Thuế: ${error.message}`);
     }
 
     // Bước 2: Tạo snapshot và cập nhật trạng thái
     const result = await this.snapshotService.taoSnapshot(id, dto.nguoiChot);
+
+    // Ghi audit log
+    await this.auditLogService.ghiLogChotBangLuong({
+      nguoiDungId,
+      tenDangNhap: dto.nguoiChot,
+      bangLuongId: id,
+      thang: bangLuong.thang,
+      nam: bangLuong.nam,
+      phongBan: bangLuong.phongBan.tenPhongBan,
+    });
 
     return {
       ...result,
@@ -584,8 +598,12 @@ export class BangLuongService {
     };
   }
 
-  // Mở khóa bảng lương (cho admin)
-  async moKhoaBangLuong(id: number) {
+  // Mở khóa bảng lương (cho admin) - YÊU CẦU LÝ DO
+  async moKhoaBangLuong(id: number, lyDo: string, nguoiDungId?: number, tenDangNhap?: string) {
+    if (!lyDo || lyDo.trim().length < 10) {
+      throw new BadRequestException('Lý do mở khóa phải có ít nhất 10 ký tự');
+    }
+
     const bangLuong = await this.prisma.bangLuong.findUnique({
       where: { id },
     });
@@ -598,7 +616,7 @@ export class BangLuongService {
       throw new BadRequestException('Bảng lương đã khóa hoàn toàn, không thể mở');
     }
 
-    return this.prisma.bangLuong.update({
+    const result = await this.prisma.bangLuong.update({
       where: { id },
       data: {
         trangThai: 'NHAP',
@@ -606,10 +624,20 @@ export class BangLuongService {
         nguoiChot: null,
       },
     });
+
+    // Ghi audit log
+    await this.auditLogService.ghiLogMoKhoaBangLuong({
+      nguoiDungId,
+      tenDangNhap,
+      bangLuongId: id,
+      lyDo,
+    });
+
+    return result;
   }
 
   // Khóa vĩnh viễn bảng lương
-  async khoaBangLuong(id: number) {
+  async khoaBangLuong(id: number, nguoiDungId?: number, tenDangNhap?: string) {
     const bangLuong = await this.prisma.bangLuong.findUnique({
       where: { id },
     });
@@ -622,10 +650,19 @@ export class BangLuongService {
       throw new BadRequestException('Phải chốt bảng lương trước khi khóa');
     }
 
-    return this.prisma.bangLuong.update({
+    const result = await this.prisma.bangLuong.update({
       where: { id },
       data: { trangThai: 'KHOA' },
     });
+
+    // Ghi audit log
+    await this.auditLogService.ghiLogKhoaBangLuong({
+      nguoiDungId,
+      tenDangNhap,
+      bangLuongId: id,
+    });
+
+    return result;
   }
 
   // Xóa bảng lương

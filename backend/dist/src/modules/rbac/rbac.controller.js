@@ -16,6 +16,7 @@ exports.RBACController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const rbac_service_1 = require("./rbac.service");
+const decorators_1 = require("../../common/decorators");
 const rbac_dto_1 = require("./dto/rbac.dto");
 let RBACController = class RBACController {
     constructor(rbacService) {
@@ -111,6 +112,8 @@ let RBACController = class RBACController {
 };
 exports.RBACController = RBACController;
 __decorate([
+    (0, decorators_1.CongKhai)(),
+    (0, decorators_1.ThrottleLogin)(),
     (0, common_1.Post)('dang-nhap'),
     (0, swagger_1.ApiOperation)({ summary: 'Đăng nhập' }),
     __param(0, (0, common_1.Body)()),
@@ -139,6 +142,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "kiemTraToken", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('nguoi-dung'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy danh sách người dùng' }),
     __metadata("design:type", Function),
@@ -146,6 +150,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layDanhSachNguoiDung", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('nguoi-dung/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy thông tin người dùng' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -154,6 +159,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layNguoiDungTheoId", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Post)('nguoi-dung'),
     (0, swagger_1.ApiOperation)({ summary: 'Tạo người dùng mới' }),
     __param(0, (0, common_1.Body)()),
@@ -162,6 +168,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "taoNguoiDung", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Put)('nguoi-dung/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Cập nhật người dùng' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -180,6 +187,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "doiMatKhau", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('vai-tro'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy danh sách vai trò' }),
     __metadata("design:type", Function),
@@ -187,6 +195,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layDanhSachVaiTro", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('vai-tro/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy thông tin vai trò' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -195,6 +204,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layVaiTroTheoId", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Post)('vai-tro'),
     (0, swagger_1.ApiOperation)({ summary: 'Tạo vai trò mới' }),
     __param(0, (0, common_1.Body)()),
@@ -203,6 +213,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "taoVaiTro", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Put)('vai-tro/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Cập nhật vai trò' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -212,6 +223,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "capNhatVaiTro", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Post)('vai-tro/gan'),
     (0, swagger_1.ApiOperation)({ summary: 'Gán vai trò cho người dùng' }),
     __param(0, (0, common_1.Body)()),
@@ -220,6 +232,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "ganVaiTroChoNguoiDung", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Delete)('vai-tro/go'),
     (0, swagger_1.ApiOperation)({ summary: 'Gỡ vai trò khỏi người dùng' }),
     __param(0, (0, common_1.Body)()),
@@ -228,6 +241,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "goVaiTroKhoiNguoiDung", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('quyen'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy danh sách quyền' }),
     __metadata("design:type", Function),
@@ -235,6 +249,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layDanhSachQuyen", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('quyen/theo-nhom'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy quyền theo nhóm' }),
     __metadata("design:type", Function),
@@ -242,6 +257,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layQuyenTheoNhom", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Post)('quyen'),
     (0, swagger_1.ApiOperation)({ summary: 'Tạo quyền mới' }),
     __param(0, (0, common_1.Body)()),
@@ -250,6 +266,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "taoQuyen", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Post)('quyen/gan-cho-vai-tro'),
     (0, swagger_1.ApiOperation)({ summary: 'Gán quyền cho vai trò' }),
     __param(0, (0, common_1.Body)()),
@@ -258,6 +275,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "ganQuyenChoVaiTro", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('kiem-tra-quyen/:nguoiDungId/:maQuyen'),
     (0, swagger_1.ApiOperation)({ summary: 'Kiểm tra quyền của người dùng' }),
     __param(0, (0, common_1.Param)('nguoiDungId', common_1.ParseIntPipe)),
@@ -267,6 +285,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RBACController.prototype, "kiemTraQuyen", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('audit-log'),
     (0, swagger_1.ApiOperation)({ summary: 'Tìm kiếm audit log' }),
     __param(0, (0, common_1.Query)()),
@@ -275,6 +294,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "timKiemAuditLog", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('audit-log/nguoi-dung/:nguoiDungId'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy audit log theo người dùng' }),
     __param(0, (0, common_1.Param)('nguoiDungId', common_1.ParseIntPipe)),
@@ -284,6 +304,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layAuditLogTheoNguoiDung", null);
 __decorate([
+    (0, decorators_1.VaiTro)('ADMIN'),
     (0, common_1.Get)('audit-log/ban-ghi/:bangDuLieu/:banGhiId'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy audit log theo bản ghi' }),
     __param(0, (0, common_1.Param)('bangDuLieu')),
@@ -293,6 +314,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "layAuditLogTheoBanGhi", null);
 __decorate([
+    (0, decorators_1.CongKhai)(),
     (0, common_1.Post)('khoi-tao/quyen'),
     (0, swagger_1.ApiOperation)({ summary: 'Khởi tạo quyền mặc định' }),
     __metadata("design:type", Function),
@@ -300,6 +322,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "khoiTaoQuyenMacDinh", null);
 __decorate([
+    (0, decorators_1.CongKhai)(),
     (0, common_1.Post)('khoi-tao/vai-tro'),
     (0, swagger_1.ApiOperation)({ summary: 'Khởi tạo vai trò mặc định' }),
     __metadata("design:type", Function),
@@ -307,6 +330,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "khoiTaoVaiTroMacDinh", null);
 __decorate([
+    (0, decorators_1.CongKhai)(),
     (0, common_1.Post)('khoi-tao/admin'),
     (0, swagger_1.ApiOperation)({ summary: 'Khởi tạo admin mặc định' }),
     __metadata("design:type", Function),
@@ -314,6 +338,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RBACController.prototype, "khoiTaoAdminMacDinh", null);
 __decorate([
+    (0, decorators_1.CongKhai)(),
     (0, common_1.Post)('khoi-tao/tat-ca'),
     (0, swagger_1.ApiOperation)({ summary: 'Khởi tạo tất cả dữ liệu mặc định' }),
     __metadata("design:type", Function),

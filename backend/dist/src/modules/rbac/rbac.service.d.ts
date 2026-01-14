@@ -4,7 +4,9 @@ export declare class RBACService {
     private prisma;
     constructor(prisma: PrismaService);
     private hashPassword;
+    private verifyPassword;
     private generateToken;
+    private hashToken;
     layDanhSachNguoiDung(): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiNguoiDung;
@@ -395,13 +397,13 @@ export declare class RBACService {
         ngayTao: Date;
         tenDangNhap: string;
         nguoiDungId: number | null;
+        diaChiIP: string | null;
+        userAgent: string | null;
         hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
         bangDuLieu: string;
         banGhiId: string | null;
         duLieuCu: string | null;
         duLieuMoi: string | null;
-        diaChiIP: string | null;
-        userAgent: string | null;
     }>;
     timKiemAuditLog(dto: TimKiemAuditLogDto): Promise<{
         items: ({
@@ -414,13 +416,13 @@ export declare class RBACService {
             ngayTao: Date;
             tenDangNhap: string;
             nguoiDungId: number | null;
+            diaChiIP: string | null;
+            userAgent: string | null;
             hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
             bangDuLieu: string;
             banGhiId: string | null;
             duLieuCu: string | null;
             duLieuMoi: string | null;
-            diaChiIP: string | null;
-            userAgent: string | null;
         })[];
         total: number;
     }>;
@@ -430,13 +432,13 @@ export declare class RBACService {
         ngayTao: Date;
         tenDangNhap: string;
         nguoiDungId: number | null;
+        diaChiIP: string | null;
+        userAgent: string | null;
         hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
         bangDuLieu: string;
         banGhiId: string | null;
         duLieuCu: string | null;
         duLieuMoi: string | null;
-        diaChiIP: string | null;
-        userAgent: string | null;
     }[]>;
     layAuditLogTheoBanGhi(bangDuLieu: string, banGhiId: string): Promise<({
         nguoiDung: {
@@ -448,13 +450,13 @@ export declare class RBACService {
         ngayTao: Date;
         tenDangNhap: string;
         nguoiDungId: number | null;
+        diaChiIP: string | null;
+        userAgent: string | null;
         hanhDong: import(".prisma/client").$Enums.HanhDongAudit;
         bangDuLieu: string;
         banGhiId: string | null;
         duLieuCu: string | null;
         duLieuMoi: string | null;
-        diaChiIP: string | null;
-        userAgent: string | null;
     })[]>;
     khoiTaoQuyenMacDinh(): Promise<{
         id: number;

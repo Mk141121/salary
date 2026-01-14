@@ -2,7 +2,8 @@
 // Tất cả tên bảng và trường đều sử dụng tiếng Việt (không dấu)
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -1045,6 +1046,7 @@ enum HanhDongAudit {
   TU_CHOI
   IMPORT
   EXPORT
+  CHAY_RULE_ENGINE
 
   @@map("hanh_dong_audit")
 }
@@ -1081,18 +1083,19 @@ enum TrangThaiPhien {
 // Lưu thông tin công ty để hiển thị trên phiếu lương
 // ============================================
 model ThongTinCongTy {
-  id            Int      @id @default(autoincrement())
-  tenCongTy     String   @map("ten_cong_ty")
-  maSoThue      String?  @map("ma_so_thue")
-  diaChi        String?  @map("dia_chi")
-  dienThoai     String?  @map("dien_thoai")
-  email         String?  @map("email")
-  website       String?  @map("website")
-  logo          String?  @map("logo") // URL hoặc path đến logo
-  nguoiDaiDien  String?  @map("nguoi_dai_dien")
-  chucVuDaiDien String?  @map("chuc_vu_dai_dien")
-  ngayTao       DateTime @default(now()) @map("ngay_tao")
-  ngayCapNhat   DateTime @updatedAt @map("ngay_cap_nhat")
+  id                   Int      @id @default(autoincrement())
+  tenCongTy            String   @map("ten_cong_ty")
+  maSoThue             String?  @map("ma_so_thue")
+  diaChi               String?  @map("dia_chi")
+  dienThoai            String?  @map("dien_thoai")
+  email                String?  @map("email")
+  website              String?  @map("website")
+  logo                 String?  @map("logo") // URL hoặc path đến logo
+  nguoiDaiDien         String?  @map("nguoi_dai_dien")
+  chucVuDaiDien        String?  @map("chuc_vu_dai_dien")
+  ngayCongChuanMacDinh Int      @default(26) @map("ngay_cong_chuan_mac_dinh") // Số ngày công chuẩn mặc định
+  ngayTao              DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat          DateTime @updatedAt @map("ngay_cap_nhat")
 
   @@map("thong_tin_cong_ty")
 }
@@ -1327,6 +1330,7 @@ model RuleTrace {
   @@index([nhanVienId])
   @@index([quyCheId])
   @@index([taoLuc])
+  @@index([bangLuongId, nhanVienId]) // Composite index for common query pattern
   @@map("rule_trace")
 }
 

@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const phong_ban_service_1 = require("./phong-ban.service");
 const phong_ban_dto_1 = require("./dto/phong-ban.dto");
+const common_2 = require("../../common");
 let PhongBanController = class PhongBanController {
     constructor(phongBanService) {
         this.phongBanService = phongBanService;
@@ -42,6 +43,7 @@ let PhongBanController = class PhongBanController {
 };
 exports.PhongBanController = PhongBanController;
 __decorate([
+    (0, common_2.Quyen)('PHONGBAN_XEM'),
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy danh sách tất cả phòng ban' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Thành công' }),
@@ -50,6 +52,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PhongBanController.prototype, "layTatCa", null);
 __decorate([
+    (0, common_2.Quyen)('PHONGBAN_XEM'),
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy thông tin phòng ban theo ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Thành công' }),
@@ -60,6 +63,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PhongBanController.prototype, "layTheoId", null);
 __decorate([
+    (0, common_2.Quyen)('PHONGBAN_THEM'),
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Tạo phòng ban mới' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Tạo thành công' }),
@@ -69,6 +73,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PhongBanController.prototype, "taoMoi", null);
 __decorate([
+    (0, common_2.Quyen)('PHONGBAN_SUA'),
     (0, common_1.Put)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Cập nhật thông tin phòng ban' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Cập nhật thành công' }),
@@ -80,6 +85,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PhongBanController.prototype, "capNhat", null);
 __decorate([
+    (0, common_2.Quyen)('PHONGBAN_XOA'),
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Xóa phòng ban' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Xóa thành công' }),
@@ -90,6 +96,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PhongBanController.prototype, "xoa", null);
 __decorate([
+    (0, common_2.Quyen)('PHONGBAN_XEM'),
     (0, common_1.Get)(':id/nhan-vien'),
     (0, swagger_1.ApiOperation)({ summary: 'Lấy danh sách nhân viên theo phòng ban' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Thành công' }),

@@ -163,6 +163,40 @@ export declare class ChamCongService {
         soLanDiMuon: number;
         soLanVeSom: number;
     }) | null>;
+    layChamCongNhieuNhanVien(nhanVienIds: number[], thang: number, nam: number): Promise<Map<number, {
+        nhanVien: {
+            id: number;
+            trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+            maNhanVien: string;
+            email: string | null;
+            hoTen: string;
+            soDienThoai: string | null;
+            phongBanId: number;
+            chucVu: string | null;
+            luongCoBan: import("@prisma/client/runtime/library").Decimal;
+            ngayVaoLam: Date;
+        };
+    } & {
+        id: number;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        nam: number;
+        nhanVienId: number;
+        ghiChu: string | null;
+        thang: number;
+        soCongChuan: import("@prisma/client/runtime/library").Decimal;
+        soCongThucTe: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiKhongLuong: import("@prisma/client/runtime/library").Decimal;
+        soGioOT: import("@prisma/client/runtime/library").Decimal;
+        soGioOTDem: import("@prisma/client/runtime/library").Decimal;
+        soGioOTChuNhat: import("@prisma/client/runtime/library").Decimal;
+        soGioOTLe: import("@prisma/client/runtime/library").Decimal;
+        soLanDiMuon: number;
+        soLanVeSom: number;
+    }>>;
     luuChamCong(data: {
         nhanVienId: number;
         thang: number;

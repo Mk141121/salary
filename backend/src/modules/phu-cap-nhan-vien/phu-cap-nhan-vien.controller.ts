@@ -16,9 +16,11 @@ import {
   KetThucPhuCapDto,
   TangPhuCapDto,
 } from './phu-cap-nhan-vien.dto';
+import { Quyen } from '../../common';
 
 @ApiTags('Phụ cấp nhân viên')
 @Controller('phu-cap-nhan-vien')
+@Quyen('PHUCAP_XEM') // Mặc định cần quyền xem phụ cấp
 export class PhuCapNhanVienController {
   constructor(private readonly phuCapService: PhuCapNhanVienService) {}
 

@@ -20,6 +20,7 @@ const tinh_luong_service_1 = require("./tinh-luong.service");
 const phieu_luong_service_1 = require("./phieu-luong.service");
 const ngay_cong_service_1 = require("./ngay-cong.service");
 const bang_luong_dto_1 = require("./dto/bang-luong.dto");
+const common_2 = require("../../common");
 let BangLuongController = class BangLuongController {
     constructor(bangLuongService, tinhLuongService, phieuLuongService, ngayCongService) {
         this.bangLuongService = bangLuongService;
@@ -54,14 +55,14 @@ let BangLuongController = class BangLuongController {
     async capNhatNhieuChiTiet(dto) {
         return this.bangLuongService.capNhatNhieuChiTiet(dto.danhSach);
     }
-    async chotBangLuong(id, dto) {
-        return this.bangLuongService.chotBangLuong(id, dto);
+    async chotBangLuong(id, dto, nguoiDung) {
+        return this.bangLuongService.chotBangLuong(id, dto, nguoiDung?.id);
     }
-    async moKhoa(id) {
-        return this.bangLuongService.moKhoaBangLuong(id);
+    async moKhoa(id, lyDo, nguoiDung) {
+        return this.bangLuongService.moKhoaBangLuong(id, lyDo, nguoiDung?.id, nguoiDung?.tenDangNhap);
     }
-    async khoa(id) {
-        return this.bangLuongService.khoaBangLuong(id);
+    async khoa(id, nguoiDung) {
+        return this.bangLuongService.khoaBangLuong(id, nguoiDung?.id, nguoiDung?.tenDangNhap);
     }
     async xoa(id) {
         return this.bangLuongService.xoa(id);
@@ -200,26 +201,32 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Bảng lương đã chốt' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_2.NguoiDungHienTai)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, bang_luong_dto_1.ChotBangLuongDto]),
+    __metadata("design:paramtypes", [Number, bang_luong_dto_1.ChotBangLuongDto, Object]),
     __metadata("design:returntype", Promise)
 ], BangLuongController.prototype, "chotBangLuong", null);
 __decorate([
     (0, common_1.Post)(':id/mo-khoa'),
-    (0, swagger_1.ApiOperation)({ summary: 'Mở khóa bảng lương đã chốt' }),
+    (0, common_2.VaiTro)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Mở khóa bảng lương đã chốt (chỉ ADMIN)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Mở khóa thành công' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('lyDo')),
+    __param(2, (0, common_2.NguoiDungHienTai)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, String, Object]),
     __metadata("design:returntype", Promise)
 ], BangLuongController.prototype, "moKhoa", null);
 __decorate([
     (0, common_1.Post)(':id/khoa'),
-    (0, swagger_1.ApiOperation)({ summary: 'Khóa vĩnh viễn bảng lương' }),
+    (0, common_2.VaiTro)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Khóa vĩnh viễn bảng lương (chỉ ADMIN)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Khóa thành công' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_2.NguoiDungHienTai)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], BangLuongController.prototype, "khoa", null);
 __decorate([

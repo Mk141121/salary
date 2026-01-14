@@ -1,10 +1,31 @@
 // KPI API Service - Quản lý KPI & Thưởng
 import axios from 'axios'
 
+const AUTH_STORAGE_KEY = 'tinh_luong_auth'
+
 const api = axios.create({
   baseURL: '/api/kpi',
   headers: { 'Content-Type': 'application/json' },
 })
+
+// Interceptor để tự động thêm token vào header
+api.interceptors.request.use(
+  (config) => {
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        if (data.token) {
+          config.headers.Authorization = `Bearer ${data.token}`
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
 // ==================== ENUMS ====================
 export type XepLoaiKPI = 'XUAT_SAC' | 'TOT' | 'KHA' | 'TRUNG_BINH' | 'YEU'

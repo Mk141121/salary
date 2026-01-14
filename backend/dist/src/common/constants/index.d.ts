@@ -1,0 +1,10 @@
+export declare const NGAY_CONG_CHUAN_MAC_DINH = 26;
+export declare const MAX_FILE_SIZE_MB = 10;
+export declare const MAX_FILE_SIZE_BYTES: number;
+export declare const MAX_EXCEL_ROWS = 10000;
+export declare const BCRYPT_SALT_ROUNDS = 12;
+export declare const TOKEN_EXPIRY_HOURS = 8;
+export declare const LOGIN_RATE_LIMIT = 5;
+export declare const LOGIN_RATE_LIMIT_TTL = 60000;
+export declare const DEFAULT_PAGE_SIZE = 20;
+export declare const MAX_PAGE_SIZE = 100;

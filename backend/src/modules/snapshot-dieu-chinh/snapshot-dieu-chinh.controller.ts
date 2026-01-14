@@ -18,9 +18,11 @@ import {
   TuChoiPhieuDto,
 } from './dto/snapshot-dieu-chinh.dto';
 import { TrangThaiPhieuDC } from '@prisma/client';
+import { VaiTro } from '../../common';
 
 @ApiTags('Snapshot & Phiếu Điều Chỉnh')
 @Controller('snapshot-dieu-chinh')
+@VaiTro('ADMIN', 'KETOAN') // Chỉ admin và kế toán mới truy cập
 export class SnapshotDieuChinhController {
   constructor(private readonly service: SnapshotDieuChinhService) {}
 
