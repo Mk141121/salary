@@ -78,11 +78,11 @@ export declare class BHXHThueService {
         ngayTao: Date;
         ngayCapNhat: Date;
         hoTen: string;
+        ngaySinh: Date | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
         ghiChu: string | null;
-        ngaySinh: Date | null;
         quanHe: string;
         maSoThue: string | null;
         soCCCD: string | null;
@@ -103,11 +103,11 @@ export declare class BHXHThueService {
         ngayTao: Date;
         ngayCapNhat: Date;
         hoTen: string;
+        ngaySinh: Date | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
         ghiChu: string | null;
-        ngaySinh: Date | null;
         quanHe: string;
         maSoThue: string | null;
         soCCCD: string | null;
@@ -128,11 +128,11 @@ export declare class BHXHThueService {
         ngayTao: Date;
         ngayCapNhat: Date;
         hoTen: string;
+        ngaySinh: Date | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
         ghiChu: string | null;
-        ngaySinh: Date | null;
         quanHe: string;
         maSoThue: string | null;
         soCCCD: string | null;

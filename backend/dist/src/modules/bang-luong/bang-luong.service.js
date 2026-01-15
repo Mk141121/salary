@@ -33,6 +33,57 @@ let BangLuongService = BangLuongService_1 = class BangLuongService {
         this.auditLogService = auditLogService;
         this.logger = new common_1.Logger(BangLuongService_1.name);
     }
+    async layLuongCoBanHieuLuc(nhanVienId, ngay) {
+        const hopDong = await this.prisma.nhanVienHopDong.findFirst({
+            where: {
+                nhanVienId,
+                trangThai: 'HIEU_LUC',
+                tuNgay: { lte: ngay },
+                OR: [
+                    { denNgay: null },
+                    { denNgay: { gte: ngay } },
+                ],
+            },
+            orderBy: { tuNgay: 'desc' },
+        });
+        if (hopDong) {
+            return Number(hopDong.luongCoBan);
+        }
+        const nhanVien = await this.prisma.nhanVien.findUnique({
+            where: { id: nhanVienId },
+        });
+        return Number(nhanVien?.luongCoBan || 0);
+    }
+    async layLuongCoBanBatch(nhanVienIds, ngay) {
+        const result = new Map();
+        const hopDongs = await this.prisma.nhanVienHopDong.findMany({
+            where: {
+                nhanVienId: { in: nhanVienIds },
+                trangThai: 'HIEU_LUC',
+                tuNgay: { lte: ngay },
+                OR: [
+                    { denNgay: null },
+                    { denNgay: { gte: ngay } },
+                ],
+            },
+            orderBy: { tuNgay: 'desc' },
+        });
+        for (const hd of hopDongs) {
+            if (!result.has(hd.nhanVienId)) {
+                result.set(hd.nhanVienId, Number(hd.luongCoBan));
+            }
+        }
+        const missingIds = nhanVienIds.filter(id => !result.has(id));
+        if (missingIds.length > 0) {
+            const nhanViens = await this.prisma.nhanVien.findMany({
+                where: { id: { in: missingIds } },
+            });
+            for (const nv of nhanViens) {
+                result.set(nv.id, Number(nv.luongCoBan || 0));
+            }
+        }
+        return result;
+    }
     async layDanhSach(thang, nam, phongBanId, trang = 1, soLuong = 20) {
         const where = {};
         if (thang)
@@ -181,13 +232,16 @@ let BangLuongService = BangLuongService_1 = class BangLuongService {
                 });
             }
         }
+        const ngayTinhLuong = new Date(nam, thang - 1, 28);
+        const luongCoBanMap = await this.layLuongCoBanBatch(nhanVienIds, ngayTinhLuong);
         const chiTietData = [];
         const daThemKhoan = new Set();
         for (const nv of nhanViens) {
             const key = (khoanLuongId) => `${nv.id}-${khoanLuongId}`;
             const chamCong = chamCongMap.get(nv.id) || { soNgayCongThucTe: ngayCongLyThuyet, soNgayNghiKhongLuong: 0, soNgayNghiPhep: 0 };
             const ngayCongThucTe = chamCong.soNgayCongThucTe + chamCong.soNgayNghiPhep;
-            const luongCoBanThucTe = Math.round(Number(nv.luongCoBan) * (ngayCongThucTe / ngayCongLyThuyet));
+            const mucLuongCoBan = luongCoBanMap.get(nv.id) || Number(nv.luongCoBan) || 0;
+            const luongCoBanThucTe = Math.round(mucLuongCoBan * (ngayCongThucTe / ngayCongLyThuyet));
             chiTietData.push({
                 bangLuongId,
                 nhanVienId: nv.id,

@@ -136,6 +136,11 @@ export class NhanVienService {
     // Xử lý chuỗi rỗng thành null cho email và số điện thoại
     const email = dto.email?.trim() || null;
     const soDienThoai = dto.soDienThoai?.trim() || null;
+    
+    // Xử lý giới tính và ngày sinh
+    const gioiTinh = dto.gioiTinh || null;
+    const ngaySinh = dto.ngaySinh ? new Date(dto.ngaySinh) : null;
+    const diaChi = dto.diaChi?.trim() || null;
 
     return this.prisma.nhanVien.create({
       data: {
@@ -143,6 +148,9 @@ export class NhanVienService {
         maNhanVien,
         email,
         soDienThoai,
+        gioiTinh,
+        ngaySinh,
+        diaChi,
         ngayVaoLam: dto.ngayVaoLam ? new Date(dto.ngayVaoLam) : new Date(),
       },
       include: {
@@ -165,6 +173,16 @@ export class NhanVienService {
     }
     if (dto.ngayVaoLam) {
       updateData.ngayVaoLam = new Date(dto.ngayVaoLam);
+    }
+    // Xử lý các trường mới
+    if (dto.gioiTinh !== undefined) {
+      updateData.gioiTinh = dto.gioiTinh || null;
+    }
+    if (dto.ngaySinh !== undefined) {
+      updateData.ngaySinh = dto.ngaySinh ? new Date(dto.ngaySinh) : null;
+    }
+    if (dto.diaChi !== undefined) {
+      updateData.diaChi = dto.diaChi?.trim() || null;
     }
 
     return this.prisma.nhanVien.update({

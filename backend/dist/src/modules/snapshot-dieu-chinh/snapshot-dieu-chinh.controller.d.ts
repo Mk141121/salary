@@ -69,6 +69,12 @@ export declare class SnapshotDieuChinhController {
             chucVu: string | null;
             luongCoBan: import("@prisma/client/runtime/library").Decimal;
             ngayVaoLam: Date;
+            ngayNghiViec: Date | null;
+            gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+            ngaySinh: Date | null;
+            diaChi: string | null;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
         };
         chiTiets: ({
             khoanLuong: {
@@ -163,6 +169,12 @@ export declare class SnapshotDieuChinhController {
             chucVu: string | null;
             luongCoBan: import("@prisma/client/runtime/library").Decimal;
             ngayVaoLam: Date;
+            ngayNghiViec: Date | null;
+            gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+            ngaySinh: Date | null;
+            diaChi: string | null;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
         };
         chiTiets: ({
             khoanLuong: {

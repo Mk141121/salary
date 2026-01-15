@@ -18,6 +18,9 @@ import {
   LucideIcon,
   Building2,
   Cog,
+  Truck,
+  Package,
+  History,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
@@ -34,11 +37,22 @@ const menuItems: MenuItem[] = [
   { path: '/bang-luong', label: 'Bảng lương', icon: FileSpreadsheet },
   { path: '/phong-ban', label: 'Phòng ban', icon: Building2 },
   { path: '/nhan-vien', label: 'Nhân viên', icon: Users },
+  { path: '/nhom-nhan-vien', label: 'Nhóm nhân viên', icon: Users },
   { path: '/khoan-luong', label: 'Khoản lương', icon: DollarSign },
   { path: '/cham-cong', label: 'Chấm công', icon: ClipboardList },
   { path: '/quy-che', label: 'Quy chế lương', icon: Cog },
   { path: '/su-kien', label: 'Sự kiện thưởng/phạt', icon: Award },
   { path: '/import-excel', label: 'Import Excel', icon: Upload },
+  { 
+    path: '/san-luong', 
+    label: 'Sản lượng', 
+    icon: Package,
+    children: [
+      { path: '/import-chia-hang', label: 'Import Chia hàng', icon: Package },
+      { path: '/import-giao-hang', label: 'Import Giao hàng', icon: Truck },
+      { path: '/lich-su-import', label: 'Lịch sử Import', icon: History },
+    ]
+  },
   { path: '/cai-dat', label: 'Cài đặt', icon: Settings },
   { 
     path: '/kpi', 

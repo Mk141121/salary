@@ -60,13 +60,58 @@ export interface PaginatedResult<T> {
 }
 
 // ==================== PHÒNG BAN ====================
+export interface PhongBan {
+  id: number
+  maPhongBan: string
+  tenPhongBan: string
+  moTa?: string
+  trangThai: string
+  phongBanChaId?: number
+  capDo: number
+  loaiPhongBan?: string
+  nguoiQuanLyId?: number
+  gioVaoChuan?: string
+  gioRaChuan?: string
+  phutChoPhepTre?: number
+  phongBanCha?: { id: number; tenPhongBan: string }
+  phongBanCons?: PhongBan[]
+  children?: PhongBan[] // For tree view
+  _count?: { nhanViens: number; phongBanCons: number; donViCons: number }
+}
+
+export interface DonViCon {
+  id: number
+  phongBanId: number
+  maDonVi: string
+  tenDonVi: string
+  loaiDonVi: string
+  trangThai: string
+}
+
+export interface NhanVienPhongBan {
+  id: number
+  nhanVienId: number
+  phongBanId: number
+  donViConId?: number
+  tuNgay: string
+  denNgay?: string
+  ghiChu?: string
+  phongBan?: { id: number; maPhongBan: string; tenPhongBan: string }
+  donViCon?: { id: number; maDonVi: string; tenDonVi: string; loaiDonVi: string }
+}
+
 export const phongBanApi = {
+  // Phòng ban cơ bản
   layTatCa: () => api.get('/phong-ban').then((res) => res.data),
+  layCayPhongBan: () => api.get<PhongBan[]>('/phong-ban/cay').then((res) => res.data),
   layTheoId: (id: number) => api.get(`/phong-ban/${id}`).then((res) => res.data),
   taoMoi: (data: { 
     maPhongBan: string; 
     tenPhongBan: string; 
     moTa?: string;
+    phongBanChaId?: number;
+    loaiPhongBan?: string;
+    nguoiQuanLyId?: number;
     gioVaoChuan?: string;
     gioRaChuan?: string;
     phutChoPhepTre?: number;
@@ -76,12 +121,31 @@ export const phongBanApi = {
     maPhongBan: string; 
     tenPhongBan: string; 
     moTa: string;
+    trangThai: string;
+    loaiPhongBan: string;
+    nguoiQuanLyId: number;
     gioVaoChuan: string;
     gioRaChuan: string;
     phutChoPhepTre: number;
   }>) =>
     api.put(`/phong-ban/${id}`, data).then((res) => res.data),
+  doiPhongBanCha: (id: number, phongBanChaId: number | null) =>
+    api.put(`/phong-ban/${id}/doi-phong-ban-cha`, { phongBanChaId }).then((res) => res.data),
+  ngungHoatDong: (id: number) =>
+    api.post(`/phong-ban/${id}/ngung-hoat-dong`).then((res) => res.data),
+  kichHoat: (id: number) =>
+    api.post(`/phong-ban/${id}/kich-hoat`).then((res) => res.data),
   xoa: (id: number) => api.delete(`/phong-ban/${id}`).then((res) => res.data),
+
+  // Đơn vị con (Tổ/Ca)
+  layDonViCon: (phongBanId: number) =>
+    api.get<DonViCon[]>(`/phong-ban/${phongBanId}/don-vi-con`).then((res) => res.data),
+  taoDonViCon: (phongBanId: number, data: { maDonVi: string; tenDonVi: string; loaiDonVi: string }) =>
+    api.post(`/phong-ban/${phongBanId}/don-vi-con`, data).then((res) => res.data),
+  capNhatDonViCon: (id: number, data: Partial<{ maDonVi: string; tenDonVi: string; loaiDonVi: string; trangThai: string }>) =>
+    api.put(`/don-vi-con/${id}`, data).then((res) => res.data),
+  ngungDonViCon: (id: number) =>
+    api.post(`/don-vi-con/${id}/ngung-hoat-dong`).then((res) => res.data),
 }
 
 // ==================== NHÂN VIÊN ====================
@@ -113,6 +177,12 @@ export const nhanVienApi = {
   capNhat: (id: number, data: Partial<NhanVien>) =>
     api.put(`/nhan-vien/${id}`, data).then((res) => res.data),
   xoa: (id: number) => api.delete(`/nhan-vien/${id}`).then((res) => res.data),
+
+  // Lịch sử phòng ban
+  layLichSuPhongBan: (nhanVienId: number) =>
+    api.get<NhanVienPhongBan[]>(`/nhan-vien/${nhanVienId}/lich-su-phong-ban`).then((res) => res.data),
+  chuyenPhongBan: (nhanVienId: number, data: { phongBanId: number; donViConId?: number; tuNgay: string; ghiChu?: string }) =>
+    api.post(`/nhan-vien/${nhanVienId}/chuyen-phong-ban`, data).then((res) => res.data),
 }
 
 // ==================== KHOẢN LƯƠNG ====================
@@ -454,6 +524,50 @@ export const thongTinCongTyApi = {
   // Cập nhật thông tin công ty
   capNhat: (data: Partial<ThongTinCongTy>) =>
     api.put('/thong-tin-cong-ty', data).then((res) => res.data),
+}
+
+// ==================== CẤU HÌNH ĐƠN GIÁ ====================
+export interface CauHinhDonGia {
+  id: number
+  maBien: string
+  tenBien: string
+  moTa?: string
+  giaTri: number
+  donVi?: string
+  phongBanId?: number
+  trangThai: boolean
+  phongBan?: {
+    id: number
+    tenPhongBan: string
+  }
+  ngayTao?: string
+  ngayCapNhat?: string
+}
+
+export const cauHinhDonGiaApi = {
+  // Lấy danh sách đơn giá
+  layTatCa: (phongBanId?: number) => 
+    api.get('/thong-tin-cong-ty/don-gia', { params: { phongBanId } }).then((res) => res.data as CauHinhDonGia[]),
+  
+  // Lấy chi tiết đơn giá
+  layTheoId: (id: number) => 
+    api.get(`/thong-tin-cong-ty/don-gia/${id}`).then((res) => res.data as CauHinhDonGia),
+  
+  // Tạo đơn giá mới
+  taoMoi: (data: Partial<CauHinhDonGia>) => 
+    api.post('/thong-tin-cong-ty/don-gia', data).then((res) => res.data as CauHinhDonGia),
+  
+  // Cập nhật đơn giá
+  capNhat: (id: number, data: Partial<CauHinhDonGia>) => 
+    api.put(`/thong-tin-cong-ty/don-gia/${id}`, data).then((res) => res.data as CauHinhDonGia),
+  
+  // Xóa đơn giá
+  xoa: (id: number) => 
+    api.delete(`/thong-tin-cong-ty/don-gia/${id}`).then((res) => res.data),
+  
+  // Khởi tạo đơn giá mẫu
+  khoiTaoMau: () => 
+    api.post('/thong-tin-cong-ty/don-gia/khoi-tao-mau').then((res) => res.data),
 }
 
 export default api

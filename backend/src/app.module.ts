@@ -21,6 +21,11 @@ import { KPIModule } from './modules/kpi/kpi.module';
 import { RBACModule } from './modules/rbac/rbac.module';
 import { EmailModule } from './modules/email/email.module';
 import { ThongTinCongTyModule } from './modules/thong-tin-cong-ty/thong-tin-cong-ty.module';
+import { SanLuongModule } from './modules/san-luong/san-luong.module';
+import { HopDongModule } from './modules/hop-dong/hop-dong.module';
+import { NganHangModule } from './modules/ngan-hang/ngan-hang.module';
+import { NhomNhanVienModule } from './modules/nhom-nhan-vien/nhom-nhan-vien.module';
+import { ThueBHModule } from './modules/thue-bh/thue-bh.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -62,6 +67,11 @@ import { HealthController } from './health.controller';
     RBACModule,
     EmailModule,
     ThongTinCongTyModule,
+    SanLuongModule,
+    HopDongModule,
+    NganHangModule,
+    NhomNhanVienModule,
+    ThueBHModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -37,6 +37,76 @@ export class BangLuongService {
     private auditLogService: AuditLogService,
   ) {}
 
+  /**
+   * Lấy lương cơ bản hiệu lực từ HopDong tại thời điểm
+   * Nếu không có HopDong, fallback về luongCoBan trong bảng NhanVien
+   */
+  private async layLuongCoBanHieuLuc(nhanVienId: number, ngay: Date): Promise<number> {
+    const hopDong = await this.prisma.nhanVienHopDong.findFirst({
+      where: {
+        nhanVienId,
+        trangThai: 'HIEU_LUC',
+        tuNgay: { lte: ngay },
+        OR: [
+          { denNgay: null },
+          { denNgay: { gte: ngay } },
+        ],
+      },
+      orderBy: { tuNgay: 'desc' },
+    });
+
+    if (hopDong) {
+      return Number(hopDong.luongCoBan);
+    }
+
+    // Fallback: Lấy từ NhanVien (backward compatibility)
+    const nhanVien = await this.prisma.nhanVien.findUnique({
+      where: { id: nhanVienId },
+    });
+    return Number(nhanVien?.luongCoBan || 0);
+  }
+
+  /**
+   * Batch lấy lương cơ bản hiệu lực cho nhiều nhân viên
+   */
+  private async layLuongCoBanBatch(nhanVienIds: number[], ngay: Date): Promise<Map<number, number>> {
+    const result = new Map<number, number>();
+
+    // Lấy tất cả hợp đồng hiệu lực
+    const hopDongs = await this.prisma.nhanVienHopDong.findMany({
+      where: {
+        nhanVienId: { in: nhanVienIds },
+        trangThai: 'HIEU_LUC',
+        tuNgay: { lte: ngay },
+        OR: [
+          { denNgay: null },
+          { denNgay: { gte: ngay } },
+        ],
+      },
+      orderBy: { tuNgay: 'desc' },
+    });
+
+    // Nhóm theo nhân viên (lấy hợp đồng mới nhất)
+    for (const hd of hopDongs) {
+      if (!result.has(hd.nhanVienId)) {
+        result.set(hd.nhanVienId, Number(hd.luongCoBan));
+      }
+    }
+
+    // Fallback cho những nhân viên không có hợp đồng
+    const missingIds = nhanVienIds.filter(id => !result.has(id));
+    if (missingIds.length > 0) {
+      const nhanViens = await this.prisma.nhanVien.findMany({
+        where: { id: { in: missingIds } },
+      });
+      for (const nv of nhanViens) {
+        result.set(nv.id, Number(nv.luongCoBan || 0));
+      }
+    }
+
+    return result;
+  }
+
   // Lấy danh sách bảng lương (có pagination)
   async layDanhSach(
     thang?: number,
@@ -246,6 +316,10 @@ export class BangLuongService {
       }
     }
 
+    // Lấy lương cơ bản từ HopDong hiệu lực tại thời điểm cuối tháng
+    const ngayTinhLuong = new Date(nam, thang - 1, 28); // Ngày 28 của tháng tính lương
+    const luongCoBanMap = await this.layLuongCoBanBatch(nhanVienIds, ngayTinhLuong);
+
     const chiTietData: {
       bangLuongId: number;
       nhanVienId: number;
@@ -264,10 +338,13 @@ export class BangLuongService {
       // Tính ngày công thực tế = ngày đi làm + ngày nghỉ có phép (nghỉ có phép tính như đi làm)
       const ngayCongThucTe = chamCong.soNgayCongThucTe + chamCong.soNgayNghiPhep;
 
+      // Lấy lương cơ bản từ HopDong (hoặc fallback từ NhanVien)
+      const mucLuongCoBan = luongCoBanMap.get(nv.id) || Number(nv.luongCoBan) || 0;
+
       // 1. Thêm lương cơ bản (tính theo ngày công thực tế)
       // Công thức: Lương cơ bản × (ngày công thực tế / ngày công lý thuyết)
       const luongCoBanThucTe = Math.round(
-        Number(nv.luongCoBan) * (ngayCongThucTe / ngayCongLyThuyet)
+        mucLuongCoBan * (ngayCongThucTe / ngayCongLyThuyet)
       );
       chiTietData.push({
         bangLuongId,

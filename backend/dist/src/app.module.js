@@ -29,6 +29,11 @@ const kpi_module_1 = require("./modules/kpi/kpi.module");
 const rbac_module_1 = require("./modules/rbac/rbac.module");
 const email_module_1 = require("./modules/email/email.module");
 const thong_tin_cong_ty_module_1 = require("./modules/thong-tin-cong-ty/thong-tin-cong-ty.module");
+const san_luong_module_1 = require("./modules/san-luong/san-luong.module");
+const hop_dong_module_1 = require("./modules/hop-dong/hop-dong.module");
+const ngan_hang_module_1 = require("./modules/ngan-hang/ngan-hang.module");
+const nhom_nhan_vien_module_1 = require("./modules/nhom-nhan-vien/nhom-nhan-vien.module");
+const thue_bh_module_1 = require("./modules/thue-bh/thue-bh.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -72,6 +77,11 @@ exports.AppModule = AppModule = __decorate([
             rbac_module_1.RBACModule,
             email_module_1.EmailModule,
             thong_tin_cong_ty_module_1.ThongTinCongTyModule,
+            san_luong_module_1.SanLuongModule,
+            hop_dong_module_1.HopDongModule,
+            ngan_hang_module_1.NganHangModule,
+            nhom_nhan_vien_module_1.NhomNhanVienModule,
+            thue_bh_module_1.ThueBHModule,
         ],
         controllers: [health_controller_1.HealthController],
         providers: [

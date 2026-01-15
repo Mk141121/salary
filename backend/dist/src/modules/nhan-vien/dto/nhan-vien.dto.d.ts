@@ -1,4 +1,4 @@
-import { TrangThaiNhanVien } from '@prisma/client';
+import { TrangThaiNhanVien, GioiTinh } from '@prisma/client';
 export declare class TaoNhanVienDto {
     maNhanVien?: string;
     hoTen: string;
@@ -8,6 +8,9 @@ export declare class TaoNhanVienDto {
     chucVu?: string;
     luongCoBan?: number;
     ngayVaoLam?: string;
+    gioiTinh?: GioiTinh;
+    ngaySinh?: string;
+    diaChi?: string;
 }
 declare const CapNhatNhanVienDto_base: import("@nestjs/common").Type<Partial<TaoNhanVienDto>>;
 export declare class CapNhatNhanVienDto extends CapNhatNhanVienDto_base {

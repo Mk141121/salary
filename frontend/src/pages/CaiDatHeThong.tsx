@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Settings, Building2, FileText, Save, Loader2, Gift, Plus, Edit2, Trash2 } from 'lucide-react'
+import { Settings, Building2, FileText, Save, Loader2, Gift, Plus, Edit2, Trash2, DollarSign, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { thongTinCongTyApi, ThongTinCongTy, khoanLuongApi, KhoanLuong, CachTinhLuong } from '../services/api'
+import { thongTinCongTyApi, ThongTinCongTy, khoanLuongApi, KhoanLuong, CachTinhLuong, cauHinhDonGiaApi, CauHinhDonGia } from '../services/api'
 
 // Map cách tính lương sang tiếng Việt
 const CACH_TINH_MAP: Record<CachTinhLuong, { label: string; desc: string }> = {
@@ -21,7 +21,7 @@ const CACH_TINH_MAP: Record<CachTinhLuong, { label: string; desc: string }> = {
 }
 
 export default function CaiDatHeThong() {
-  const [activeTab, setActiveTab] = useState<'bhxh' | 'congty' | 'phucap'>('phucap')
+  const [activeTab, setActiveTab] = useState<'bhxh' | 'congty' | 'phucap' | 'dongia'>('phucap')
   const queryClient = useQueryClient()
 
   // ==================== PHỤ CẤP ====================
@@ -152,6 +152,125 @@ export default function CaiDatHeThong() {
     mucLuongToiThieu: 4960000,
   })
 
+  // ==================== ĐƠN GIÁ SẢN LƯỢNG ====================
+  const [showDonGiaModal, setShowDonGiaModal] = useState(false)
+  const [editingDonGia, setEditingDonGia] = useState<CauHinhDonGia | null>(null)
+  const [donGiaFormData, setDonGiaFormData] = useState({
+    maBien: '',
+    tenBien: '',
+    moTa: '',
+    giaTri: 0,
+    donVi: 'VND',
+  })
+
+  // Lấy danh sách đơn giá
+  const { data: danhSachDonGia, isLoading: loadingDonGia } = useQuery({
+    queryKey: ['cau-hinh-don-gia'],
+    queryFn: () => cauHinhDonGiaApi.layTatCa(),
+  })
+
+  // Mutation tạo đơn giá
+  const taoDonGiaMutation = useMutation({
+    mutationFn: cauHinhDonGiaApi.taoMoi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cau-hinh-don-gia'] })
+      toast.success('Tạo đơn giá thành công!')
+      resetDonGiaForm()
+    },
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+    },
+  })
+
+  // Mutation cập nhật đơn giá
+  const capNhatDonGiaMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CauHinhDonGia> }) =>
+      cauHinhDonGiaApi.capNhat(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cau-hinh-don-gia'] })
+      toast.success('Cập nhật đơn giá thành công!')
+      resetDonGiaForm()
+    },
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+    },
+  })
+
+  // Mutation xóa đơn giá
+  const xoaDonGiaMutation = useMutation({
+    mutationFn: cauHinhDonGiaApi.xoa,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cau-hinh-don-gia'] })
+      toast.success('Xóa đơn giá thành công!')
+    },
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+    },
+  })
+
+  // Mutation khởi tạo đơn giá mẫu
+  const khoiTaoMauMutation = useMutation({
+    mutationFn: cauHinhDonGiaApi.khoiTaoMau,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['cau-hinh-don-gia'] })
+      toast.success(data.message || 'Khởi tạo đơn giá mẫu thành công!')
+    },
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+    },
+  })
+
+  const resetDonGiaForm = () => {
+    setShowDonGiaModal(false)
+    setEditingDonGia(null)
+    setDonGiaFormData({
+      maBien: '',
+      tenBien: '',
+      moTa: '',
+      giaTri: 0,
+      donVi: 'VND',
+    })
+  }
+
+  const handleEditDonGia = (dg: CauHinhDonGia) => {
+    setEditingDonGia(dg)
+    setDonGiaFormData({
+      maBien: dg.maBien,
+      tenBien: dg.tenBien,
+      moTa: dg.moTa || '',
+      giaTri: Number(dg.giaTri),
+      donVi: dg.donVi || 'VND',
+    })
+    setShowDonGiaModal(true)
+  }
+
+  const handleSubmitDonGia = () => {
+    if (!donGiaFormData.maBien || !donGiaFormData.tenBien) {
+      toast.error('Vui lòng điền mã và tên đơn giá')
+      return
+    }
+
+    if (editingDonGia) {
+      capNhatDonGiaMutation.mutate({
+        id: editingDonGia.id,
+        data: {
+          tenBien: donGiaFormData.tenBien,
+          moTa: donGiaFormData.moTa,
+          giaTri: donGiaFormData.giaTri,
+          donVi: donGiaFormData.donVi,
+        },
+      })
+    } else {
+      taoDonGiaMutation.mutate(donGiaFormData)
+    }
+  }
+
+  const handleDeleteDonGia = (dg: CauHinhDonGia) => {
+    if (confirm(`Bạn có chắc muốn xóa đơn giá "${dg.tenBien}"?`)) {
+      xoaDonGiaMutation.mutate(dg.id)
+    }
+  }
+
   // Lấy thông tin công ty
   const { data: thongTinCongTy, isLoading: loadingCongTy } = useQuery({
     queryKey: ['thong-tin-cong-ty'],
@@ -252,6 +371,19 @@ export default function CaiDatHeThong() {
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Thông tin công ty
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('dongia')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'dongia'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Đơn giá sản lượng
               </div>
             </button>
           </div>
@@ -684,6 +816,122 @@ export default function CaiDatHeThong() {
               )}
             </form>
           )}
+
+          {/* ==================== TAB ĐƠN GIÁ SẢN LƯỢNG ==================== */}
+          {activeTab === 'dongia' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Cấu hình đơn giá sản lượng</h3>
+                  <p className="text-sm text-gray-500">
+                    Thiết lập đơn giá để tính thưởng/phạt dựa trên sản lượng, giao hàng
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => khoiTaoMauMutation.mutate()}
+                    disabled={khoiTaoMauMutation.isPending}
+                    className="btn btn-secondary"
+                  >
+                    <RefreshCw size={18} className={khoiTaoMauMutation.isPending ? 'animate-spin' : ''} />
+                    Khởi tạo mẫu
+                  </button>
+                  <button
+                    onClick={() => setShowDonGiaModal(true)}
+                    className="btn btn-primary"
+                  >
+                    <Plus size={18} />
+                    Thêm đơn giá
+                  </button>
+                </div>
+              </div>
+
+              {/* Table */}
+              {loadingDonGia ? (
+                <div className="text-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+                </div>
+              ) : danhSachDonGia && danhSachDonGia.length > 0 ? (
+                <div className="overflow-x-auto border rounded-lg">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Mã biến</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Tên đơn giá</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Giá trị</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Đơn vị</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Mô tả</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {danhSachDonGia.map((dg: CauHinhDonGia) => (
+                        <tr key={dg.id} className="border-t hover:bg-gray-50">
+                          <td className="py-3 px-4 font-mono text-sm text-blue-600">{dg.maBien}</td>
+                          <td className="py-3 px-4 font-medium">{dg.tenBien}</td>
+                          <td className="py-3 px-4 text-right font-semibold text-green-600">
+                            {Number(dg.giaTri).toLocaleString('vi-VN')}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="px-2 py-1 bg-gray-100 rounded text-sm">{dg.donVi || 'VND'}</span>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-500 max-w-xs truncate">{dg.moTa}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEditDonGia(dg)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                                title="Sửa"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteDonGia(dg)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                title="Xóa"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed">
+                  <DollarSign className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-gray-600 mb-2">Chưa có đơn giá nào được cấu hình</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Nhấn "Khởi tạo mẫu" để tạo các đơn giá mặc định
+                  </p>
+                  <button
+                    onClick={() => khoiTaoMauMutation.mutate()}
+                    disabled={khoiTaoMauMutation.isPending}
+                    className="btn btn-primary"
+                  >
+                    <RefreshCw size={18} className={khoiTaoMauMutation.isPending ? 'animate-spin' : ''} />
+                    Khởi tạo đơn giá mẫu
+                  </button>
+                </div>
+              )}
+
+              {/* Info box */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">Hướng dẫn sử dụng</h4>
+                <div className="space-y-2 text-sm text-blue-800">
+                  <p>• <strong>DON_GIA_SP</strong>: Đơn giá thưởng cho mỗi sản phẩm đạt</p>
+                  <p>• <strong>DON_GIA_KHOI_LUONG</strong>: Đơn giá thưởng cho mỗi đơn vị khối lượng giao hàng</p>
+                  <p>• <strong>DON_GIA_PHAT_TRE</strong>: Số tiền phạt cho mỗi lần trễ giờ</p>
+                  <p>• <strong>HE_SO_LOI_SP</strong>: Hệ số nhân khi tính phạt sản phẩm lỗi</p>
+                  <p className="mt-2 pt-2 border-t border-blue-200">
+                    Các biến này sẽ được sử dụng trong công thức tính lương khi có dữ liệu sản lượng.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -793,6 +1041,91 @@ export default function CaiDatHeThong() {
                 className="btn btn-primary"
               >
                 {taoMoiPhuCapMutation.isPending || capNhatPhuCapMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL ĐƠN GIÁ ==================== */}
+      {showDonGiaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">
+              {editingDonGia ? 'Chỉnh sửa đơn giá' : 'Thêm đơn giá mới'}
+            </h3>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Mã biến *</label>
+                  <input
+                    type="text"
+                    value={donGiaFormData.maBien}
+                    onChange={(e) => setDonGiaFormData({ ...donGiaFormData, maBien: e.target.value.toUpperCase() })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="VD: DON_GIA_SP"
+                    disabled={!!editingDonGia}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Đơn vị</label>
+                  <select
+                    value={donGiaFormData.donVi}
+                    onChange={(e) => setDonGiaFormData({ ...donGiaFormData, donVi: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value="VND">VND (đồng)</option>
+                    <option value="%">% (phần trăm)</option>
+                    <option value="lần">Lần (hệ số)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Tên đơn giá *</label>
+                <input
+                  type="text"
+                  value={donGiaFormData.tenBien}
+                  onChange={(e) => setDonGiaFormData({ ...donGiaFormData, tenBien: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="VD: Đơn giá sản phẩm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Giá trị *</label>
+                <input
+                  type="number"
+                  value={donGiaFormData.giaTri}
+                  onChange={(e) => setDonGiaFormData({ ...donGiaFormData, giaTri: Number(e.target.value) })}
+                  className="w-full border rounded-lg px-3 py-2"
+                  step="0.01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Mô tả</label>
+                <textarea
+                  value={donGiaFormData.moTa}
+                  onChange={(e) => setDonGiaFormData({ ...donGiaFormData, moTa: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2"
+                  rows={2}
+                  placeholder="Ghi chú về đơn giá này..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={resetDonGiaForm} className="btn btn-secondary">
+                Hủy
+              </button>
+              <button
+                onClick={handleSubmitDonGia}
+                disabled={taoDonGiaMutation.isPending || capNhatDonGiaMutation.isPending}
+                className="btn btn-primary"
+              >
+                {taoDonGiaMutation.isPending || capNhatDonGiaMutation.isPending ? 'Đang lưu...' : 'Lưu'}
               </button>
             </div>
           </div>

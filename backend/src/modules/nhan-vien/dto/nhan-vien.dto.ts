@@ -10,7 +10,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { TrangThaiNhanVien } from '@prisma/client';
+import { TrangThaiNhanVien, GioiTinh } from '@prisma/client';
 
 export class TaoNhanVienDto {
   @ApiPropertyOptional({ description: 'Mã nhân viên (tự động tạo nếu bỏ trống)', example: 'NV001' })
@@ -53,6 +53,23 @@ export class TaoNhanVienDto {
   @IsOptional()
   @IsDateString()
   ngayVaoLam?: string;
+
+  @ApiPropertyOptional({ description: 'Giới tính', enum: GioiTinh })
+  @IsOptional()
+  @IsEnum(GioiTinh)
+  @ValidateIf((o) => o.gioiTinh !== '' && o.gioiTinh !== null)
+  gioiTinh?: GioiTinh;
+
+  @ApiPropertyOptional({ description: 'Ngày sinh', example: '1990-01-15' })
+  @IsOptional()
+  @IsDateString()
+  @ValidateIf((o) => o.ngaySinh !== '' && o.ngaySinh !== null)
+  ngaySinh?: string;
+
+  @ApiPropertyOptional({ description: 'Địa chỉ', example: '123 Nguyễn Huệ, Q1, TP.HCM' })
+  @IsOptional()
+  @IsString()
+  diaChi?: string;
 }
 
 export class CapNhatNhanVienDto extends PartialType(TaoNhanVienDto) {

@@ -179,11 +179,11 @@ export declare class KPIController {
                 id: number;
                 ngayTao: Date;
                 ghiChu: string | null;
+                chiTieuId: number;
                 ketQuaDat: import("@prisma/client/runtime/library").Decimal | null;
                 tyLeDat: import("@prisma/client/runtime/library").Decimal | null;
                 diemQuyDoi: import("@prisma/client/runtime/library").Decimal | null;
                 danhGiaId: number;
-                chiTieuId: number;
             })[];
         } & {
             id: number;
@@ -197,10 +197,10 @@ export declare class KPIController {
             nguoiDuyet: string | null;
             ngayDuyet: Date | null;
             kyDanhGiaId: number;
-            diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
-            soTienThuong: import("@prisma/client/runtime/library").Decimal;
             nhanXetChung: string | null;
             nguoiDanhGia: string | null;
+            diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
+            soTienThuong: import("@prisma/client/runtime/library").Decimal;
             ngayDanhGia: Date | null;
         })[];
     } & {
@@ -272,11 +272,11 @@ export declare class KPIController {
             id: number;
             ngayTao: Date;
             ghiChu: string | null;
+            chiTieuId: number;
             ketQuaDat: import("@prisma/client/runtime/library").Decimal | null;
             tyLeDat: import("@prisma/client/runtime/library").Decimal | null;
             diemQuyDoi: import("@prisma/client/runtime/library").Decimal | null;
             danhGiaId: number;
-            chiTieuId: number;
         })[];
     } & {
         id: number;
@@ -290,10 +290,10 @@ export declare class KPIController {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
-        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         nhanXetChung: string | null;
         nguoiDanhGia: string | null;
+        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
+        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         ngayDanhGia: Date | null;
     }>;
     capNhatKetQuaKPI(id: number, dto: CapNhatKetQuaKPIDto): Promise<({
@@ -317,11 +317,11 @@ export declare class KPIController {
             id: number;
             ngayTao: Date;
             ghiChu: string | null;
+            chiTieuId: number;
             ketQuaDat: import("@prisma/client/runtime/library").Decimal | null;
             tyLeDat: import("@prisma/client/runtime/library").Decimal | null;
             diemQuyDoi: import("@prisma/client/runtime/library").Decimal | null;
             danhGiaId: number;
-            chiTieuId: number;
         })[];
     } & {
         id: number;
@@ -335,10 +335,10 @@ export declare class KPIController {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
-        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         nhanXetChung: string | null;
         nguoiDanhGia: string | null;
+        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
+        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         ngayDanhGia: Date | null;
     }) | null>;
     guiDuyet(id: number): Promise<{
@@ -353,10 +353,10 @@ export declare class KPIController {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
-        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         nhanXetChung: string | null;
         nguoiDanhGia: string | null;
+        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
+        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         ngayDanhGia: Date | null;
     }>;
     duyetDanhGia(id: number, dto: DuyetDanhGiaKPIDto): Promise<{
@@ -371,10 +371,10 @@ export declare class KPIController {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
-        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         nhanXetChung: string | null;
         nguoiDanhGia: string | null;
+        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
+        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         ngayDanhGia: Date | null;
     }>;
     tuChoiDanhGia(id: number, dto: TuChoiDanhGiaKPIDto): Promise<{
@@ -389,10 +389,10 @@ export declare class KPIController {
         nguoiDuyet: string | null;
         ngayDuyet: Date | null;
         kyDanhGiaId: number;
-        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
-        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         nhanXetChung: string | null;
         nguoiDanhGia: string | null;
+        diemTongKet: import("@prisma/client/runtime/library").Decimal | null;
+        soTienThuong: import("@prisma/client/runtime/library").Decimal;
         ngayDanhGia: Date | null;
     }>;
     layCauHinhThuong(nam: number): Promise<{

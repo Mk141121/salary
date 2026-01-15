@@ -18,9 +18,9 @@ export declare class ThongTinCongTyService {
         ngayTao: Date;
         ngayCapNhat: Date;
         email: string | null;
+        diaChi: string | null;
         maSoThue: string | null;
         tenCongTy: string;
-        diaChi: string | null;
         dienThoai: string | null;
         website: string | null;
         logo: string | null;
@@ -33,9 +33,9 @@ export declare class ThongTinCongTyService {
         ngayTao: Date;
         ngayCapNhat: Date;
         email: string | null;
+        diaChi: string | null;
         maSoThue: string | null;
         tenCongTy: string;
-        diaChi: string | null;
         dienThoai: string | null;
         website: string | null;
         logo: string | null;
@@ -48,9 +48,9 @@ export declare class ThongTinCongTyService {
         ngayTao: Date;
         ngayCapNhat: Date;
         email: string | null;
+        diaChi: string | null;
         maSoThue: string | null;
         tenCongTy: string;
-        diaChi: string | null;
         dienThoai: string | null;
         website: string | null;
         logo: string | null;

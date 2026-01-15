@@ -113,12 +113,18 @@ let NhanVienService = class NhanVienService {
         const maNhanVien = dto.maNhanVien || await this.taoMaNhanVienTuDong();
         const email = dto.email?.trim() || null;
         const soDienThoai = dto.soDienThoai?.trim() || null;
+        const gioiTinh = dto.gioiTinh || null;
+        const ngaySinh = dto.ngaySinh ? new Date(dto.ngaySinh) : null;
+        const diaChi = dto.diaChi?.trim() || null;
         return this.prisma.nhanVien.create({
             data: {
                 ...dto,
                 maNhanVien,
                 email,
                 soDienThoai,
+                gioiTinh,
+                ngaySinh,
+                diaChi,
                 ngayVaoLam: dto.ngayVaoLam ? new Date(dto.ngayVaoLam) : new Date(),
             },
             include: {
@@ -137,6 +143,15 @@ let NhanVienService = class NhanVienService {
         }
         if (dto.ngayVaoLam) {
             updateData.ngayVaoLam = new Date(dto.ngayVaoLam);
+        }
+        if (dto.gioiTinh !== undefined) {
+            updateData.gioiTinh = dto.gioiTinh || null;
+        }
+        if (dto.ngaySinh !== undefined) {
+            updateData.ngaySinh = dto.ngaySinh ? new Date(dto.ngaySinh) : null;
+        }
+        if (dto.diaChi !== undefined) {
+            updateData.diaChi = dto.diaChi?.trim() || null;
         }
         return this.prisma.nhanVien.update({
             where: { id },

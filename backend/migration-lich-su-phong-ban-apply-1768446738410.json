@@ -1,0 +1,238 @@
+{
+  "tongNhanVien": 38,
+  "daCoLichSu": 0,
+  "canTao": 38,
+  "taoThanhCong": 38,
+  "taoLoi": 0,
+  "chiTietLoi": [],
+  "chiTietTao": [
+    {
+      "nhanVienId": 16,
+      "maNhanVien": "NV0001",
+      "phongBanId": 8,
+      "tuNgay": "2026-01-13T01:27:09.127Z"
+    },
+    {
+      "nhanVienId": 17,
+      "maNhanVien": "NV0002",
+      "phongBanId": 8,
+      "tuNgay": "2026-01-13T01:27:09.133Z"
+    },
+    {
+      "nhanVienId": 18,
+      "maNhanVien": "NV0003",
+      "phongBanId": 8,
+      "tuNgay": "2026-01-13T01:27:09.134Z"
+    },
+    {
+      "nhanVienId": 19,
+      "maNhanVien": "NV0004",
+      "phongBanId": 8,
+      "tuNgay": "2026-01-13T01:27:09.135Z"
+    },
+    {
+      "nhanVienId": 20,
+      "maNhanVien": "NV0005",
+      "phongBanId": 9,
+      "tuNgay": "2026-01-13T01:27:09.136Z"
+    },
+    {
+      "nhanVienId": 21,
+      "maNhanVien": "NV0006",
+      "phongBanId": 9,
+      "tuNgay": "2026-01-13T01:27:09.137Z"
+    },
+    {
+      "nhanVienId": 22,
+      "maNhanVien": "NV0007",
+      "phongBanId": 3,
+      "tuNgay": "2026-01-13T01:27:09.138Z"
+    },
+    {
+      "nhanVienId": 23,
+      "maNhanVien": "NV0008",
+      "phongBanId": 3,
+      "tuNgay": "2026-01-13T01:27:09.139Z"
+    },
+    {
+      "nhanVienId": 24,
+      "maNhanVien": "NV0009",
+      "phongBanId": 3,
+      "tuNgay": "2026-01-13T01:27:09.140Z"
+    },
+    {
+      "nhanVienId": 25,
+      "maNhanVien": "NV0010",
+      "phongBanId": 3,
+      "tuNgay": "2026-01-13T01:27:09.141Z"
+    },
+    {
+      "nhanVienId": 26,
+      "maNhanVien": "NV0011",
+      "phongBanId": 8,
+      "tuNgay": "2026-01-13T01:27:09.158Z"
+    },
+    {
+      "nhanVienId": 27,
+      "maNhanVien": "NV0012",
+      "phongBanId": 4,
+      "tuNgay": "2026-01-13T01:27:09.159Z"
+    },
+    {
+      "nhanVienId": 28,
+      "maNhanVien": "NV0013",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.160Z"
+    },
+    {
+      "nhanVienId": 29,
+      "maNhanVien": "NV0014",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.161Z"
+    },
+    {
+      "nhanVienId": 30,
+      "maNhanVien": "NV0015",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.162Z"
+    },
+    {
+      "nhanVienId": 31,
+      "maNhanVien": "NV0016",
+      "phongBanId": 4,
+      "tuNgay": "2026-01-13T01:27:09.163Z"
+    },
+    {
+      "nhanVienId": 32,
+      "maNhanVien": "NV0017",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.164Z"
+    },
+    {
+      "nhanVienId": 33,
+      "maNhanVien": "NV0018",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.165Z"
+    },
+    {
+      "nhanVienId": 34,
+      "maNhanVien": "NV0019",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.167Z"
+    },
+    {
+      "nhanVienId": 35,
+      "maNhanVien": "NV0020",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.168Z"
+    },
+    {
+      "nhanVienId": 36,
+      "maNhanVien": "NV0021",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.169Z"
+    },
+    {
+      "nhanVienId": 37,
+      "maNhanVien": "NV0022",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.170Z"
+    },
+    {
+      "nhanVienId": 38,
+      "maNhanVien": "NV0023",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.171Z"
+    },
+    {
+      "nhanVienId": 39,
+      "maNhanVien": "NV0024",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.172Z"
+    },
+    {
+      "nhanVienId": 40,
+      "maNhanVien": "NV0025",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T01:27:09.173Z"
+    },
+    {
+      "nhanVienId": 41,
+      "maNhanVien": "NV0026",
+      "phongBanId": 10,
+      "tuNgay": "2026-01-13T01:27:09.174Z"
+    },
+    {
+      "nhanVienId": 42,
+      "maNhanVien": "NV0027",
+      "phongBanId": 10,
+      "tuNgay": "2026-01-13T01:27:09.175Z"
+    },
+    {
+      "nhanVienId": 43,
+      "maNhanVien": "NV0028",
+      "phongBanId": 10,
+      "tuNgay": "2026-01-13T01:27:09.176Z"
+    },
+    {
+      "nhanVienId": 44,
+      "maNhanVien": "NV0029",
+      "phongBanId": 10,
+      "tuNgay": "2026-01-13T01:27:09.176Z"
+    },
+    {
+      "nhanVienId": 45,
+      "maNhanVien": "NV0030",
+      "phongBanId": 11,
+      "tuNgay": "2026-01-13T01:27:09.177Z"
+    },
+    {
+      "nhanVienId": 46,
+      "maNhanVien": "NV0032",
+      "phongBanId": 4,
+      "tuNgay": "2026-01-13T01:27:09.178Z"
+    },
+    {
+      "nhanVienId": 47,
+      "maNhanVien": "NV0033",
+      "phongBanId": 10,
+      "tuNgay": "2026-01-13T02:00:40.340Z"
+    },
+    {
+      "nhanVienId": 48,
+      "maNhanVien": "NV0034",
+      "phongBanId": 10,
+      "tuNgay": "2026-01-13T02:01:12.173Z"
+    },
+    {
+      "nhanVienId": 49,
+      "maNhanVien": "NV0035",
+      "phongBanId": 2,
+      "tuNgay": "2026-01-13T02:02:46.903Z"
+    },
+    {
+      "nhanVienId": 50,
+      "maNhanVien": "NV0036",
+      "phongBanId": 2,
+      "tuNgay": "2026-01-13T02:03:08.410Z"
+    },
+    {
+      "nhanVienId": 51,
+      "maNhanVien": "NV0037",
+      "phongBanId": 5,
+      "tuNgay": "2026-01-13T02:04:12.330Z"
+    },
+    {
+      "nhanVienId": 52,
+      "maNhanVien": "NV0038",
+      "phongBanId": 11,
+      "tuNgay": "2026-01-13T02:07:24.591Z"
+    },
+    {
+      "nhanVienId": 53,
+      "maNhanVien": "NV0039",
+      "phongBanId": 11,
+      "tuNgay": "2026-01-13T02:07:55.125Z"
+    }
+  ]
+}

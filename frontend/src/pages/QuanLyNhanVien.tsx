@@ -2,10 +2,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Plus, Edit2, Trash2, Search, Eye, RotateCcw } from 'lucide-react'
+import { Users, Plus, Edit2, Trash2, Search, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { nhanVienApi, phongBanApi, NhanVien, TrangThaiNhanVien } from '../services/api'
-import { formatTien } from '../utils'
 
 // Map trạng thái sang tiếng Việt
 const TRANG_THAI_MAP: Record<TrangThaiNhanVien, { label: string; color: string }> = {
@@ -17,7 +16,6 @@ const TRANG_THAI_MAP: Record<TrangThaiNhanVien, { label: string; color: string }
 export default function QuanLyNhanVien() {
   const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
-  const [editingNhanVien, setEditingNhanVien] = useState<NhanVien | null>(null)
   const [filterPhongBan, setFilterPhongBan] = useState<number | undefined>()
   const [filterTrangThai, setFilterTrangThai] = useState<TrangThaiNhanVien | ''>('')
   const [tuKhoa, setTuKhoa] = useState('')
@@ -29,7 +27,10 @@ export default function QuanLyNhanVien() {
     soDienThoai: '',
     phongBanId: 0,
     chucVu: '',
-    luongCoBan: 0,
+    ngayVaoLam: '',
+    gioiTinh: '' as 'NAM' | 'NU' | 'KHAC' | '',
+    ngaySinh: '',
+    diaChi: '',
     trangThai: 'DANG_LAM' as TrangThaiNhanVien,
   })
 
@@ -88,7 +89,6 @@ export default function QuanLyNhanVien() {
 
   const resetForm = () => {
     setShowModal(false)
-    setEditingNhanVien(null)
     setFormData({
       maNhanVien: '',
       hoTen: '',
@@ -96,7 +96,10 @@ export default function QuanLyNhanVien() {
       soDienThoai: '',
       phongBanId: 0,
       chucVu: '',
-      luongCoBan: 0,
+      ngayVaoLam: '',
+      gioiTinh: '' as 'NAM' | 'NU' | 'KHAC' | '',
+      ngaySinh: '',
+      diaChi: '',
       trangThai: 'DANG_LAM',
     })
   }
@@ -112,21 +115,6 @@ export default function QuanLyNhanVien() {
     }
   }
 
-  const handleEdit = (nv: NhanVien) => {
-    setEditingNhanVien(nv)
-    setFormData({
-      maNhanVien: nv.maNhanVien,
-      hoTen: nv.hoTen,
-      email: nv.email || '',
-      soDienThoai: nv.soDienThoai || '',
-      phongBanId: nv.phongBanId,
-      chucVu: nv.chucVu || '',
-      luongCoBan: Number(nv.luongCoBan),
-      trangThai: nv.trangThai,
-    })
-    setShowModal(true)
-  }
-
   // Khôi phục nhân viên đã nghỉ
   const handleKhoiPhuc = (nv: NhanVien) => {
     if (confirm(`Khôi phục nhân viên "${nv.hoTen}" về trạng thái Đang làm?`)) {
@@ -140,11 +128,7 @@ export default function QuanLyNhanVien() {
       return
     }
 
-    if (editingNhanVien) {
-      capNhatMutation.mutate({ id: editingNhanVien.id, data: formData })
-    } else {
-      taoMoiMutation.mutate(formData)
-    }
+    taoMoiMutation.mutate(formData)
   }
 
   const handleXoa = (nv: NhanVien) => {
@@ -225,7 +209,7 @@ export default function QuanLyNhanVien() {
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phòng ban</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Chức vụ</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Email</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Lương CB</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Ngày vào làm</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Trạng thái</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Thao tác</th>
                 </tr>
@@ -238,7 +222,7 @@ export default function QuanLyNhanVien() {
                     <td className="py-3 px-4">{nv.phongBan?.tenPhongBan}</td>
                     <td className="py-3 px-4">{nv.chucVu || '-'}</td>
                     <td className="py-3 px-4">{nv.email || '-'}</td>
-                    <td className="py-3 px-4 text-right currency">{formatTien(nv.luongCoBan)}</td>
+                    <td className="py-3 px-4 text-center">{(nv as any).ngayVaoLam ? new Date((nv as any).ngayVaoLam).toLocaleDateString('vi-VN') : '-'}</td>
                     <td className="py-3 px-4 text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${TRANG_THAI_MAP[nv.trangThai]?.color || 'bg-gray-100'}`}>
                         {TRANG_THAI_MAP[nv.trangThai]?.label || nv.trangThai}
@@ -248,19 +232,12 @@ export default function QuanLyNhanVien() {
                       <div className="flex items-center justify-center gap-2">
                         <Link
                           to={`/nhan-vien/${nv.id}`}
-                          className="px-2 py-1 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded flex items-center gap-1"
-                          title="Xem chi tiết / Phụ cấp"
+                          className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded flex items-center gap-1 font-medium"
+                          title="Xem & chỉnh sửa thông tin nhân viên"
                         >
-                          <Eye size={14} />
-                          Phụ cấp
+                          <Edit2 size={14} />
+                          Chi tiết
                         </Link>
-                        <button
-                          onClick={() => handleEdit(nv)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                          title="Sửa"
-                        >
-                          <Edit2 size={18} />
-                        </button>
                         {nv.trangThai === 'NGHI_VIEC' ? (
                           <button
                             onClick={() => handleKhoiPhuc(nv)}
@@ -292,12 +269,12 @@ export default function QuanLyNhanVien() {
         )}
       </div>
 
-      {/* Modal thêm/sửa */}
+      {/* Modal thêm mới */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-lg">
             <h2 className="text-xl font-bold mb-4">
-              {editingNhanVien ? 'Sửa nhân viên' : 'Thêm nhân viên mới'}
+              Thêm nhân viên mới
             </h2>
             
             <div className="space-y-4">
@@ -309,7 +286,6 @@ export default function QuanLyNhanVien() {
                     value={formData.maNhanVien}
                     onChange={(e) => setFormData({ ...formData, maNhanVien: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2"
-                    disabled={!!editingNhanVien}
                   />
                 </div>
                 <div>
@@ -350,6 +326,31 @@ export default function QuanLyNhanVien() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium mb-1">Giới tính</label>
+                  <select
+                    value={formData.gioiTinh}
+                    onChange={(e) => setFormData({ ...formData, gioiTinh: e.target.value as any })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value="">-- Chọn --</option>
+                    <option value="NAM">Nam</option>
+                    <option value="NU">Nữ</option>
+                    <option value="KHAC">Khác</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ngày sinh</label>
+                  <input
+                    type="date"
+                    value={formData.ngaySinh}
+                    onChange={(e) => setFormData({ ...formData, ngaySinh: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium mb-1">Email</label>
                   <input
                     type="email"
@@ -370,29 +371,25 @@ export default function QuanLyNhanVien() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Lương cơ bản</label>
+                <label className="block text-sm font-medium mb-1">Địa chỉ</label>
                 <input
-                  type="number"
-                  value={formData.luongCoBan}
-                  onChange={(e) => setFormData({ ...formData, luongCoBan: Number(e.target.value) })}
+                  type="text"
+                  value={formData.diaChi}
+                  onChange={(e) => setFormData({ ...formData, diaChi: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2"
+                  placeholder="Nhập địa chỉ..."
                 />
               </div>
 
-              {editingNhanVien && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">Trạng thái</label>
-                  <select
-                    value={formData.trangThai}
-                    onChange={(e) => setFormData({ ...formData, trangThai: e.target.value as TrangThaiNhanVien })}
-                    className="w-full border rounded-lg px-3 py-2"
-                  >
-                    <option value="DANG_LAM">Đang làm</option>
-                    <option value="NGHI_VIEC">Đã nghỉ</option>
-                    <option value="TAM_NGHI">Tạm nghỉ</option>
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium mb-1">Ngày vào làm</label>
+                <input
+                  type="date"
+                  value={formData.ngayVaoLam}
+                  onChange={(e) => setFormData({ ...formData, ngayVaoLam: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">

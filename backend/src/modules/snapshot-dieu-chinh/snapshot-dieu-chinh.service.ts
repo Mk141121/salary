@@ -41,22 +41,43 @@ export class SnapshotDieuChinhService {
 
     const ngayChot = new Date();
 
-    // Tạo snapshot cho từng chi tiết
-    const snapshotData = bangLuong.chiTiets.map((ct) => ({
-      bangLuongId: ct.bangLuongId,
-      nhanVienId: ct.nhanVienId,
-      maNhanVien: ct.nhanVien.maNhanVien,
-      hoTen: ct.nhanVien.hoTen,
-      phongBan: bangLuong.phongBan.tenPhongBan,
-      khoanLuongId: ct.khoanLuongId,
-      maKhoan: ct.khoanLuong.maKhoan,
-      tenKhoan: ct.khoanLuong.tenKhoan,
-      loaiKhoan: ct.khoanLuong.loai,
-      soTien: ct.soTien,
-      nguon: ct.nguon,
-      ngayChot,
-      nguoiChot,
-    }));
+    // Lấy đơn vị con hiện tại của từng nhân viên từ NhanVienPhongBan
+    const nhanVienIds = bangLuong.chiTiets.map((ct) => ct.nhanVienId);
+    const lichSuPhongBans = await this.prisma.nhanVienPhongBan.findMany({
+      where: {
+        nhanVienId: { in: nhanVienIds },
+        denNgay: null, // Đang hoạt động
+      },
+      include: {
+        donViCon: true,
+      },
+    });
+    const donViConMap = new Map(
+      lichSuPhongBans.map((ls) => [ls.nhanVienId, ls.donViCon]),
+    );
+
+    // Tạo snapshot cho từng chi tiết - lưu cả phongBanId và donViConId hiện tại
+    const snapshotData = bangLuong.chiTiets.map((ct) => {
+      const donViCon = donViConMap.get(ct.nhanVienId);
+      return {
+        bangLuongId: ct.bangLuongId,
+        nhanVienId: ct.nhanVienId,
+        maNhanVien: ct.nhanVien.maNhanVien,
+        hoTen: ct.nhanVien.hoTen,
+        phongBan: bangLuong.phongBan.tenPhongBan,
+        phongBanId: bangLuong.phongBan.id, // Snapshot phong ban ID
+        donViConId: donViCon?.id || null, // Snapshot đơn vị con ID (Tổ/Ca)
+        donViCon: donViCon?.tenDonVi || null, // Tên đơn vị con
+        khoanLuongId: ct.khoanLuongId,
+        maKhoan: ct.khoanLuong.maKhoan,
+        tenKhoan: ct.khoanLuong.tenKhoan,
+        loaiKhoan: ct.khoanLuong.loai,
+        soTien: ct.soTien,
+        nguon: ct.nguon,
+        ngayChot,
+        nguoiChot,
+      };
+    });
 
     // Xóa snapshot cũ (nếu có - trường hợp mở khóa rồi chốt lại)
     await this.prisma.snapshotBangLuong.deleteMany({

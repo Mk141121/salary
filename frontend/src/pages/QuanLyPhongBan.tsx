@@ -1,94 +1,292 @@
-// Trang Quản lý Phòng ban
+// Trang Quản lý Phòng ban - Giao diện cây phân cấp
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus, Edit2, Trash2, Search, Users, Clock } from 'lucide-react'
-import { phongBanApi, nhanVienApi } from '../services/api'
+import { 
+  Building2, Plus, Edit2, Trash2, Search, Users, Clock, 
+  ChevronRight, ChevronDown, FolderTree, Layers, GitBranch
+} from 'lucide-react'
+import { phongBanApi, PhongBan, DonViCon } from '../services/api'
 
-interface PhongBan {
-  id: number
-  maPhongBan: string
-  tenPhongBan: string
-  moTa?: string
-  gioVaoChuan?: string
-  gioRaChuan?: string
-  phutChoPhepTre?: number
-  ngayTao?: string
-  _count?: {
-    nhanViens: number
-  }
+// Loại phòng ban
+const LOAI_PHONG_BAN = [
+  { value: 'VAN_HANH', label: 'Vận hành' },
+  { value: 'KINH_DOANH', label: 'Kinh doanh' },
+  { value: 'VAN_PHONG', label: 'Văn phòng' },
+  { value: 'SAN_XUAT', label: 'Sản xuất' },
+]
+
+const LOAI_DON_VI_CON = [
+  { value: 'TO', label: 'Tổ' },
+  { value: 'NHOM', label: 'Nhóm' },
+  { value: 'CA', label: 'Ca' },
+]
+
+// Component hiển thị node trong cây
+function TreeNode({ 
+  node, 
+  level = 0, 
+  onEdit, 
+  onDelete, 
+  onAddChild,
+  onManageDonViCon,
+  expandedNodes,
+  toggleExpand 
+}: {
+  node: PhongBan
+  level?: number
+  onEdit: (pb: PhongBan) => void
+  onDelete: (pb: PhongBan) => void
+  onAddChild: (parentId: number) => void
+  onManageDonViCon: (pb: PhongBan) => void
+  expandedNodes: Set<number>
+  toggleExpand: (id: number) => void
+}) {
+  const hasChildren = node.children && node.children.length > 0
+  const isExpanded = expandedNodes.has(node.id)
+
+  return (
+    <div>
+      <div 
+        className={`flex items-center gap-2 py-2 px-3 hover:bg-gray-50 rounded-lg group`}
+        style={{ marginLeft: level * 24 }}
+      >
+        {/* Expand/Collapse button */}
+        <button
+          onClick={() => toggleExpand(node.id)}
+          className={`w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 ${!hasChildren ? 'invisible' : ''}`}
+        >
+          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </button>
+
+        {/* Icon */}
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+          level === 0 ? 'bg-primary-100 text-primary-600' :
+          level === 1 ? 'bg-blue-100 text-blue-600' :
+          level === 2 ? 'bg-green-100 text-green-600' :
+          'bg-orange-100 text-orange-600'
+        }`}>
+          {level === 0 ? <Building2 size={16} /> : <FolderTree size={16} />}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-gray-900">{node.tenPhongBan}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+              {node.maPhongBan}
+            </span>
+            {node.loaiPhongBan && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">
+                {LOAI_PHONG_BAN.find(l => l.value === node.loaiPhongBan)?.label || node.loaiPhongBan}
+              </span>
+            )}
+          </div>
+          {node.moTa && (
+            <div className="text-xs text-gray-500 truncate">{node.moTa}</div>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1 text-gray-500" title="Nhân viên">
+            <Users size={14} />
+            <span>{node._count?.nhanViens || 0}</span>
+          </div>
+          {(node._count?.donViCons || 0) > 0 && (
+            <div className="flex items-center gap-1 text-gray-500" title="Đơn vị con">
+              <Layers size={14} />
+              <span>{node._count?.donViCons}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onAddChild(node.id)}
+            className="p-1.5 text-green-600 hover:bg-green-50 rounded"
+            title="Thêm phòng ban con"
+          >
+            <Plus size={16} />
+          </button>
+          <button
+            onClick={() => onManageDonViCon(node)}
+            className="p-1.5 text-purple-600 hover:bg-purple-50 rounded"
+            title="Quản lý Tổ/Ca"
+          >
+            <Layers size={16} />
+          </button>
+          <button
+            onClick={() => onEdit(node)}
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+            title="Sửa"
+          >
+            <Edit2 size={16} />
+          </button>
+          <button
+            onClick={() => onDelete(node)}
+            className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+            title="Ngừng hoạt động"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Children */}
+      {hasChildren && isExpanded && (
+        <div>
+          {node.children!.map(child => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              level={level + 1}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onAddChild={onAddChild}
+              onManageDonViCon={onManageDonViCon}
+              expandedNodes={expandedNodes}
+              toggleExpand={toggleExpand}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function QuanLyPhongBan() {
   const queryClient = useQueryClient()
   const [tuKhoa, setTuKhoa] = useState('')
+  const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set())
+  
+  // Modal states
   const [showModal, setShowModal] = useState(false)
+  const [showDonViConModal, setShowDonViConModal] = useState(false)
   const [editing, setEditing] = useState<PhongBan | null>(null)
+  const [parentId, setParentId] = useState<number | null>(null)
+  const [selectedPhongBan, setSelectedPhongBan] = useState<PhongBan | null>(null)
+  
   const [formData, setFormData] = useState({
     maPhongBan: '',
     tenPhongBan: '',
     moTa: '',
+    loaiPhongBan: '',
     gioVaoChuan: '08:00',
     gioRaChuan: '17:00',
     phutChoPhepTre: 5,
   })
 
-  // Lấy danh sách phòng ban
-  const { data: phongBans, isLoading } = useQuery({
+  const [donViConForm, setDonViConForm] = useState({
+    maDonVi: '',
+    tenDonVi: '',
+    loaiDonVi: 'TO',
+  })
+
+  // Lấy cây phòng ban
+  const { data: cayPhongBan, isLoading } = useQuery({
+    queryKey: ['phong-ban-cay'],
+    queryFn: phongBanApi.layCayPhongBan,
+  })
+
+  // Lấy danh sách phòng ban phẳng (cho chọn parent)
+  const { data: phongBans } = useQuery({
     queryKey: ['phong-ban'],
     queryFn: phongBanApi.layTatCa,
   })
 
-  // Lấy số nhân viên mỗi phòng ban
-  const { data: nhanViensData } = useQuery({
-    queryKey: ['nhan-vien'],
-    queryFn: () => nhanVienApi.layTatCa({}),
+  // Lấy đơn vị con
+  const { data: donViCons, refetch: refetchDonViCon } = useQuery({
+    queryKey: ['don-vi-con', selectedPhongBan?.id],
+    queryFn: () => selectedPhongBan ? phongBanApi.layDonViCon(selectedPhongBan.id) : Promise.resolve([]),
+    enabled: !!selectedPhongBan,
   })
-
-  // Handle paginated response format { data: [], meta: {} }
-  const nhanViens = Array.isArray(nhanViensData) ? nhanViensData : nhanViensData?.data || []
-
-  // Đếm số NV theo phòng ban
-  const countNhanVien = (phongBanId: number) => {
-    return nhanViens?.filter((nv: { phongBanId: number }) => nv.phongBanId === phongBanId).length || 0
-  }
 
   // Mutations
   const createMutation = useMutation({
     mutationFn: phongBanApi.taoMoi,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['phong-ban-cay'] })
       queryClient.invalidateQueries({ queryKey: ['phong-ban'] })
       handleCloseModal()
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra')
+    }
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<PhongBan> }) =>
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
       phongBanApi.capNhat(id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['phong-ban-cay'] })
       queryClient.invalidateQueries({ queryKey: ['phong-ban'] })
       handleCloseModal()
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra')
+    }
   })
 
   const deleteMutation = useMutation({
-    mutationFn: phongBanApi.xoa,
+    mutationFn: phongBanApi.ngungHoatDong,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['phong-ban-cay'] })
       queryClient.invalidateQueries({ queryKey: ['phong-ban'] })
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Không thể ngừng hoạt động phòng ban')
+    }
   })
 
-  // Filter theo từ khóa
-  const filteredPhongBans = phongBans?.filter((pb: PhongBan) =>
-    pb.tenPhongBan.toLowerCase().includes(tuKhoa.toLowerCase()) ||
-    pb.maPhongBan.toLowerCase().includes(tuKhoa.toLowerCase())
-  )
+  const createDonViConMutation = useMutation({
+    mutationFn: ({ phongBanId, data }: { phongBanId: number; data: any }) =>
+      phongBanApi.taoDonViCon(phongBanId, data),
+    onSuccess: () => {
+      refetchDonViCon()
+      setDonViConForm({ maDonVi: '', tenDonVi: '', loaiDonVi: 'TO' })
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra')
+    }
+  })
 
-  const handleOpenCreate = () => {
+  const toggleExpand = (id: number) => {
+    setExpandedNodes(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const expandAll = () => {
+    const allIds = new Set<number>()
+    const collectIds = (nodes: PhongBan[]) => {
+      nodes.forEach(n => {
+        allIds.add(n.id)
+        if (n.children) collectIds(n.children)
+      })
+    }
+    if (cayPhongBan) collectIds(cayPhongBan)
+    setExpandedNodes(allIds)
+  }
+
+  const collapseAll = () => {
+    setExpandedNodes(new Set())
+  }
+
+  const handleOpenCreate = (parentIdValue?: number) => {
     setEditing(null)
-    setFormData({ 
-      maPhongBan: '', 
-      tenPhongBan: '', 
+    setParentId(parentIdValue || null)
+    setFormData({
+      maPhongBan: '',
+      tenPhongBan: '',
       moTa: '',
+      loaiPhongBan: '',
       gioVaoChuan: '08:00',
       gioRaChuan: '17:00',
       phutChoPhepTre: 5,
@@ -98,10 +296,12 @@ export default function QuanLyPhongBan() {
 
   const handleOpenEdit = (pb: PhongBan) => {
     setEditing(pb)
+    setParentId(pb.phongBanChaId || null)
     setFormData({
       maPhongBan: pb.maPhongBan,
       tenPhongBan: pb.tenPhongBan,
       moTa: pb.moTa || '',
+      loaiPhongBan: pb.loaiPhongBan || '',
       gioVaoChuan: pb.gioVaoChuan || '08:00',
       gioRaChuan: pb.gioRaChuan || '17:00',
       phutChoPhepTre: pb.phutChoPhepTre ?? 5,
@@ -112,14 +312,7 @@ export default function QuanLyPhongBan() {
   const handleCloseModal = () => {
     setShowModal(false)
     setEditing(null)
-    setFormData({ 
-      maPhongBan: '', 
-      tenPhongBan: '', 
-      moTa: '',
-      gioVaoChuan: '08:00',
-      gioRaChuan: '17:00',
-      phutChoPhepTre: 5,
-    })
+    setParentId(null)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -129,23 +322,48 @@ export default function QuanLyPhongBan() {
       return
     }
 
+    const data = {
+      ...formData,
+      phongBanChaId: parentId || undefined,
+      loaiPhongBan: formData.loaiPhongBan || undefined,
+    }
+
     if (editing) {
-      updateMutation.mutate({ id: editing.id, data: formData })
+      updateMutation.mutate({ id: editing.id, data })
     } else {
-      createMutation.mutate(formData)
+      createMutation.mutate(data)
     }
   }
 
   const handleDelete = (pb: PhongBan) => {
-    const soNV = countNhanVien(pb.id)
-    if (soNV > 0) {
-      alert(`Không thể xóa phòng ban này vì đang có ${soNV} nhân viên. Vui lòng chuyển nhân viên sang phòng ban khác trước.`)
-      return
-    }
-    if (confirm(`Bạn có chắc muốn xóa phòng ban "${pb.tenPhongBan}"?`)) {
+    if (confirm(`Bạn có chắc muốn ngừng hoạt động phòng ban "${pb.tenPhongBan}"?`)) {
       deleteMutation.mutate(pb.id)
     }
   }
+
+  const handleOpenDonViConModal = (pb: PhongBan) => {
+    setSelectedPhongBan(pb)
+    setShowDonViConModal(true)
+  }
+
+  const handleCreateDonViCon = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedPhongBan) return
+    if (!donViConForm.maDonVi.trim() || !donViConForm.tenDonVi.trim()) {
+      alert('Vui lòng nhập mã và tên đơn vị')
+      return
+    }
+    createDonViConMutation.mutate({
+      phongBanId: selectedPhongBan.id,
+      data: donViConForm,
+    })
+  }
+
+  // Tính tổng số phòng ban
+  const countNodes = (nodes: PhongBan[]): number => {
+    return nodes.reduce((sum, n) => sum + 1 + (n.children ? countNodes(n.children) : 0), 0)
+  }
+  const tongPhongBan = cayPhongBan ? countNodes(cayPhongBan) : 0
 
   return (
     <div className="space-y-6">
@@ -155,149 +373,131 @@ export default function QuanLyPhongBan() {
           <Building2 className="w-8 h-8 text-primary-600" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Quản lý Phòng ban</h1>
-            <p className="text-gray-500">Quản lý cơ cấu tổ chức công ty</p>
+            <p className="text-gray-500">Cấu trúc tổ chức công ty dạng cây phân cấp</p>
           </div>
         </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-        >
-          <Plus size={20} />
-          Thêm phòng ban
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Tìm kiếm phòng ban..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-            value={tuKhoa}
-            onChange={(e) => setTuKhoa(e.target.value)}
-          />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleOpenCreate()}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+          >
+            <Plus size={20} />
+            Thêm phòng ban
+          </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-gray-500">Đang tải...</div>
-        ) : filteredPhongBans?.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            Không có phòng ban nào
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+            <Building2 className="w-6 h-6 text-primary-600" />
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mã
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tên phòng ban
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center justify-center gap-1">
-                      <Clock size={14} />
-                      Giờ làm việc
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cho phép trễ
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nhân viên
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredPhongBans?.map((pb: PhongBan) => (
-                  <tr key={pb.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {pb.maPhongBan}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{pb.tenPhongBan}</div>
-                      {pb.moTa && <div className="text-xs text-gray-500">{pb.moTa}</div>}
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700">
-                        <Clock size={14} />
-                        {pb.gioVaoChuan || '08:00'} - {pb.gioRaChuan || '17:00'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="text-sm text-gray-600">
-                        {pb.phutChoPhepTre ?? 5} phút
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <Users size={14} />
-                        {countNhanVien(pb.id)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(pb)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                          title="Sửa"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(pb)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Xóa"
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Thống kê */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="text-sm text-gray-500">Tổng số phòng ban</div>
-          <div className="text-3xl font-bold text-primary-600 mt-1">
-            {phongBans?.length || 0}
+          <div>
+            <div className="text-sm text-gray-500">Tổng phòng ban</div>
+            <div className="text-2xl font-bold text-gray-900">{tongPhongBan}</div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="text-sm text-gray-500">Tổng số nhân viên</div>
-          <div className="text-3xl font-bold text-green-600 mt-1">
-            {nhanViens?.length || 0}
+        <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+            <Users className="w-6 h-6 text-green-600" />
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Tổng nhân viên</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {phongBans?.reduce((sum: number, pb: PhongBan) => sum + (pb._count?.nhanViens || 0), 0) || 0}
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="text-sm text-gray-500">Trung bình NV/Phòng</div>
-          <div className="text-3xl font-bold text-blue-600 mt-1">
-            {phongBans?.length > 0 
-              ? Math.round((nhanViens?.length || 0) / phongBans.length) 
-              : 0}
+        <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+            <Layers className="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Tổng Tổ/Ca</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {phongBans?.reduce((sum: number, pb: PhongBan) => sum + (pb._count?.donViCons || 0), 0) || 0}
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+            <GitBranch className="w-6 h-6 text-blue-600" />
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Cấp sâu nhất</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {Math.max(...(phongBans?.map((pb: PhongBan) => pb.capDo) || [0]), 0)}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Tree View */}
+      <div className="bg-white rounded-xl shadow-sm">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={expandAll}
+              className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+            >
+              Mở tất cả
+            </button>
+            <button
+              onClick={collapseAll}
+              className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+            >
+              Thu gọn
+            </button>
+          </div>
+          <div className="relative max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Tìm kiếm..."
+              className="w-full pl-9 pr-4 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500"
+              value={tuKhoa}
+              onChange={(e) => setTuKhoa(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Tree content */}
+        <div className="p-4">
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-500">Đang tải...</div>
+          ) : !cayPhongBan || cayPhongBan.length === 0 ? (
+            <div className="text-center py-8">
+              <Building2 className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500">Chưa có phòng ban nào</p>
+              <button
+                onClick={() => handleOpenCreate()}
+                className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
+              >
+                + Thêm phòng ban đầu tiên
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {cayPhongBan.map(node => (
+                <TreeNode
+                  key={node.id}
+                  node={node}
+                  onEdit={handleOpenEdit}
+                  onDelete={handleDelete}
+                  onAddChild={handleOpenCreate}
+                  onManageDonViCon={handleOpenDonViConModal}
+                  expandedNodes={expandedNodes}
+                  toggleExpand={toggleExpand}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal Thêm/Sửa Phòng ban */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
@@ -305,6 +505,25 @@ export default function QuanLyPhongBan() {
               {editing ? 'Cập nhật phòng ban' : 'Thêm phòng ban mới'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Phòng ban cha */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phòng ban cha
+                </label>
+                <select
+                  value={parentId || ''}
+                  onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">-- Không có (phòng ban gốc) --</option>
+                  {phongBans?.filter((pb: PhongBan) => !editing || pb.id !== editing.id).map((pb: PhongBan) => (
+                    <option key={pb.id} value={pb.id}>
+                      {'—'.repeat(pb.capDo - 1)} {pb.tenPhongBan}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -332,17 +551,34 @@ export default function QuanLyPhongBan() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mô tả
-                </label>
-                <textarea
-                  value={formData.moTa}
-                  onChange={(e) => setFormData({ ...formData, moTa: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                  rows={2}
-                  placeholder="Mô tả về phòng ban..."
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Loại phòng ban
+                  </label>
+                  <select
+                    value={formData.loaiPhongBan}
+                    onChange={(e) => setFormData({ ...formData, loaiPhongBan: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="">-- Chọn loại --</option>
+                    {LOAI_PHONG_BAN.map(l => (
+                      <option key={l.value} value={l.value}>{l.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mô tả
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.moTa}
+                    onChange={(e) => setFormData({ ...formData, moTa: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                    placeholder="Mô tả ngắn..."
+                  />
+                </div>
               </div>
 
               {/* Cấu hình giờ làm việc */}
@@ -351,12 +587,9 @@ export default function QuanLyPhongBan() {
                   <Clock className="w-5 h-5 text-indigo-600" />
                   <h3 className="font-medium text-gray-900">Giờ làm việc</h3>
                 </div>
-                
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Giờ vào
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Giờ vào</label>
                     <input
                       type="time"
                       value={formData.gioVaoChuan}
@@ -365,9 +598,7 @@ export default function QuanLyPhongBan() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Giờ ra
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Giờ ra</label>
                     <input
                       type="time"
                       value={formData.gioRaChuan}
@@ -376,9 +607,7 @@ export default function QuanLyPhongBan() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cho phép trễ
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cho phép trễ</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -392,9 +621,6 @@ export default function QuanLyPhongBan() {
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Nhân viên được phép đến muộn trong khoảng thời gian cho phép mà không bị tính là đi trễ.
-                </p>
               </div>
 
               <div className="flex gap-3 pt-4 border-t">
@@ -410,12 +636,106 @@ export default function QuanLyPhongBan() {
                   disabled={createMutation.isPending || updateMutation.isPending}
                   className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                 >
-                  {createMutation.isPending || updateMutation.isPending 
-                    ? 'Đang lưu...' 
-                    : (editing ? 'Cập nhật' : 'Thêm mới')}
+                  {createMutation.isPending || updateMutation.isPending ? 'Đang lưu...' : (editing ? 'Cập nhật' : 'Thêm mới')}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Quản lý Đơn vị con */}
+      {showDonViConModal && selectedPhongBan && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                Tổ/Ca/Nhóm - {selectedPhongBan.tenPhongBan}
+              </h2>
+              <button
+                onClick={() => setShowDonViConModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form thêm mới */}
+            <form onSubmit={handleCreateDonViCon} className="flex items-end gap-3 mb-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mã</label>
+                <input
+                  type="text"
+                  value={donViConForm.maDonVi}
+                  onChange={(e) => setDonViConForm({ ...donViConForm, maDonVi: e.target.value.toUpperCase() })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  placeholder="TO_A"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tên</label>
+                <input
+                  type="text"
+                  value={donViConForm.tenDonVi}
+                  onChange={(e) => setDonViConForm({ ...donViConForm, tenDonVi: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  placeholder="Tổ A"
+                />
+              </div>
+              <div className="w-32">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
+                <select
+                  value={donViConForm.loaiDonVi}
+                  onChange={(e) => setDonViConForm({ ...donViConForm, loaiDonVi: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                >
+                  {LOAI_DON_VI_CON.map(l => (
+                    <option key={l.value} value={l.value}>{l.label}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={createDonViConMutation.isPending}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                <Plus size={18} />
+              </button>
+            </form>
+
+            {/* Danh sách */}
+            {donViCons && donViCons.length > 0 ? (
+              <div className="divide-y">
+                {donViCons.map((dvc: DonViCon) => (
+                  <div key={dvc.id} className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        dvc.loaiDonVi === 'TO' ? 'bg-blue-100 text-blue-600' :
+                        dvc.loaiDonVi === 'NHOM' ? 'bg-green-100 text-green-600' :
+                        'bg-orange-100 text-orange-600'
+                      }`}>
+                        <Layers size={16} />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{dvc.tenDonVi}</div>
+                        <div className="text-xs text-gray-500">
+                          {dvc.maDonVi} • {LOAI_DON_VI_CON.find(l => l.value === dvc.loaiDonVi)?.label}
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      dvc.trangThai === 'HOAT_DONG' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {dvc.trangThai === 'HOAT_DONG' ? 'Hoạt động' : 'Ngừng'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Chưa có đơn vị con nào
+              </div>
+            )}
           </div>
         </div>
       )}

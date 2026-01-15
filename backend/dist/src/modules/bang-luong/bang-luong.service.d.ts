@@ -18,6 +18,8 @@ export declare class BangLuongService {
     private auditLogService;
     private readonly logger;
     constructor(prisma: PrismaService, tinhLuongService: TinhLuongService, ngayCongService: NgayCongService, phuCapNhanVienService: PhuCapNhanVienService, bhxhThueService: BHXHThueService, snapshotService: SnapshotDieuChinhService, chamCongService: ChamCongService, auditLogService: AuditLogService);
+    private layLuongCoBanHieuLuc;
+    private layLuongCoBanBatch;
     layDanhSach(thang?: number, nam?: number, phongBanId?: number, trang?: number, soLuong?: number): Promise<{
         data: {
             tongThuNhap: number;
@@ -124,6 +126,12 @@ export declare class BangLuongService {
                 chucVu: string | null;
                 luongCoBan: import("@prisma/client/runtime/library").Decimal;
                 ngayVaoLam: Date;
+                ngayNghiViec: Date | null;
+                gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+                ngaySinh: Date | null;
+                diaChi: string | null;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
             };
         } & {
             id: number;
@@ -171,6 +179,12 @@ export declare class BangLuongService {
                 chucVu: string | null;
                 luongCoBan: import("@prisma/client/runtime/library").Decimal;
                 ngayVaoLam: Date;
+                ngayNghiViec: Date | null;
+                gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+                ngaySinh: Date | null;
+                diaChi: string | null;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
             };
         } & {
             id: number;

@@ -1,5 +1,5 @@
 // Chi tiết hồ sơ Nhân viên với tab Phụ cấp
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -13,12 +13,23 @@ import {
   Play,
   History,
   AlertCircle,
+  FileText,
+  Building2,
+  Users,
+  Pencil,
+  X,
+  Save,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { nhanVienApi, phuCapNhanVienApi, khoanLuongApi, PhuCapNhanVien, KhoanLuong } from '../services/api'
+import { nhanVienApi, phongBanApi, phuCapNhanVienApi, khoanLuongApi, PhuCapNhanVien, KhoanLuong } from '../services/api'
 import { formatTien, formatNgay } from '../utils'
+import TabHopDong from '../components/TabHopDong'
+import TabNganHang from '../components/TabNganHang'
+import TabNhomNhanVien from '../components/TabNhomNhanVien'
+import TabThueBH from '../components/TabThueBH'
+import TabLichSuPhongBan from '../components/TabLichSuPhongBan'
 
-type TabType = 'thong-tin' | 'phu-cap' | 'lich-su'
+type TabType = 'thong-tin' | 'hop-dong' | 'phu-cap' | 'lich-su' | 'lich-su-phong-ban'
 
 export default function ChiTietNhanVien() {
   const { id } = useParams<{ id: string }>()
@@ -29,6 +40,21 @@ export default function ChiTietNhanVien() {
   const [showThemPhuCap, setShowThemPhuCap] = useState(false)
   const [showTangPhuCap, setShowTangPhuCap] = useState<PhuCapNhanVien | null>(null)
   const [showKetThuc, setShowKetThuc] = useState<PhuCapNhanVien | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+
+  // Form chỉnh sửa nhân viên
+  const [formNhanVien, setFormNhanVien] = useState({
+    hoTen: '',
+    email: '',
+    soDienThoai: '',
+    phongBanId: 0,
+    chucVu: '',
+    gioiTinh: '' as '' | 'NAM' | 'NU' | 'KHAC',
+    ngaySinh: '',
+    diaChi: '',
+    ngayVaoLam: '',
+    luongCoBan: 0,
+  })
 
   // Form state
   const [formPhuCap, setFormPhuCap] = useState({
@@ -53,6 +79,11 @@ export default function ChiTietNhanVien() {
   const { data: nhanVien, isLoading: loadingNV } = useQuery({
     queryKey: ['nhan-vien', nhanVienId],
     queryFn: () => nhanVienApi.layTheoId(nhanVienId),
+  })
+
+  const { data: phongBans } = useQuery({
+    queryKey: ['phong-ban'],
+    queryFn: () => phongBanApi.layTatCa(),
   })
 
   const { data: phuCaps, isLoading: loadingPC } = useQuery({
@@ -122,6 +153,38 @@ export default function ChiTietNhanVien() {
     },
   })
 
+  // Mutation cập nhật nhân viên
+  const capNhatNhanVienMutation = useMutation({
+    mutationFn: (data: Parameters<typeof nhanVienApi.capNhat>[1]) =>
+      nhanVienApi.capNhat(nhanVienId, data),
+    onSuccess: () => {
+      toast.success('Cập nhật thông tin nhân viên thành công')
+      queryClient.invalidateQueries({ queryKey: ['nhan-vien', nhanVienId] })
+      setIsEditing(false)
+    },
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật')
+    },
+  })
+
+  // Effect để cập nhật form khi nhanVien thay đổi
+  useEffect(() => {
+    if (nhanVien) {
+      setFormNhanVien({
+        hoTen: nhanVien.hoTen || '',
+        email: nhanVien.email || '',
+        soDienThoai: nhanVien.soDienThoai || '',
+        phongBanId: nhanVien.phongBanId || 0,
+        chucVu: nhanVien.chucVu || '',
+        gioiTinh: (nhanVien as any).gioiTinh || '',
+        ngaySinh: (nhanVien as any).ngaySinh ? new Date((nhanVien as any).ngaySinh).toISOString().split('T')[0] : '',
+        diaChi: (nhanVien as any).diaChi || '',
+        ngayVaoLam: (nhanVien as any).ngayVaoLam ? new Date((nhanVien as any).ngayVaoLam).toISOString().split('T')[0] : '',
+        luongCoBan: nhanVien.luongCoBan || 0,
+      })
+    }
+  }, [nhanVien])
+
   const resetFormPhuCap = () => {
     setFormPhuCap({
       khoanLuongId: 0,
@@ -177,6 +240,49 @@ export default function ChiTietNhanVien() {
       id: showKetThuc.id,
       denNgay: formKetThuc.denNgay,
     })
+  }
+
+  // Handle cập nhật nhân viên
+  const handleCapNhatNhanVien = () => {
+    if (!formNhanVien.hoTen.trim()) {
+      toast.error('Vui lòng nhập họ tên')
+      return
+    }
+    if (!formNhanVien.phongBanId) {
+      toast.error('Vui lòng chọn phòng ban')
+      return
+    }
+
+    capNhatNhanVienMutation.mutate({
+      hoTen: formNhanVien.hoTen.trim(),
+      email: formNhanVien.email?.trim() || null,
+      soDienThoai: formNhanVien.soDienThoai?.trim() || null,
+      phongBanId: formNhanVien.phongBanId,
+      chucVu: formNhanVien.chucVu?.trim() || null,
+      gioiTinh: formNhanVien.gioiTinh || null,
+      ngaySinh: formNhanVien.ngaySinh || null,
+      diaChi: formNhanVien.diaChi?.trim() || null,
+      ngayVaoLam: formNhanVien.ngayVaoLam || null,
+      luongCoBan: formNhanVien.luongCoBan || 0,
+    } as any)
+  }
+
+  const handleHuyChinhSua = () => {
+    if (nhanVien) {
+      setFormNhanVien({
+        hoTen: nhanVien.hoTen || '',
+        email: nhanVien.email || '',
+        soDienThoai: nhanVien.soDienThoai || '',
+        phongBanId: nhanVien.phongBanId || 0,
+        chucVu: nhanVien.chucVu || '',
+        gioiTinh: (nhanVien as any).gioiTinh || '',
+        ngaySinh: (nhanVien as any).ngaySinh ? new Date((nhanVien as any).ngaySinh).toISOString().split('T')[0] : '',
+        diaChi: (nhanVien as any).diaChi || '',
+        ngayVaoLam: (nhanVien as any).ngayVaoLam ? new Date((nhanVien as any).ngayVaoLam).toISOString().split('T')[0] : '',
+        luongCoBan: nhanVien.luongCoBan || 0,
+      })
+    }
+    setIsEditing(false)
   }
 
   // Phân loại phụ cấp
@@ -241,10 +347,10 @@ export default function ChiTietNhanVien() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b">
+      <div className="flex gap-2 mb-6 border-b overflow-x-auto">
         <button
           onClick={() => setActiveTab('thong-tin')}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'thong-tin'
               ? 'border-primary-600 text-primary-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -254,8 +360,19 @@ export default function ChiTietNhanVien() {
           Thông tin
         </button>
         <button
+          onClick={() => setActiveTab('hop-dong')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === 'hop-dong'
+              ? 'border-primary-600 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <FileText size={18} className="inline-block mr-2" />
+          Hợp đồng / Lương
+        </button>
+        <button
           onClick={() => setActiveTab('phu-cap')}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'phu-cap'
               ? 'border-primary-600 text-primary-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -271,54 +388,276 @@ export default function ChiTietNhanVien() {
         </button>
         <button
           onClick={() => setActiveTab('lich-su')}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'lich-su'
               ? 'border-primary-600 text-primary-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
           <History size={18} className="inline-block mr-2" />
-          Lịch sử
+          Lịch sử phụ cấp
+        </button>
+        <button
+          onClick={() => setActiveTab('lich-su-phong-ban')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === 'lich-su-phong-ban'
+              ? 'border-primary-600 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Building2 size={18} className="inline-block mr-2" />
+          Lịch sử phòng ban
         </button>
       </div>
 
       {/* Tab: Thông tin */}
       {activeTab === 'thong-tin' && (
-        <div className="card">
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm text-gray-500">Mã nhân viên</label>
-              <p className="font-medium">{nhanVien.maNhanVien}</p>
+        <div className="space-y-6">
+          {/* Thông tin cơ bản */}
+          <div className="card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <User size={20} />
+                Thông tin cơ bản
+              </h3>
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="btn btn-secondary flex items-center gap-2"
+                >
+                  <Pencil size={16} />
+                  Chỉnh sửa
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleHuyChinhSua}
+                    className="btn btn-secondary flex items-center gap-2"
+                    disabled={capNhatNhanVienMutation.isPending}
+                  >
+                    <X size={16} />
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleCapNhatNhanVien}
+                    className="btn btn-primary flex items-center gap-2"
+                    disabled={capNhatNhanVienMutation.isPending}
+                  >
+                    <Save size={16} />
+                    {capNhatNhanVienMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+                  </button>
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-sm text-gray-500">Họ tên</label>
-              <p className="font-medium">{nhanVien.hoTen}</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-500">Phòng ban</label>
-              <p className="font-medium">{nhanVien.phongBan?.tenPhongBan}</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-500">Chức vụ</label>
-              <p className="font-medium">{nhanVien.chucVu || '-'}</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-500">Email</label>
-              <p className="font-medium">{nhanVien.email || '-'}</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-500">Số điện thoại</label>
-              <p className="font-medium">{nhanVien.soDienThoai || '-'}</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-500">Lương cơ bản</label>
-              <p className="font-medium text-primary-600">{formatTien(nhanVien.luongCoBan)}</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
-              <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
-            </div>
+
+            {!isEditing ? (
+              /* Chế độ xem */
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm text-gray-500">Mã nhân viên</label>
+                  <p className="font-medium">{nhanVien.maNhanVien}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Họ tên</label>
+                  <p className="font-medium">{nhanVien.hoTen}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Phòng ban</label>
+                  <p className="font-medium">{nhanVien.phongBan?.tenPhongBan}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Chức vụ</label>
+                  <p className="font-medium">{nhanVien.chucVu || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Giới tính</label>
+                  <p className="font-medium">{(nhanVien as any).gioiTinh === 'NAM' ? 'Nam' : (nhanVien as any).gioiTinh === 'NU' ? 'Nữ' : (nhanVien as any).gioiTinh === 'KHAC' ? 'Khác' : '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Ngày sinh</label>
+                  <p className="font-medium">{(nhanVien as any).ngaySinh ? formatNgay((nhanVien as any).ngaySinh) : '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Email</label>
+                  <p className="font-medium">{nhanVien.email || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Số điện thoại</label>
+                  <p className="font-medium">{nhanVien.soDienThoai || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Địa chỉ</label>
+                  <p className="font-medium">{(nhanVien as any).diaChi || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Ngày vào làm</label>
+                  <p className="font-medium">{(nhanVien as any).ngayVaoLam ? formatNgay((nhanVien as any).ngayVaoLam) : '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Lương cơ bản</label>
+                  <p className="font-medium text-primary-600">{formatTien(nhanVien.luongCoBan)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
+                  <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
+                </div>
+              </div>
+            ) : (
+              /* Chế độ chỉnh sửa */
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm text-gray-500">Mã nhân viên</label>
+                  <p className="font-medium text-gray-400">{nhanVien.maNhanVien}</p>
+                  <span className="text-xs text-gray-400">(Không thể sửa)</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Họ tên *</label>
+                  <input
+                    type="text"
+                    value={formNhanVien.hoTen}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, hoTen: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nhập họ tên"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Phòng ban *</label>
+                  <select
+                    value={formNhanVien.phongBanId}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, phongBanId: parseInt(e.target.value) })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value={0}>-- Chọn phòng ban --</option>
+                    {phongBans?.map((pb: any) => (
+                      <option key={pb.id} value={pb.id}>{pb.tenPhongBan}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Chức vụ</label>
+                  <input
+                    type="text"
+                    value={formNhanVien.chucVu}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, chucVu: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nhập chức vụ"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Giới tính</label>
+                  <select
+                    value={formNhanVien.gioiTinh}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, gioiTinh: e.target.value as '' | 'NAM' | 'NU' | 'KHAC' })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value="">-- Chọn giới tính --</option>
+                    <option value="NAM">Nam</option>
+                    <option value="NU">Nữ</option>
+                    <option value="KHAC">Khác</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ngày sinh</label>
+                  <input
+                    type="date"
+                    value={formNhanVien.ngaySinh}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, ngaySinh: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={formNhanVien.email}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, email: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nhập email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    value={formNhanVien.soDienThoai}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, soDienThoai: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nhập số điện thoại"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium mb-1">Địa chỉ</label>
+                  <input
+                    type="text"
+                    value={formNhanVien.diaChi}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, diaChi: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nhập địa chỉ"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ngày vào làm</label>
+                  <input
+                    type="date"
+                    value={formNhanVien.ngayVaoLam}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, ngayVaoLam: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Lương cơ bản</label>
+                  <input
+                    type="number"
+                    value={formNhanVien.luongCoBan}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, luongCoBan: parseFloat(e.target.value) || 0 })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nhập lương cơ bản"
+                    min={0}
+                    step={100000}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
+                  <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
+                  <span className="text-xs text-gray-400">(Tự động tính từ các khoản phụ cấp)</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Ngân hàng */}
+          <div className="card">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <Building2 size={20} />
+              Tài khoản ngân hàng
+            </h3>
+            <TabNganHang nhanVienId={nhanVienId} />
+          </div>
+
+          {/* Thuế & BHXH */}
+          <div className="card">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <FileText size={20} />
+              Thông tin Thuế & BHXH
+            </h3>
+            <TabThueBH nhanVienId={nhanVienId} />
+          </div>
+
+          {/* Nhóm nhân viên */}
+          <div className="card">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <Users size={20} />
+              Nhóm nhân viên
+            </h3>
+            <TabNhomNhanVien nhanVienId={nhanVienId} />
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Hợp đồng / Lương */}
+      {activeTab === 'hop-dong' && (
+        <div className="card">
+          <TabHopDong nhanVienId={nhanVienId} />
         </div>
       )}
 
@@ -518,6 +857,11 @@ export default function ChiTietNhanVien() {
             <p className="text-gray-500 text-center py-8">Chưa có dữ liệu lịch sử</p>
           )}
         </div>
+      )}
+
+      {/* Tab: Lịch sử phòng ban */}
+      {activeTab === 'lich-su-phong-ban' && (
+        <TabLichSuPhongBan nhanVienId={nhanVienId} />
       )}
 
       {/* Modal: Thêm phụ cấp */}

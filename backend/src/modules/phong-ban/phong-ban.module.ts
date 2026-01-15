@@ -1,10 +1,20 @@
-// Module Phòng Ban
+// Module Phòng Ban - Hỗ trợ cây phân cấp + Đơn vị con + Phân quyền
 import { Module } from '@nestjs/common';
-import { PhongBanController } from './phong-ban.controller';
+import { 
+  PhongBanController, 
+  DonViConController,
+  NhanVienPhongBanController,
+  PhanQuyenPhongBanController 
+} from './phong-ban.controller';
 import { PhongBanService } from './phong-ban.service';
 
 @Module({
-  controllers: [PhongBanController],
+  controllers: [
+    PhongBanController,
+    DonViConController,
+    NhanVienPhongBanController,
+    PhanQuyenPhongBanController,
+  ],
   providers: [PhongBanService],
   exports: [PhongBanService],
 })

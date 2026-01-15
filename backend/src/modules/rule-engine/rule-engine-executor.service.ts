@@ -38,6 +38,15 @@ interface DuLieuNhanVien {
   soLanDiMuon: number;
   soLanVeSom: number;
   suKien: Record<string, { soLan: number; tongGiaTri: number; tongTien: number }>;
+  // Sản lượng chia hàng
+  tongSpDat: number;
+  tongSpLoi: number;
+  // Giao hàng
+  tongKhoiLuongThanhCong: number;
+  tongSoLanTreGio: number;
+  tongSoLanKhongLayPhieu: number;
+  // Biến số cấu hình (từ DB)
+  cauHinhBienSo: Record<string, number>;
   // Thêm các trường khác khi cần
   [key: string]: unknown;
 }
@@ -78,6 +87,13 @@ export class RuleEngineExecutor {
     'CONG_CHUAN', 'CONG_THUC_TE', 'SO_GIO_OT', 'SO_GIO_OT_DEM',
     'SO_GIO_OT_CN', 'SO_GIO_OT_LE', 'SO_LAN_DI_MUON', 'SO_LAN_VE_SOM',
     'DOANH_SO', 'TY_LE_HOA_HONG', 'DIEM_KPI', 'HE_SO_KPI',
+    // Sản lượng chia hàng
+    'TONG_SP_DAT', 'TONG_SP_LOI',
+    // Giao hàng
+    'TONG_KHOI_LUONG_THANH_CONG', 'TONG_SO_LAN_TRE_GIO', 'TONG_SO_LAN_KHONG_LAY_PHIEU',
+    // Biến cấu hình (đọc từ DB)
+    'DON_GIA_SP', 'DON_GIA_KHOI_LUONG', 'DON_GIA_PHAT_TRE', 'DON_GIA_PHAT_KHONG_PHIEU',
+    'HE_SO_LOI_SP',
   ];
 
   constructor(
@@ -242,6 +258,9 @@ export class RuleEngineExecutor {
       where: { bangLuongId },
     });
 
+    // Lấy biến số cấu hình cho phòng ban
+    const cauHinhBienSo = await this.layCauHinhBienSo(tx, bangLuong.phongBanId);
+
     // 5. Chạy rules cho từng nhân viên
     const ketQuaChiTiet: KetQuaEngine['chiTiet'] = [];
     let soDongTao = 0;
@@ -255,6 +274,12 @@ export class RuleEngineExecutor {
         bangLuong.thang,
         bangLuong.nam,
       );
+
+      // Bổ sung dữ liệu sản lượng từ snapshot
+      await this.boSungDuLieuSanLuong(tx, duLieu, bangLuongId);
+
+      // Gán biến số cấu hình
+      duLieu.cauHinhBienSo = cauHinhBienSo;
 
       // Map để tích lũy các khoản lương
       const ketQuaTheoKhoan: Map<number, KetQuaRule[]> = new Map();
@@ -505,7 +530,88 @@ export class RuleEngineExecutor {
       soLanDiMuon: chamCong ? chamCong.soLanDiMuon : 0,
       soLanVeSom: chamCong ? chamCong.soLanVeSom : 0,
       suKien,
+      // Sản lượng - sẽ được bổ sung từ snapshot
+      tongSpDat: 0,
+      tongSpLoi: 0,
+      tongKhoiLuongThanhCong: 0,
+      tongSoLanTreGio: 0,
+      tongSoLanKhongLayPhieu: 0,
+      // Biến số cấu hình - sẽ được bổ sung
+      cauHinhBienSo: {},
     };
+  }
+
+  // ============================================
+  // BỔ SUNG DỮ LIỆU SẢN LƯỢNG TỪ SNAPSHOT
+  // ============================================
+  private async boSungDuLieuSanLuong(
+    tx: Prisma.TransactionClient,
+    duLieu: DuLieuNhanVien,
+    bangLuongId: number,
+  ): Promise<void> {
+    // Lấy snapshot sản lượng chia hàng
+    const snapshotChiaHang = await tx.snapshotSanLuongChiaHang.findUnique({
+      where: {
+        bangLuongId_nhanVienId: {
+          bangLuongId,
+          nhanVienId: duLieu.nhanVienId,
+        },
+      },
+    });
+
+    if (snapshotChiaHang) {
+      duLieu.tongSpDat = snapshotChiaHang.tongSpDat;
+      duLieu.tongSpLoi = snapshotChiaHang.tongSpLoi;
+    }
+
+    // Lấy snapshot giao hàng
+    const snapshotGiaoHang = await tx.snapshotGiaoHang.findUnique({
+      where: {
+        bangLuongId_nhanVienId: {
+          bangLuongId,
+          nhanVienId: duLieu.nhanVienId,
+        },
+      },
+    });
+
+    if (snapshotGiaoHang) {
+      duLieu.tongKhoiLuongThanhCong = Number(snapshotGiaoHang.tongKhoiLuongThanhCong);
+      duLieu.tongSoLanTreGio = snapshotGiaoHang.tongSoLanTreGio;
+      duLieu.tongSoLanKhongLayPhieu = snapshotGiaoHang.tongSoLanKhongLayPhieu;
+    }
+  }
+
+  // ============================================
+  // LẤY BIẾN SỐ CẤU HÌNH TỪ DATABASE
+  // ============================================
+  private async layCauHinhBienSo(
+    tx: Prisma.TransactionClient,
+    phongBanId: number,
+  ): Promise<Record<string, number>> {
+    const bienSo: Record<string, number> = {};
+
+    // Lấy từ CauHinhDonGia (ưu tiên theo phòng ban, sau đó toàn công ty)
+    const danhSachDonGia = await tx.cauHinhDonGia.findMany({
+      where: {
+        trangThai: true,
+        OR: [
+          { phongBanId: phongBanId },
+          { phongBanId: null },
+        ],
+      },
+      orderBy: [
+        { phongBanId: 'desc' }, // Ưu tiên có phongBanId (không null đi trước)
+      ],
+    });
+
+    for (const dg of danhSachDonGia) {
+      // Chỉ set nếu chưa có (ưu tiên cấu hình theo phòng ban)
+      if (!bienSo[dg.maBien]) {
+        bienSo[dg.maBien] = Number(dg.giaTri);
+      }
+    }
+
+    return bienSo;
   }
 
   // ============================================
@@ -680,9 +786,11 @@ export class RuleEngineExecutor {
 
         // Map dữ liệu sang tên biến chuẩn
         const bienGiaTri: Record<string, number> = {
+          // Thông tin cơ bản
           LUONG_CO_BAN: duLieu.luongCoBan,
           HE_SO_TRACH_NHIEM: duLieu.heSoTrachNhiem,
           CAP_TRACH_NHIEM: duLieu.capTrachNhiem,
+          // Chấm công
           CONG_CHUAN: duLieu.congChuan,
           CONG_THUC_TE: duLieu.congThucTe,
           SO_GIO_OT: duLieu.soGioOT,
@@ -691,6 +799,15 @@ export class RuleEngineExecutor {
           SO_GIO_OT_LE: duLieu.soGioOTLe,
           SO_LAN_DI_MUON: duLieu.soLanDiMuon,
           SO_LAN_VE_SOM: duLieu.soLanVeSom,
+          // Sản lượng chia hàng
+          TONG_SP_DAT: duLieu.tongSpDat,
+          TONG_SP_LOI: duLieu.tongSpLoi,
+          // Giao hàng
+          TONG_KHOI_LUONG_THANH_CONG: duLieu.tongKhoiLuongThanhCong,
+          TONG_SO_LAN_TRE_GIO: duLieu.tongSoLanTreGio,
+          TONG_SO_LAN_KHONG_LAY_PHIEU: duLieu.tongSoLanKhongLayPhieu,
+          // Biến số cấu hình từ database
+          ...duLieu.cauHinhBienSo,
         };
 
         // Thay thế biến

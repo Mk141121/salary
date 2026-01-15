@@ -71,6 +71,12 @@ export declare class NhanVienService {
         chucVu: string | null;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
         ngayVaoLam: Date;
+        ngayNghiViec: Date | null;
+        gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+        ngaySinh: Date | null;
+        diaChi: string | null;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
     }>;
     layTheoMa(maNhanVien: string): Promise<{
         phongBan: {
@@ -98,6 +104,12 @@ export declare class NhanVienService {
         chucVu: string | null;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
         ngayVaoLam: Date;
+        ngayNghiViec: Date | null;
+        gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+        ngaySinh: Date | null;
+        diaChi: string | null;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
     }>;
     taoMoi(dto: TaoNhanVienDto): Promise<{
         phongBan: {
@@ -125,6 +137,12 @@ export declare class NhanVienService {
         chucVu: string | null;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
         ngayVaoLam: Date;
+        ngayNghiViec: Date | null;
+        gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+        ngaySinh: Date | null;
+        diaChi: string | null;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
     }>;
     capNhat(id: number, dto: CapNhatNhanVienDto): Promise<{
         phongBan: {
@@ -152,6 +170,12 @@ export declare class NhanVienService {
         chucVu: string | null;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
         ngayVaoLam: Date;
+        ngayNghiViec: Date | null;
+        gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+        ngaySinh: Date | null;
+        diaChi: string | null;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
     }>;
     xoa(id: number): Promise<{
         id: number;
@@ -166,6 +190,12 @@ export declare class NhanVienService {
         chucVu: string | null;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
         ngayVaoLam: Date;
+        ngayNghiViec: Date | null;
+        gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
+        ngaySinh: Date | null;
+        diaChi: string | null;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
     }>;
     demTheoPhongBan(): Promise<(import(".prisma/client").Prisma.PickEnumerable<import(".prisma/client").Prisma.NhanVienGroupByOutputType, "phongBanId"[]> & {
         _count: {

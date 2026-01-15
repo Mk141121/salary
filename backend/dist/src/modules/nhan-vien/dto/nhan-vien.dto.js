@@ -65,6 +65,26 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], TaoNhanVienDto.prototype, "ngayVaoLam", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Giới tính', enum: client_1.GioiTinh }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.GioiTinh),
+    (0, class_validator_1.ValidateIf)((o) => o.gioiTinh !== '' && o.gioiTinh !== null),
+    __metadata("design:type", String)
+], TaoNhanVienDto.prototype, "gioiTinh", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Ngày sinh', example: '1990-01-15' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    (0, class_validator_1.ValidateIf)((o) => o.ngaySinh !== '' && o.ngaySinh !== null),
+    __metadata("design:type", String)
+], TaoNhanVienDto.prototype, "ngaySinh", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Địa chỉ', example: '123 Nguyễn Huệ, Q1, TP.HCM' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], TaoNhanVienDto.prototype, "diaChi", void 0);
 class CapNhatNhanVienDto extends (0, swagger_1.PartialType)(TaoNhanVienDto) {
 }
 exports.CapNhatNhanVienDto = CapNhatNhanVienDto;

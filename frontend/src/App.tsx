@@ -10,6 +10,7 @@ import ImportExcel from './pages/ImportExcel'
 import QuanLyChamCong from './pages/QuanLyChamCong'
 import QuanLyPhongBan from './pages/QuanLyPhongBan'
 import CaiDatHeThong from './pages/CaiDatHeThong'
+import QuanLyNhomNhanVien from './pages/QuanLyNhomNhanVien'
 // Phase 3: KPI & RBAC pages
 import DangNhap from './pages/DangNhap'
 import QuanLyKPI from './pages/QuanLyKPI'
@@ -22,6 +23,10 @@ import QuanLyQuyChe from './pages/QuanLyQuyChe'
 import ChiTietQuyChe from './pages/ChiTietQuyChe'
 import QuanLySuKien from './pages/QuanLySuKien'
 import XemRuleTrace from './pages/XemRuleTrace'
+// San Luong pages
+import ImportChiaHang from './pages/ImportChiaHang'
+import ImportGiaoHang from './pages/ImportGiaoHang'
+import LichSuImport from './pages/LichSuImport'
 import { RequireAuth } from './contexts/AuthContext'
 
 function App() {
@@ -37,6 +42,7 @@ function App() {
         <Route path="bang-luong/:id" element={<ChiTietBangLuong />} />
         <Route path="nhan-vien" element={<QuanLyNhanVien />} />
         <Route path="nhan-vien/:id" element={<ChiTietNhanVien />} />
+        <Route path="nhom-nhan-vien" element={<QuanLyNhomNhanVien />} />
         <Route path="phong-ban" element={<QuanLyPhongBan />} />
         <Route path="khoan-luong" element={<QuanLyKhoanLuong />} />
         <Route path="cham-cong" element={<QuanLyChamCong />} />
@@ -53,6 +59,11 @@ function App() {
         <Route path="kpi/template" element={<RequireAuth><QuanLyKPI /></RequireAuth>} />
         <Route path="kpi/ky-danh-gia" element={<RequireAuth><KyDanhGiaKPI /></RequireAuth>} />
         <Route path="kpi/cau-hinh-thuong" element={<RequireAuth><CauHinhThuongKPI /></RequireAuth>} />
+        
+        {/* San Luong routes */}
+        <Route path="import-chia-hang" element={<RequireAuth><ImportChiaHang /></RequireAuth>} />
+        <Route path="import-giao-hang" element={<RequireAuth><ImportGiaoHang /></RequireAuth>} />
+        <Route path="lich-su-import" element={<RequireAuth><LichSuImport /></RequireAuth>} />
         
         {/* Admin routes */}
         <Route path="quan-tri/nguoi-dung" element={<RequireAuth><QuanLyNguoiDung /></RequireAuth>} />
