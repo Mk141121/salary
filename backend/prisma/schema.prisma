@@ -22,10 +22,10 @@ model PhongBan {
   trangThai   String  @default("HOAT_DONG") @map("trang_thai") // HOAT_DONG | NGUNG_HOAT_DONG
 
   // === CÂY PHÒNG BAN (MỚI) ===
-  phongBanChaId   Int?    @map("phong_ban_cha_id") // Self reference - parent department
-  capDo           Int     @default(1) @map("cap_do") // Level depth: 1=công ty, 2=khối, 3=phòng, 4=tổ
-  loaiPhongBan    String? @map("loai_phong_ban") // VAN_HANH | KINH_DOANH | VAN_PHONG | SAN_XUAT
-  nguoiQuanLyId   Int?    @map("nguoi_quan_ly_id") // ID nhân viên quản lý phòng ban
+  phongBanChaId Int?    @map("phong_ban_cha_id") // Self reference - parent department
+  capDo         Int     @default(1) @map("cap_do") // Level depth: 1=công ty, 2=khối, 3=phòng, 4=tổ
+  loaiPhongBan  String? @map("loai_phong_ban") // VAN_HANH | KINH_DOANH | VAN_PHONG | SAN_XUAT
+  nguoiQuanLyId Int?    @map("nguoi_quan_ly_id") // ID nhân viên quản lý phòng ban
 
   // Cấu hình giờ làm việc riêng theo phòng ban
   gioVaoChuan    String @default("08:00") @map("gio_vao_chuan") // Format: HH:mm
@@ -39,22 +39,24 @@ model PhongBan {
   ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
 
   // Quan hệ cây phòng ban
-  phongBanCha     PhongBan?  @relation("CayPhongBan", fields: [phongBanChaId], references: [id])
-  phongBanCons    PhongBan[] @relation("CayPhongBan")
+  phongBanCha  PhongBan?  @relation("CayPhongBan", fields: [phongBanChaId], references: [id])
+  phongBanCons PhongBan[] @relation("CayPhongBan")
 
   // Quan hệ khác
-  nhanViens               NhanVien[]
-  coCauLuongs             CoCauLuong[]
-  bangLuongs              BangLuong[]
-  quyChe                  QuyChe[]
-  nhanVienTrachNhiems     NhanVienTrachNhiem[]
-  suKienThuongPhats       SuKienThuongPhat[]
-  aiRuleAudits            AiRuleAudit[]
-  cauHinhDonGias          CauHinhDonGia[]
-  donViCons               DonViCon[]
-  lichSuNhanViens         NhanVienPhongBan[]
-  phanQuyens              PhanQuyenPhongBan[]
-  cauHinhImports          CauHinhImportPhongBan[]
+  nhanViens           NhanVien[]
+  coCauLuongs         CoCauLuong[]
+  bangLuongs          BangLuong[]
+  quyChe              QuyChe[]
+  nhanVienTrachNhiems NhanVienTrachNhiem[]
+  suKienThuongPhats   SuKienThuongPhat[]
+  aiRuleAudits        AiRuleAudit[]
+  cauHinhDonGias      CauHinhDonGia[]
+  donViCons           DonViCon[]
+  lichSuNhanViens     NhanVienPhongBan[]
+  phanQuyens          PhanQuyenPhongBan[]
+  cauHinhImports      CauHinhImportPhongBan[]
+  // Module nghỉ phép
+  donNghiPheps        DonNghiPhep[]
 
   @@index([phongBanChaId, capDo])
   @@map("phong_ban")
@@ -65,12 +67,12 @@ model PhongBan {
 // Đơn vị nhỏ hơn phòng ban (tổ sản xuất, ca làm việc...)
 // ============================================
 model DonViCon {
-  id          Int    @id @default(autoincrement())
-  phongBanId  Int    @map("phong_ban_id")
-  maDonVi     String @map("ma_don_vi")
-  tenDonVi    String @map("ten_don_vi")
-  loaiDonVi   String @map("loai_don_vi") // TO | NHOM | CA
-  trangThai   String @default("HOAT_DONG") @map("trang_thai") // HOAT_DONG | NGUNG_HOAT_DONG
+  id         Int    @id @default(autoincrement())
+  phongBanId Int    @map("phong_ban_id")
+  maDonVi    String @map("ma_don_vi")
+  tenDonVi   String @map("ten_don_vi")
+  loaiDonVi  String @map("loai_don_vi") // TO | NHOM | CA
+  trangThai  String @default("HOAT_DONG") @map("trang_thai") // HOAT_DONG | NGUNG_HOAT_DONG
 
   taoBoi  Int?     @map("tao_boi")
   ngayTao DateTime @default(now()) @map("ngay_tao")
@@ -88,21 +90,21 @@ model DonViCon {
 // Theo dõi nhân viên chuyển phòng ban theo thời gian
 // ============================================
 model NhanVienPhongBan {
-  id          Int       @id @default(autoincrement())
-  nhanVienId  Int       @map("nhan_vien_id")
-  phongBanId  Int       @map("phong_ban_id")
-  donViConId  Int?      @map("don_vi_con_id") // Tổ/Ca nếu có
-  tuNgay      DateTime  @map("tu_ngay") @db.Date
-  denNgay     DateTime? @map("den_ngay") @db.Date // null = còn hiệu lực
-  ghiChu      String?   @map("ghi_chu")
+  id         Int       @id @default(autoincrement())
+  nhanVienId Int       @map("nhan_vien_id")
+  phongBanId Int       @map("phong_ban_id")
+  donViConId Int?      @map("don_vi_con_id") // Tổ/Ca nếu có
+  tuNgay     DateTime  @map("tu_ngay") @db.Date
+  denNgay    DateTime? @map("den_ngay") @db.Date // null = còn hiệu lực
+  ghiChu     String?   @map("ghi_chu")
 
   taoBoi  Int?     @map("tao_boi")
   ngayTao DateTime @default(now()) @map("ngay_tao")
 
   // Quan hệ
-  nhanVien  NhanVien  @relation(fields: [nhanVienId], references: [id])
-  phongBan  PhongBan  @relation(fields: [phongBanId], references: [id])
-  donViCon  DonViCon? @relation(fields: [donViConId], references: [id])
+  nhanVien NhanVien  @relation(fields: [nhanVienId], references: [id])
+  phongBan PhongBan  @relation(fields: [phongBanId], references: [id])
+  donViCon DonViCon? @relation(fields: [donViConId], references: [id])
 
   @@index([nhanVienId, tuNgay, denNgay])
   @@index([phongBanId, donViConId])
@@ -134,12 +136,12 @@ model PhanQuyenPhongBan {
 // Cấu hình riêng cho từng loại import của phòng ban
 // ============================================
 model CauHinhImportPhongBan {
-  id                Int     @id @default(autoincrement())
-  phongBanId        Int     @map("phong_ban_id")
-  loaiImport        String  @map("loai_import") // CHIA_HANG | GIAO_HANG
-  batBuocDonViCon   Boolean @default(false) @map("bat_buoc_don_vi_con")
-  gioiHanSoDong     Int     @default(5000) @map("gioi_han_so_dong")
-  trangThai         String  @default("HOAT_DONG") @map("trang_thai")
+  id              Int     @id @default(autoincrement())
+  phongBanId      Int     @map("phong_ban_id")
+  loaiImport      String  @map("loai_import") // CHIA_HANG | GIAO_HANG
+  batBuocDonViCon Boolean @default(false) @map("bat_buoc_don_vi_con")
+  gioiHanSoDong   Int     @default(5000) @map("gioi_han_so_dong")
+  trangThai       String  @default("HOAT_DONG") @map("trang_thai")
 
   ngayTao DateTime @default(now()) @map("ngay_tao")
 
@@ -154,28 +156,28 @@ model CauHinhImportPhongBan {
 // BẢNG NHÂN VIÊN
 // ============================================
 model NhanVien {
-  id          Int               @id @default(autoincrement())
-  maNhanVien  String            @unique @map("ma_nhan_vien")
-  hoTen       String            @map("ho_ten")
-  email       String?           @unique
-  soDienThoai String?           @map("so_dien_thoai")
-  phongBanId  Int               @map("phong_ban_id")
-  chucVu      String?           @map("chuc_vu")
+  id           Int               @id @default(autoincrement())
+  maNhanVien   String            @unique @map("ma_nhan_vien")
+  hoTen        String            @map("ho_ten")
+  email        String?           @unique
+  soDienThoai  String?           @map("so_dien_thoai")
+  phongBanId   Int               @map("phong_ban_id")
+  chucVu       String?           @map("chuc_vu")
   // Deprecated: luongCoBan sẽ được lấy từ HopDong, giữ lại để migration
-  luongCoBan  Decimal           @default(0) @map("luong_co_ban") @db.Decimal(15, 0)
-  ngayVaoLam  DateTime          @default(now()) @map("ngay_vao_lam")
-  ngayNghiViec DateTime?        @map("ngay_nghi_viec")
-  gioiTinh    GioiTinh?         @map("gioi_tinh")
-  ngaySinh    DateTime?         @map("ngay_sinh") @db.Date
-  diaChi      String?           @map("dia_chi")
-  trangThai   TrangThaiNhanVien @default(DANG_LAM) @map("trang_thai")
-  taoBoi      Int?              @map("tao_boi")
-  capNhatBoi  Int?              @map("cap_nhat_boi")
-  ngayTao     DateTime          @default(now()) @map("ngay_tao")
-  ngayCapNhat DateTime          @updatedAt @map("ngay_cap_nhat")
+  luongCoBan   Decimal           @default(0) @map("luong_co_ban") @db.Decimal(15, 0)
+  ngayVaoLam   DateTime          @default(now()) @map("ngay_vao_lam")
+  ngayNghiViec DateTime?         @map("ngay_nghi_viec")
+  gioiTinh     GioiTinh?         @map("gioi_tinh")
+  ngaySinh     DateTime?         @map("ngay_sinh") @db.Date
+  diaChi       String?           @map("dia_chi")
+  trangThai    TrangThaiNhanVien @default(DANG_LAM) @map("trang_thai")
+  taoBoi       Int?              @map("tao_boi")
+  capNhatBoi   Int?              @map("cap_nhat_boi")
+  ngayTao      DateTime          @default(now()) @map("ngay_tao")
+  ngayCapNhat  DateTime          @updatedAt @map("ngay_cap_nhat")
 
   // Quan hệ
-  phongBan            PhongBan             @relation(fields: [phongBanId], references: [id])
+  phongBan            PhongBan              @relation(fields: [phongBanId], references: [id])
   chiTietBangLuongs   ChiTietBangLuong[]
   lichSuChinhSuas     LichSuChinhSua[]
   phuCaps             PhuCapNhanVien[]
@@ -191,7 +193,10 @@ model NhanVien {
   nganHangs           NhanVienNganHang[]
   thueBaoHiem         NhanVienThueBH?
   thuocNhoms          NhanVienThuocNhom[]
-  lichSuPhongBans     NhanVienPhongBan[]  // Lịch sử thuộc phòng ban theo thời gian
+  lichSuPhongBans     NhanVienPhongBan[] // Lịch sử thuộc phòng ban theo thời gian
+  // Module nghỉ phép
+  donNghiPheps        DonNghiPhep[]
+  chiTietNghiPheps    ChiTietNghiPhepNgay[]
 
   @@map("nhan_vien")
 }
@@ -317,11 +322,11 @@ model BangLuong {
   ngayCapNhat  DateTime           @updatedAt @map("ngay_cap_nhat")
 
   // Quan hệ
-  phongBan   PhongBan            @relation(fields: [phongBanId], references: [id])
-  chiTiets   ChiTietBangLuong[]
-  ngayCong   NgayCongBangLuong[]
-  quyChe     BangLuongQuyChe[]
-  ruleTraces RuleTrace[]
+  phongBan          PhongBan                   @relation(fields: [phongBanId], references: [id])
+  chiTiets          ChiTietBangLuong[]
+  ngayCong          NgayCongBangLuong[]
+  quyChe            BangLuongQuyChe[]
+  ruleTraces        RuleTrace[]
   snapshotChiaHangs SnapshotSanLuongChiaHang[]
   snapshotGiaoHangs SnapshotGiaoHang[]
 
@@ -337,17 +342,21 @@ model BangLuong {
 // Lưu ngày công đã điều chỉnh thủ công cho từng nhân viên trong bảng lương
 // ============================================
 model NgayCongBangLuong {
-  id                  Int      @id @default(autoincrement())
-  bangLuongId         Int      @map("bang_luong_id")
-  nhanVienId          Int      @map("nhan_vien_id")
-  ngayCongLyThuyet    Decimal  @map("ngay_cong_ly_thuyet") @db.Decimal(5, 2) // VD: 22.00
-  soCongThucTe        Decimal  @map("so_cong_thuc_te") @db.Decimal(5, 2) // Số công đi làm thực tế
-  soNgayNghiPhep      Decimal  @default(0) @map("so_ngay_nghi_phep") @db.Decimal(5, 2) // Nghỉ có phép (vẫn tính lương)
-  soNgayNghiKhongPhep Decimal  @default(0) @map("so_ngay_nghi_khong_phep") @db.Decimal(5, 2) // Nghỉ không phép
-  ngayCongDieuChinh   Decimal? @map("ngay_cong_dieu_chinh") @db.Decimal(5, 2) // Ngày công sau khi điều chỉnh thủ công
-  ghiChu              String?  @map("ghi_chu")
-  ngayTao             DateTime @default(now()) @map("ngay_tao")
-  ngayCapNhat         DateTime @updatedAt @map("ngay_cap_nhat")
+  id                   Int      @id @default(autoincrement())
+  bangLuongId          Int      @map("bang_luong_id")
+  nhanVienId           Int      @map("nhan_vien_id")
+  ngayCongLyThuyet     Decimal  @map("ngay_cong_ly_thuyet") @db.Decimal(5, 2) // VD: 22.00
+  soCongThucTe         Decimal  @map("so_cong_thuc_te") @db.Decimal(5, 2) // Số công đi làm thực tế
+  soNgayNghiPhep       Decimal  @default(0) @map("so_ngay_nghi_phep") @db.Decimal(5, 2) // Nghỉ có phép (vẫn tính lương) - backward compat
+  soNgayNghiKhongPhep  Decimal  @default(0) @map("so_ngay_nghi_khong_phep") @db.Decimal(5, 2) // Nghỉ không phép - backward compat
+  // Fields mới cho module nghỉ phép
+  soNgayNghiCoPhep     Decimal  @default(0) @map("so_ngay_nghi_co_phep") @db.Decimal(5, 2) // Nghỉ có phép (từ module nghỉ phép)
+  soNgayNghiCoLuong    Decimal  @default(0) @map("so_ngay_nghi_co_luong") @db.Decimal(5, 2) // Nghỉ có tính lương
+  soNgayNghiKhongLuong Decimal  @default(0) @map("so_ngay_nghi_khong_luong") @db.Decimal(5, 2) // Nghỉ không lương
+  ngayCongDieuChinh    Decimal? @map("ngay_cong_dieu_chinh") @db.Decimal(5, 2) // Ngày công sau khi điều chỉnh thủ công
+  ghiChu               String?  @map("ghi_chu")
+  ngayTao              DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat          DateTime @updatedAt @map("ngay_cap_nhat")
 
   // Quan hệ
   bangLuong BangLuong @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
@@ -492,9 +501,9 @@ model SnapshotBangLuong {
   maNhanVien   String         @map("ma_nhan_vien")
   hoTen        String         @map("ho_ten")
   phongBan     String         @map("phong_ban")
-  phongBanId   Int?           @map("phong_ban_id")        // Snapshot phong ban ID tại thời điểm chốt
-  donViConId   Int?           @map("don_vi_con_id")       // Snapshot đơn vị con (Tổ/Ca) tại thời điểm chốt
-  donViCon     String?        @map("don_vi_con")          // Tên đơn vị con tại thời điểm chốt
+  phongBanId   Int?           @map("phong_ban_id") // Snapshot phong ban ID tại thời điểm chốt
+  donViConId   Int?           @map("don_vi_con_id") // Snapshot đơn vị con (Tổ/Ca) tại thời điểm chốt
+  donViCon     String?        @map("don_vi_con") // Tên đơn vị con tại thời điểm chốt
   khoanLuongId Int            @map("khoan_luong_id")
   maKhoan      String         @map("ma_khoan")
   tenKhoan     String         @map("ten_khoan")
@@ -1065,12 +1074,14 @@ model NguoiDung {
   ngayCapNhat     DateTime           @updatedAt @map("ngay_cap_nhat")
 
   // Quan hệ
-  vaiTros        NguoiDungVaiTro[]
-  auditLogs      AuditLog[]
-  phienDangNhaps PhienDangNhap[]
-  aiRuleAudits   AiRuleAudit[]
-  lichSuImports  LichSuImport[]
-  auditSuaDuLieus AuditSuaDuLieu[]
+  vaiTros           NguoiDungVaiTro[]
+  auditLogs         AuditLog[]
+  phienDangNhaps    PhienDangNhap[]
+  aiRuleAudits      AiRuleAudit[]
+  lichSuImports     LichSuImport[]
+  auditSuaDuLieus   AuditSuaDuLieu[]
+  // Module nghỉ phép
+  donNghiPhepsDuyet DonNghiPhep[]     @relation("NguoiDuyetDon")
 
   @@map("nguoi_dung")
 }
@@ -1537,23 +1548,23 @@ enum NguonDuLieu {
 
 // Lịch sử Import
 model LichSuImport {
-  id            Int            @id @default(autoincrement())
-  loaiImport    LoaiImport     @map("loai_import")
-  ngayDuLieu    DateTime       @map("ngay_du_lieu") @db.Date
-  tenFile       String         @map("ten_file")
-  fileHash      String?        @map("file_hash")
-  soDong        Int            @map("so_dong")
-  soDongHopLe   Int            @map("so_dong_hop_le")
-  soDongLoi     Int            @map("so_dong_loi")
-  trangThai     TrangThaiImport @map("trang_thai")
-  nguoiImportId Int            @map("nguoi_import_id")
-  importLuc     DateTime       @default(now()) @map("import_luc")
-  noiDungLoiJson String?       @map("noi_dung_loi_json") @db.Text
+  id             Int             @id @default(autoincrement())
+  loaiImport     LoaiImport      @map("loai_import")
+  ngayDuLieu     DateTime        @map("ngay_du_lieu") @db.Date
+  tenFile        String          @map("ten_file")
+  fileHash       String?         @map("file_hash")
+  soDong         Int             @map("so_dong")
+  soDongHopLe    Int             @map("so_dong_hop_le")
+  soDongLoi      Int             @map("so_dong_loi")
+  trangThai      TrangThaiImport @map("trang_thai")
+  nguoiImportId  Int             @map("nguoi_import_id")
+  importLuc      DateTime        @default(now()) @map("import_luc")
+  noiDungLoiJson String?         @map("noi_dung_loi_json") @db.Text
 
   // Quan hệ
-  nguoiImport NguoiDung @relation(fields: [nguoiImportId], references: [id])
+  nguoiImport       NguoiDung          @relation(fields: [nguoiImportId], references: [id])
   sanLuongChiaHangs SanLuongChiaHang[]
-  giaoHangs GiaoHang[]
+  giaoHangs         GiaoHang[]
 
   @@index([loaiImport])
   @@index([ngayDuLieu])
@@ -1564,19 +1575,19 @@ model LichSuImport {
 
 // Sản lượng Chia hàng
 model SanLuongChiaHang {
-  id            Int        @id @default(autoincrement())
-  ngay          DateTime   @db.Date
-  nhanVienId    Int        @map("nhan_vien_id")
-  soLuongSpDat  Int        @default(0) @map("so_luong_sp_dat")
-  soLuongSpLoi  Int        @default(0) @map("so_luong_sp_loi")
-  ghiChu        String?    @map("ghi_chu")
-  nguonDuLieu   NguonDuLieu @default(IMPORT_EXCEL) @map("nguon_du_lieu")
-  importId      Int?       @map("import_id")
-  khoaSua       Boolean    @default(true) @map("khoa_sua")
-  taoBoi        Int?       @map("tao_boi")
-  taoLuc        DateTime   @default(now()) @map("tao_luc")
-  capNhatBoi    Int?       @map("cap_nhat_boi")
-  capNhatLuc    DateTime   @updatedAt @map("cap_nhat_luc")
+  id           Int         @id @default(autoincrement())
+  ngay         DateTime    @db.Date
+  nhanVienId   Int         @map("nhan_vien_id")
+  soLuongSpDat Int         @default(0) @map("so_luong_sp_dat")
+  soLuongSpLoi Int         @default(0) @map("so_luong_sp_loi")
+  ghiChu       String?     @map("ghi_chu")
+  nguonDuLieu  NguonDuLieu @default(IMPORT_EXCEL) @map("nguon_du_lieu")
+  importId     Int?        @map("import_id")
+  khoaSua      Boolean     @default(true) @map("khoa_sua")
+  taoBoi       Int?        @map("tao_boi")
+  taoLuc       DateTime    @default(now()) @map("tao_luc")
+  capNhatBoi   Int?        @map("cap_nhat_boi")
+  capNhatLuc   DateTime    @updatedAt @map("cap_nhat_luc")
 
   // Quan hệ
   lichSuImport LichSuImport? @relation(fields: [importId], references: [id])
@@ -1590,20 +1601,20 @@ model SanLuongChiaHang {
 
 // Giao hàng
 model GiaoHang {
-  id                    Int        @id @default(autoincrement())
-  ngay                  DateTime   @db.Date
-  nhanVienId            Int        @map("nhan_vien_id")
-  khoiLuongThanhCong    Decimal    @default(0) @map("khoi_luong_thanh_cong") @db.Decimal(15, 2)
-  soLanTreGio           Int        @default(0) @map("so_lan_tre_gio")
-  soLanKhongLayPhieu    Int        @default(0) @map("so_lan_khong_lay_phieu")
-  ghiChu                String?    @map("ghi_chu")
-  nguonDuLieu           NguonDuLieu @default(IMPORT_EXCEL) @map("nguon_du_lieu")
-  importId              Int?       @map("import_id")
-  khoaSua               Boolean    @default(true) @map("khoa_sua")
-  taoBoi                Int?       @map("tao_boi")
-  taoLuc                DateTime   @default(now()) @map("tao_luc")
-  capNhatBoi            Int?       @map("cap_nhat_boi")
-  capNhatLuc            DateTime   @updatedAt @map("cap_nhat_luc")
+  id                 Int         @id @default(autoincrement())
+  ngay               DateTime    @db.Date
+  nhanVienId         Int         @map("nhan_vien_id")
+  khoiLuongThanhCong Decimal     @default(0) @map("khoi_luong_thanh_cong") @db.Decimal(15, 2)
+  soLanTreGio        Int         @default(0) @map("so_lan_tre_gio")
+  soLanKhongLayPhieu Int         @default(0) @map("so_lan_khong_lay_phieu")
+  ghiChu             String?     @map("ghi_chu")
+  nguonDuLieu        NguonDuLieu @default(IMPORT_EXCEL) @map("nguon_du_lieu")
+  importId           Int?        @map("import_id")
+  khoaSua            Boolean     @default(true) @map("khoa_sua")
+  taoBoi             Int?        @map("tao_boi")
+  taoLuc             DateTime    @default(now()) @map("tao_luc")
+  capNhatBoi         Int?        @map("cap_nhat_boi")
+  capNhatLuc         DateTime    @updatedAt @map("cap_nhat_luc")
 
   // Quan hệ
   lichSuImport LichSuImport? @relation(fields: [importId], references: [id])
@@ -1617,14 +1628,14 @@ model GiaoHang {
 
 // Audit sửa dữ liệu (cho Admin)
 model AuditSuaDuLieu {
-  id            Int      @id @default(autoincrement())
-  loaiDuLieu    LoaiImport @map("loai_du_lieu") // CHIA_HANG / GIAO_HANG
-  banGhiId      Int      @map("ban_ghi_id")
-  duLieuTruocJson String @map("du_lieu_truoc_json") @db.Text
-  duLieuSauJson String   @map("du_lieu_sau_json") @db.Text
-  lyDo          String   @map("ly_do")
-  suaBoi        Int      @map("sua_boi")
-  suaLuc        DateTime @default(now()) @map("sua_luc")
+  id              Int        @id @default(autoincrement())
+  loaiDuLieu      LoaiImport @map("loai_du_lieu") // CHIA_HANG / GIAO_HANG
+  banGhiId        Int        @map("ban_ghi_id")
+  duLieuTruocJson String     @map("du_lieu_truoc_json") @db.Text
+  duLieuSauJson   String     @map("du_lieu_sau_json") @db.Text
+  lyDo            String     @map("ly_do")
+  suaBoi          Int        @map("sua_boi")
+  suaLuc          DateTime   @default(now()) @map("sua_luc")
 
   // Quan hệ
   nguoiSua NguoiDung @relation(fields: [suaBoi], references: [id])
@@ -1638,11 +1649,11 @@ model AuditSuaDuLieu {
 
 // Snapshot sản lượng chia hàng theo kỳ lương
 model SnapshotSanLuongChiaHang {
-  id          Int     @id @default(autoincrement())
-  bangLuongId Int     @map("bang_luong_id")
-  nhanVienId  Int     @map("nhan_vien_id")
-  tongSpDat   Int     @default(0) @map("tong_sp_dat")
-  tongSpLoi   Int     @default(0) @map("tong_sp_loi")
+  id          Int @id @default(autoincrement())
+  bangLuongId Int @map("bang_luong_id")
+  nhanVienId  Int @map("nhan_vien_id")
+  tongSpDat   Int @default(0) @map("tong_sp_dat")
+  tongSpLoi   Int @default(0) @map("tong_sp_loi")
 
   // Quan hệ
   bangLuong BangLuong @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
@@ -1655,12 +1666,12 @@ model SnapshotSanLuongChiaHang {
 
 // Snapshot giao hàng theo kỳ lương
 model SnapshotGiaoHang {
-  id                       Int     @id @default(autoincrement())
-  bangLuongId              Int     @map("bang_luong_id")
-  nhanVienId               Int     @map("nhan_vien_id")
-  tongKhoiLuongThanhCong   Decimal @default(0) @map("tong_khoi_luong_thanh_cong") @db.Decimal(15, 2)
-  tongSoLanTreGio          Int     @default(0) @map("tong_so_lan_tre_gio")
-  tongSoLanKhongLayPhieu   Int     @default(0) @map("tong_so_lan_khong_lay_phieu")
+  id                     Int     @id @default(autoincrement())
+  bangLuongId            Int     @map("bang_luong_id")
+  nhanVienId             Int     @map("nhan_vien_id")
+  tongKhoiLuongThanhCong Decimal @default(0) @map("tong_khoi_luong_thanh_cong") @db.Decimal(15, 2)
+  tongSoLanTreGio        Int     @default(0) @map("tong_so_lan_tre_gio")
+  tongSoLanKhongLayPhieu Int     @default(0) @map("tong_so_lan_khong_lay_phieu")
 
   // Quan hệ
   bangLuong BangLuong @relation(fields: [bangLuongId], references: [id], onDelete: Cascade)
@@ -1676,18 +1687,18 @@ model SnapshotGiaoHang {
 // Quản lý lịch sử lương theo hợp đồng
 // ============================================
 model NhanVienHopDong {
-  id            Int                @id @default(autoincrement())
-  nhanVienId    Int                @map("nhan_vien_id")
-  loaiHopDong   LoaiHopDong        @map("loai_hop_dong")
-  tuNgay        DateTime           @map("tu_ngay") @db.Date
-  denNgay       DateTime?          @map("den_ngay") @db.Date
-  luongCoBan    Decimal            @map("luong_co_ban") @db.Decimal(15, 0)
-  luongDongBH   Decimal?           @map("luong_dong_bh") @db.Decimal(15, 0)
-  heSoLuong     Decimal?           @map("he_so_luong") @db.Decimal(5, 2)
-  trangThai     TrangThaiHopDong   @default(HIEU_LUC) @map("trang_thai")
-  ghiChu        String?            @map("ghi_chu")
-  taoBoi        Int?               @map("tao_boi")
-  ngayTao       DateTime           @default(now()) @map("ngay_tao")
+  id          Int              @id @default(autoincrement())
+  nhanVienId  Int              @map("nhan_vien_id")
+  loaiHopDong LoaiHopDong      @map("loai_hop_dong")
+  tuNgay      DateTime         @map("tu_ngay") @db.Date
+  denNgay     DateTime?        @map("den_ngay") @db.Date
+  luongCoBan  Decimal          @map("luong_co_ban") @db.Decimal(15, 0)
+  luongDongBH Decimal?         @map("luong_dong_bh") @db.Decimal(15, 0)
+  heSoLuong   Decimal?         @map("he_so_luong") @db.Decimal(5, 2)
+  trangThai   TrangThaiHopDong @default(HIEU_LUC) @map("trang_thai")
+  ghiChu      String?          @map("ghi_chu")
+  taoBoi      Int?             @map("tao_boi")
+  ngayTao     DateTime         @default(now()) @map("ngay_tao")
 
   // Quan hệ
   nhanVien NhanVien @relation(fields: [nhanVienId], references: [id], onDelete: Cascade)
@@ -1700,8 +1711,8 @@ model NhanVienHopDong {
 
 enum LoaiHopDong {
   THU_VIEC
-  MOT_NAM      @map("1_NAM")
-  BA_NAM       @map("3_NAM")
+  MOT_NAM     @map("1_NAM")
+  BA_NAM      @map("3_NAM")
   VO_THOI_HAN
 
   @@map("loai_hop_dong")
@@ -1719,17 +1730,17 @@ enum TrangThaiHopDong {
 // NGÂN HÀNG NHÂN VIÊN (để xuất chuyển khoản)
 // ============================================
 model NhanVienNganHang {
-  id            Int       @id @default(autoincrement())
-  nhanVienId    Int       @map("nhan_vien_id")
-  tenNganHang   String    @map("ten_ngan_hang")
-  soTaiKhoan    String    @map("so_tai_khoan")
-  chuTaiKhoan   String    @map("chu_tai_khoan")
-  chiNhanh      String?   @map("chi_nhanh")
-  laMacDinh     Boolean   @default(true) @map("la_mac_dinh")
-  tuNgay        DateTime? @map("tu_ngay") @db.Date
-  denNgay       DateTime? @map("den_ngay") @db.Date
-  ghiChu        String?   @map("ghi_chu")
-  ngayTao       DateTime  @default(now()) @map("ngay_tao")
+  id          Int       @id @default(autoincrement())
+  nhanVienId  Int       @map("nhan_vien_id")
+  tenNganHang String    @map("ten_ngan_hang")
+  soTaiKhoan  String    @map("so_tai_khoan")
+  chuTaiKhoan String    @map("chu_tai_khoan")
+  chiNhanh    String?   @map("chi_nhanh")
+  laMacDinh   Boolean   @default(true) @map("la_mac_dinh")
+  tuNgay      DateTime? @map("tu_ngay") @db.Date
+  denNgay     DateTime? @map("den_ngay") @db.Date
+  ghiChu      String?   @map("ghi_chu")
+  ngayTao     DateTime  @default(now()) @map("ngay_tao")
 
   // Quan hệ
   nhanVien NhanVien @relation(fields: [nhanVienId], references: [id], onDelete: Cascade)
@@ -1743,16 +1754,16 @@ model NhanVienNganHang {
 // THUẾ / BHXH PLACEHOLDER (để mở rộng)
 // ============================================
 model NhanVienThueBH {
-  id               Int       @id @default(autoincrement())
-  nhanVienId       Int       @unique @map("nhan_vien_id")
-  mstCaNhan        String?   @map("mst_ca_nhan")
-  soCmndCccd       String?   @map("so_cmnd_cccd")
-  ngayCap          DateTime? @map("ngay_cap") @db.Date
-  noiCap           String?   @map("noi_cap")
-  soNguoiPhuThuoc  Int       @default(0) @map("so_nguoi_phu_thuoc")
-  ghiChu           String?   @map("ghi_chu")
-  ngayTao          DateTime  @default(now()) @map("ngay_tao")
-  ngayCapNhat      DateTime  @updatedAt @map("ngay_cap_nhat")
+  id              Int       @id @default(autoincrement())
+  nhanVienId      Int       @unique @map("nhan_vien_id")
+  mstCaNhan       String?   @map("mst_ca_nhan")
+  soCmndCccd      String?   @map("so_cmnd_cccd")
+  ngayCap         DateTime? @map("ngay_cap") @db.Date
+  noiCap          String?   @map("noi_cap")
+  soNguoiPhuThuoc Int       @default(0) @map("so_nguoi_phu_thuoc")
+  ghiChu          String?   @map("ghi_chu")
+  ngayTao         DateTime  @default(now()) @map("ngay_tao")
+  ngayCapNhat     DateTime  @updatedAt @map("ngay_cap_nhat")
 
   // Quan hệ
   nhanVien NhanVien @relation(fields: [nhanVienId], references: [id], onDelete: Cascade)
@@ -1821,3 +1832,249 @@ model NhanVienThuocNhom {
   @@map("nhan_vien_thuoc_nhom")
 }
 
+// ============================================
+// MODULE ỨNG LƯƠNG - BẢNG ỨNG LƯƠNG
+// Quản lý ứng lương giữa tháng
+// ============================================
+model BangUngLuong {
+  id               Int                   @id @default(autoincrement())
+  maBangUngLuong   String                @unique @map("ma_bang_ung_luong") // UL-YYYYMM-XX
+  thangNam         String                @map("thang_nam") // YYYY-MM
+  tuNgay           DateTime              @map("tu_ngay") @db.Date
+  denNgay          DateTime              @map("den_ngay") @db.Date
+  ngayChiTra       DateTime?             @map("ngay_chi_tra") @db.Date
+  phongBanId       Int?                  @map("phong_ban_id") // nullable, nếu tạo theo phòng ban
+  trangThai        TrangThaiBangUngLuong @default(NHAP) @map("trang_thai")
+  cauHinhJson      String?               @map("cau_hinh_json") @db.Text // JSON cấu hình rule
+  tongSoTienUng    Decimal               @default(0) @map("tong_so_tien_ung") @db.Decimal(15, 0)
+  soNhanVienUng    Int                   @default(0) @map("so_nhan_vien_ung")
+  ghiChu           String?               @map("ghi_chu")
+  daGhiNhanKhauTru Boolean               @default(false) @map("da_ghi_nhan_khau_tru")
+  refPhieuDCId     Int?                  @map("ref_phieu_dc_id") // ID phiếu điều chỉnh đã tạo
+  nguoiTao         String?               @map("nguoi_tao")
+  ngayTao          DateTime              @default(now()) @map("ngay_tao")
+  ngayCapNhat      DateTime              @updatedAt @map("ngay_cap_nhat")
+  nguoiChot        String?               @map("nguoi_chot")
+  ngayChot         DateTime?             @map("ngay_chot")
+  nguoiKhoa        String?               @map("nguoi_khoa")
+  ngayKhoa         DateTime?             @map("ngay_khoa")
+
+  // Quan hệ
+  chiTiets  ChiTietBangUngLuong[]
+  snapshots SnapshotBangUngLuong[]
+
+  @@unique([thangNam, tuNgay, denNgay, phongBanId])
+  @@index([thangNam])
+  @@index([trangThai])
+  @@index([phongBanId])
+  @@map("bang_ung_luong")
+}
+
+enum TrangThaiBangUngLuong {
+  NHAP
+  DA_CHOT
+  DA_KHOA
+
+  @@map("trang_thai_bang_ung_luong")
+}
+
+// ============================================
+// CHI TIẾT BẢNG ỨNG LƯƠNG
+// Từng dòng nhân viên trong bảng ứng lương
+// ============================================
+model ChiTietBangUngLuong {
+  id                  Int      @id @default(autoincrement())
+  bangUngLuongId      Int      @map("bang_ung_luong_id")
+  nhanVienId          Int      @map("nhan_vien_id")
+  phongBanId          Int      @map("phong_ban_id") // denormalize
+  nhomNhanVienId      Int?     @map("nhom_nhan_vien_id") // nullable, denormalize
+  // Dữ liệu tính toán
+  tienCongLuyKe       Decimal  @default(0) @map("tien_cong_luy_ke") @db.Decimal(15, 0)
+  mucToiDaDuocUng     Decimal  @default(0) @map("muc_toi_da_duoc_ung") @db.Decimal(15, 0)
+  soNgayCong          Decimal  @default(0) @map("so_ngay_cong") @db.Decimal(5, 2)
+  soNgayNghi          Decimal  @default(0) @map("so_ngay_nghi") @db.Decimal(5, 2)
+  soNgayNghiKhongPhep Decimal  @default(0) @map("so_ngay_nghi_khong_phep") @db.Decimal(5, 2)
+  // Kết quả đánh giá
+  duocPhepUng         Boolean  @default(true) @map("duoc_phep_ung")
+  lyDoKhongDat        String?  @map("ly_do_khong_dat") // NGHI_QUA_NHIEU | NGHI_KHONG_PHEP | KHONG_HOAT_DONG | KHAC
+  // Số tiền ứng
+  soTienUngDeXuat     Decimal  @default(0) @map("so_tien_ung_de_xuat") @db.Decimal(15, 0)
+  soTienUngDuyet      Decimal  @default(0) @map("so_tien_ung_duyet") @db.Decimal(15, 0)
+  ghiChu              String?  @map("ghi_chu")
+  lockedBySnapshot    Boolean  @default(false) @map("locked_by_snapshot")
+  ngayTao             DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat         DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  bangUngLuong BangUngLuong @relation(fields: [bangUngLuongId], references: [id], onDelete: Cascade)
+
+  @@unique([bangUngLuongId, nhanVienId])
+  @@index([bangUngLuongId])
+  @@index([nhanVienId])
+  @@index([phongBanId])
+  @@map("chi_tiet_bang_ung_luong")
+}
+
+// ============================================
+// SNAPSHOT BẢNG ỨNG LƯƠNG (header)
+// Lưu ảnh chụp khi chốt/khóa
+// ============================================
+model SnapshotBangUngLuong {
+  id             Int      @id @default(autoincrement())
+  bangUngLuongId Int      @map("bang_ung_luong_id")
+  maBangUngLuong String   @map("ma_bang_ung_luong")
+  thangNam       String   @map("thang_nam")
+  tuNgay         DateTime @map("tu_ngay") @db.Date
+  denNgay        DateTime @map("den_ngay") @db.Date
+  cauHinhJson    String?  @map("cau_hinh_json") @db.Text
+  tongSoTienUng  Decimal  @map("tong_so_tien_ung") @db.Decimal(15, 0)
+  soNhanVienUng  Int      @map("so_nhan_vien_ung")
+  ngayChot       DateTime @map("ngay_chot")
+  nguoiChot      String   @map("nguoi_chot")
+  ngayTao        DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  bangUngLuong BangUngLuong                  @relation(fields: [bangUngLuongId], references: [id], onDelete: Cascade)
+  chiTiets     SnapshotChiTietBangUngLuong[]
+
+  @@index([bangUngLuongId])
+  @@map("snapshot_bang_ung_luong")
+}
+
+// ============================================
+// SNAPSHOT CHI TIẾT BẢNG ỨNG LƯƠNG
+// Lưu dữ liệu đầu vào để giải trình
+// ============================================
+model SnapshotChiTietBangUngLuong {
+  id                  Int      @id @default(autoincrement())
+  snapshotId          Int      @map("snapshot_id")
+  nhanVienId          Int      @map("nhan_vien_id")
+  maNhanVien          String   @map("ma_nhan_vien")
+  hoTen               String   @map("ho_ten")
+  phongBan            String   @map("phong_ban")
+  nhomNhanVien        String?  @map("nhom_nhan_vien")
+  // Dữ liệu tính toán tại thời điểm chốt
+  tienCongLuyKe       Decimal  @map("tien_cong_luy_ke") @db.Decimal(15, 0)
+  mucToiDaDuocUng     Decimal  @map("muc_toi_da_duoc_ung") @db.Decimal(15, 0)
+  soNgayCong          Decimal  @map("so_ngay_cong") @db.Decimal(5, 2)
+  soNgayNghi          Decimal  @map("so_ngay_nghi") @db.Decimal(5, 2)
+  soNgayNghiKhongPhep Decimal  @map("so_ngay_nghi_khong_phep") @db.Decimal(5, 2)
+  duocPhepUng         Boolean  @map("duoc_phep_ung")
+  lyDoKhongDat        String?  @map("ly_do_khong_dat")
+  soTienUngDeXuat     Decimal  @map("so_tien_ung_de_xuat") @db.Decimal(15, 0)
+  soTienUngDuyet      Decimal  @map("so_tien_ung_duyet") @db.Decimal(15, 0)
+  ghiChu              String?  @map("ghi_chu")
+  // Dữ liệu input để trace (JSON)
+  inputDataJson       String?  @map("input_data_json") @db.Text // chi tiết sản lượng, chấm công, lương...
+  ngayTao             DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  snapshot SnapshotBangUngLuong @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
+  @@index([nhanVienId])
+  @@map("snapshot_chi_tiet_bang_ung_luong")
+}
+
+// ============================================
+// MODULE NGHỈ PHÉP (LITE)
+// ============================================
+
+// Danh mục loại nghỉ phép
+model DanhMucLoaiNghi {
+  id              Int     @id @default(autoincrement())
+  maLoaiNghi      String  @unique @map("ma_loai_nghi") // VD: PHEP_NAM, OM, KHONG_LUONG, KHONG_PHEP
+  tenLoaiNghi     String  @map("ten_loai_nghi")
+  nhomLoai        String  @map("nhom_loai") // CO_PHEP | KHONG_PHEP
+  coTinhLuong     Boolean @default(true) @map("co_tinh_luong") // Loại này có được tính lương không
+  coTinhChuyenCan Boolean @default(false) @map("co_tinh_chuyen_can") // Nghỉ loại này có làm mất chuyên cần không
+  thuTuHienThi    Int     @default(0) @map("thu_tu_hien_thi")
+  isActive        Boolean @default(true) @map("is_active")
+
+  // Audit
+  taoBoi      Int?     @map("tao_boi")
+  capNhatBoi  Int?     @map("cap_nhat_boi")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  donNghiPheps     DonNghiPhep[]
+  chiTietNghiPheps ChiTietNghiPhepNgay[]
+
+  @@index([nhomLoai])
+  @@index([isActive])
+  @@map("danh_muc_loai_nghi")
+}
+
+// Đơn nghỉ phép
+model DonNghiPhep {
+  id            Int                  @id @default(autoincrement())
+  maDon         String               @unique @map("ma_don") // Format: NP-YYYYMM-XXXXX
+  nhanVienId    Int                  @map("nhan_vien_id")
+  phongBanId    Int                  @map("phong_ban_id") // Denormalize
+  loaiNghiId    Int                  @map("loai_nghi_id")
+  tuNgay        DateTime             @map("tu_ngay") @db.Date
+  denNgay       DateTime             @map("den_ngay") @db.Date
+  soNgayNghi    Decimal              @map("so_ngay_nghi") @db.Decimal(5, 2) // Computed
+  lyDo          String?              @map("ly_do")
+  tepDinhKemUrl String?              @map("tep_dinh_kem_url")
+  trangThai     TrangThaiDonNghiPhep @default(NHAP) @map("trang_thai")
+
+  // Duyệt
+  nguoiDuyetId Int?      @map("nguoi_duyet_id")
+  ngayDuyet    DateTime? @map("ngay_duyet")
+  lyDoTuChoi   String?   @map("ly_do_tu_choi")
+
+  // Audit
+  taoBoi      Int?     @map("tao_boi")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhanVien     NhanVien              @relation(fields: [nhanVienId], references: [id])
+  phongBan     PhongBan              @relation(fields: [phongBanId], references: [id])
+  loaiNghi     DanhMucLoaiNghi       @relation(fields: [loaiNghiId], references: [id])
+  nguoiDuyet   NguoiDung?            @relation("NguoiDuyetDon", fields: [nguoiDuyetId], references: [id])
+  chiTietNgays ChiTietNghiPhepNgay[]
+
+  @@unique([nhanVienId, tuNgay, denNgay, loaiNghiId])
+  @@index([nhanVienId])
+  @@index([phongBanId])
+  @@index([loaiNghiId])
+  @@index([trangThai])
+  @@index([tuNgay, denNgay])
+  @@map("don_nghi_phep")
+}
+
+// Chi tiết ngày nghỉ (explode từng ngày)
+model ChiTietNghiPhepNgay {
+  id              Int      @id @default(autoincrement())
+  donNghiPhepId   Int      @map("don_nghi_phep_id")
+  nhanVienId      Int      @map("nhan_vien_id")
+  ngay            DateTime @map("ngay") @db.Date
+  soGioNghi       Decimal  @default(8) @map("so_gio_nghi") @db.Decimal(4, 2) // Mặc định 8 giờ = 1 ngày
+  loaiNghiId      Int      @map("loai_nghi_id")
+  coTinhLuong     Boolean  @map("co_tinh_luong")
+  coTinhChuyenCan Boolean  @map("co_tinh_chuyen_can")
+
+  ngayTao DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  donNghiPhep DonNghiPhep     @relation(fields: [donNghiPhepId], references: [id], onDelete: Cascade)
+  nhanVien    NhanVien        @relation(fields: [nhanVienId], references: [id])
+  loaiNghi    DanhMucLoaiNghi @relation(fields: [loaiNghiId], references: [id])
+
+  @@unique([nhanVienId, ngay, loaiNghiId])
+  @@index([nhanVienId, ngay])
+  @@index([donNghiPhepId])
+  @@map("chi_tiet_nghi_phep_ngay")
+}
+
+// Enum trạng thái đơn nghỉ
+enum TrangThaiDonNghiPhep {
+  NHAP // Nhân viên đang nhập, có thể sửa/xóa
+  GUI_DUYET // Đã gửi duyệt, khóa chỉnh sửa
+  DA_DUYET // Đã duyệt, mapping vào chấm công/ngày công
+  TU_CHOI // Bị từ chối, có thể sửa và gửi lại
+  HUY // Đã hủy
+}

@@ -9,6 +9,7 @@ import {
   TrangThaiSuKien,
 } from '../services/ruleEngineApi'
 import { phongBanApi, nhanVienApi } from '../services/api'
+import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 interface PhongBan {
   id: number
@@ -312,20 +313,18 @@ export default function QuanLySuKien() {
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">Từ ngày</label>
-            <input
-              type="date"
+            <VietnameseDatePicker
               value={filters.tuNgay || ''}
-              onChange={(e) => setFilters({ ...filters, tuNgay: e.target.value })}
+              onChange={(val) => setFilters({ ...filters, tuNgay: val })}
               className="border rounded-lg px-3 py-2"
             />
           </div>
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">Đến ngày</label>
-            <input
-              type="date"
+            <VietnameseDatePicker
               value={filters.denNgay || ''}
-              onChange={(e) => setFilters({ ...filters, denNgay: e.target.value })}
+              onChange={(val) => setFilters({ ...filters, denNgay: val })}
               className="border rounded-lg px-3 py-2"
             />
           </div>
@@ -528,10 +527,9 @@ export default function QuanLySuKien() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Ngày
                   </label>
-                  <input
-                    type="date"
+                  <VietnameseDatePicker
                     value={form.ngay}
-                    onChange={(e) => setForm({ ...form, ngay: e.target.value })}
+                    onChange={(val) => setForm({ ...form, ngay: val })}
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>

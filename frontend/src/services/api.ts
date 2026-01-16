@@ -570,4 +570,236 @@ export const cauHinhDonGiaApi = {
     api.post('/thong-tin-cong-ty/don-gia/khoi-tao-mau').then((res) => res.data),
 }
 
+// ==================== ỨNG LƯƠNG ====================
+export type TrangThaiBangUngLuong = 'NHAP' | 'DA_CHOT' | 'DA_KHOA'
+
+export interface BangUngLuong {
+  id: number
+  maBangUngLuong: string
+  thangNam: string
+  tuNgay: string
+  denNgay: string
+  phongBanId?: number
+  trangThai: TrangThaiBangUngLuong
+  ghiChu?: string
+  ngayTao: string
+  ngayChot?: string
+  ngayKhoa?: string
+  daGhiNhanKhauTru: boolean
+  phongBan?: {
+    id: number
+    tenPhongBan: string
+  }
+  chiTiets?: ChiTietBangUngLuong[]
+}
+
+export interface ChiTietBangUngLuong {
+  id: number
+  bangUngLuongId: number
+  nhanVienId: number
+  phongBanId: number
+  tienCongLuyKe: number
+  mucToiDaDuocUng: number
+  soNgayCong: number
+  soNgayNghi: number
+  soNgayNghiKhongPhep: number
+  duocPhepUng: boolean
+  lyDoKhongDat?: string
+  soTienUngDeXuat: number
+  soTienUngDuyet: number
+  ghiChu?: string
+  nhanVien?: {
+    id: number
+    maNhanVien: string
+    hoTen: string
+  }
+  phongBan?: {
+    id: number
+    tenPhongBan: string
+  }
+  nhomNhanVien?: {
+    id: number
+    tenNhom: string
+  }
+}
+
+export const ungLuongApi = {
+  // Danh sách bảng ứng lương
+  layDanhSach: (params?: { thangNam?: string; phongBanId?: number; trangThai?: TrangThaiBangUngLuong; trang?: number; soLuong?: number }) =>
+    api.get('/ung-luong/bang', { params }).then((res) => res.data),
+  
+  // Chi tiết bảng ứng lương
+  layTheoId: (id: number) =>
+    api.get(`/ung-luong/bang/${id}`).then((res) => res.data as BangUngLuong),
+  
+  // Tạo mới
+  taoMoi: (data: { thangNam: string; tuNgay: string; denNgay: string; phongBanId?: number; ghiChu?: string }) =>
+    api.post('/ung-luong/bang', data).then((res) => res.data),
+  
+  // Cập nhật
+  capNhat: (id: number, data: { ghiChu?: string }) =>
+    api.put(`/ung-luong/bang/${id}`, data).then((res) => res.data),
+  
+  // Xóa
+  xoa: (id: number) =>
+    api.delete(`/ung-luong/bang/${id}`).then((res) => res.data),
+  
+  // Sinh danh sách nhân viên
+  sinhDanhSach: (id: number, data?: { phongBanId?: number; nhomNhanVienId?: number }) =>
+    api.post(`/ung-luong/bang/${id}/generate-danh-sach`, data || {}).then((res) => res.data as { soNhanVien: number; soDuocUng: number }),
+  
+  // Cập nhật bulk
+  capNhatBulk: (id: number, data: { chiTiets: Array<{ id: number; soTienUngDeXuat?: number; soTienUngDuyet?: number; ghiChu?: string }> }) =>
+    api.put(`/ung-luong/bang/${id}/rows/bulk`, data).then((res) => res.data as { soCapNhat: number; errors?: string[] }),
+  
+  // Set theo tỉ lệ
+  setTheoTiLe: (id: number, data: { tiLe: number; lamTron?: number }) =>
+    api.post(`/ung-luong/bang/${id}/set-ti-le`, data).then((res) => res.data as { message: string }),
+  
+  // Set số tiền cố định
+  setSoTienCoDinh: (id: number, data: { soTien: number }) =>
+    api.post(`/ung-luong/bang/${id}/set-so-tien`, data).then((res) => res.data as { message: string }),
+  
+  // Chốt
+  chot: (id: number) =>
+    api.post(`/ung-luong/bang/${id}/chot`).then((res) => res.data),
+  
+  // Khóa
+  khoa: (id: number) =>
+    api.post(`/ung-luong/bang/${id}/khoa`).then((res) => res.data),
+  
+  // Mở khóa
+  moKhoa: (id: number, data: { lyDo: string }) =>
+    api.post(`/ung-luong/bang/${id}/mo-khoa`, data).then((res) => res.data),
+  
+  // Ghi nhận khấu trừ
+  ghiNhanKhauTru: (id: number, data: { bangLuongApDungId: number }) =>
+    api.post(`/ung-luong/bang/${id}/ghi-nhan-khau-tru`, data).then((res) => res.data as { message: string }),
+}
+
+// ==================== SỔ LƯƠNG ====================
+export interface SoLuongNhanVienData {
+  nhanVien: {
+    id: number
+    maNhanVien: string
+    hoTen: string
+    phongBan?: { tenPhongBan: string }
+  }
+  bangLuongs: Array<{
+    bangLuongId: number
+    thangNam: string
+    thang: number
+    nam: number
+    luongCoBan: number
+    phuCapTong: number
+    thuongKPI: number
+    thuongThuNhap: number
+    khauTruTong: number
+    ungLuong: number
+    bhxh: number
+    bhyt: number
+    bhtn: number
+    thueTNCN: number
+    thucLanh: number
+    ngayCong: number
+    nghiCoPhep: number
+    nghiKhongPhep: number
+    chotNgay?: string
+  }>
+  dieuChinhs: Array<{
+    phieuDieuChinhId: number
+    ngayTao: string
+    loaiPhieu: string
+    tenKhoanLuong: string
+    loaiKhoan: string
+    soTien: number
+    ghiChu?: string
+  }>
+  ungLuongs: Array<{
+    bangUngLuongId: number
+    maBang: string
+    thangNam: string
+    soTienDuyet: number
+    trangThai: string
+    ngayChot?: string
+  }>
+  kpis: Array<{
+    kyDanhGiaId: number
+    thang: number
+    nam: number
+    tongDiem: number
+    xepLoai: string
+    tienThuong: number
+  }>
+  thuongPhats: Array<{
+    suKienId: number
+    loai: 'THUONG' | 'PHAT'
+    ten: string
+    soTien: number
+    ngay: string
+    lyDo?: string
+  }>
+  tongKet: {
+    tongLuong: number
+    tongThuong: number
+    tongPhat: number
+    tongKhauTru: number
+    tongUng: number
+    tongThucNhan: number
+  }
+}
+
+export interface SoLuongPhongBanData {
+  phongBan: {
+    id: number
+    maPhongBan: string
+    tenPhongBan: string
+  }
+  thongKeTheoThang: Array<{
+    thangNam: string
+    soNhanVien: number
+    tongLuongCoBan: number
+    tongPhuCap: number
+    tongThuong: number
+    tongKhauTru: number
+    tongBHXH: number
+    tongThue: number
+    tongThucLanh: number
+  }>
+  chiTietNhanVien: Array<{
+    nhanVienId: number
+    maNhanVien: string
+    hoTen: string
+    luongCoBan: number
+    phuCapTong: number
+    thuongTong: number
+    khauTruTong: number
+    thucLanh: number
+  }>
+  tongKet: {
+    soNhanVien: number
+    tongLuongCoBan: number
+    tongPhuCap: number
+    tongThuong: number
+    tongKhauTru: number
+    tongBHXH: number
+    tongThue: number
+    tongThucLanh: number
+  }
+}
+
+export const soLuongApi = {
+  // Sổ lương nhân viên
+  layNhanVien: (nhanVienId: number, params: { tuThang: number; tuNam: number; denThang: number; denNam: number }) =>
+    api.get(`/so-luong/nhan-vien/${nhanVienId}`, { params }).then((res) => res.data as SoLuongNhanVienData),
+  
+  // Sổ lương phòng ban
+  layPhongBan: (phongBanId: number, params: { tuThang: number; tuNam: number; denThang: number; denNam: number }) =>
+    api.get(`/so-luong/phong-ban/${phongBanId}`, { params }).then((res) => res.data as SoLuongPhongBanData),
+  
+  // Tìm kiếm
+  timKiem: (params: { tuKhoa: string; loai?: 'TAT_CA' | 'BANG_LUONG' | 'UNG_LUONG' | 'DIEU_CHINH'; tuNam?: number; denNam?: number }) =>
+    api.get('/so-luong/tim-kiem', { params }).then((res) => res.data),
+}
+
 export default api

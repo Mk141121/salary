@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Layout from './components/Layout'
+import { NewLayout } from './components/layout'
 import TrangChu from './pages/TrangChu'
 import DanhSachBangLuong from './pages/DanhSachBangLuong'
 import ChiTietBangLuong from './pages/ChiTietBangLuong'
@@ -27,6 +27,16 @@ import XemRuleTrace from './pages/XemRuleTrace'
 import ImportChiaHang from './pages/ImportChiaHang'
 import ImportGiaoHang from './pages/ImportGiaoHang'
 import LichSuImport from './pages/LichSuImport'
+// Ứng lương & Sổ lương pages
+import DanhSachBangUngLuong from './pages/DanhSachBangUngLuong'
+import ChiTietBangUngLuong from './pages/ChiTietBangUngLuong'
+import SoLuongNhanVien from './pages/SoLuongNhanVien'
+import SoLuongPhongBan from './pages/SoLuongPhongBan'
+// Nghỉ phép pages
+import DanhMucLoaiNghi from './pages/DanhMucLoaiNghi'
+import DonNghiCuaToi from './pages/DonNghiCuaToi'
+import DuyetNghiPhep from './pages/DuyetNghiPhep'
+import LichNghiPhep from './pages/LichNghiPhep'
 import { RequireAuth } from './contexts/AuthContext'
 
 function App() {
@@ -36,7 +46,7 @@ function App() {
       <Route path="/dang-nhap" element={<DangNhap />} />
       
       {/* Main app with layout */}
-      <Route path="/" element={<Layout />}>
+      <Route path="/" element={<NewLayout />}>
         <Route index element={<TrangChu />} />
         <Route path="bang-luong" element={<DanhSachBangLuong />} />
         <Route path="bang-luong/:id" element={<ChiTietBangLuong />} />
@@ -64,6 +74,20 @@ function App() {
         <Route path="import-chia-hang" element={<RequireAuth><ImportChiaHang /></RequireAuth>} />
         <Route path="import-giao-hang" element={<RequireAuth><ImportGiaoHang /></RequireAuth>} />
         <Route path="lich-su-import" element={<RequireAuth><LichSuImport /></RequireAuth>} />
+        
+        {/* Ứng lương routes */}
+        <Route path="ung-luong" element={<RequireAuth><DanhSachBangUngLuong /></RequireAuth>} />
+        <Route path="ung-luong/:id" element={<RequireAuth><ChiTietBangUngLuong /></RequireAuth>} />
+        
+        {/* Sổ lương routes */}
+        <Route path="so-luong/nhan-vien" element={<RequireAuth><SoLuongNhanVien /></RequireAuth>} />
+        <Route path="so-luong/phong-ban" element={<RequireAuth><SoLuongPhongBan /></RequireAuth>} />
+        
+        {/* Nghỉ phép routes */}
+        <Route path="nghi-phep/loai-nghi" element={<RequireAuth><DanhMucLoaiNghi /></RequireAuth>} />
+        <Route path="nghi-phep/don-cua-toi" element={<RequireAuth><DonNghiCuaToi /></RequireAuth>} />
+        <Route path="nghi-phep/duyet" element={<RequireAuth><DuyetNghiPhep /></RequireAuth>} />
+        <Route path="nghi-phep/lich" element={<RequireAuth><LichNghiPhep /></RequireAuth>} />
         
         {/* Admin routes */}
         <Route path="quan-tri/nguoi-dung" element={<RequireAuth><QuanLyNguoiDung /></RequireAuth>} />

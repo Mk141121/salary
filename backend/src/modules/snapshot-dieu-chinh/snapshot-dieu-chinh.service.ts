@@ -278,6 +278,10 @@ export class SnapshotDieuChinhService {
       throw new BadRequestException('Bảng lương chưa chốt, không cần phiếu điều chỉnh');
     }
 
+    if (bangLuong.trangThai === 'KHOA') {
+      throw new BadRequestException('Bảng lương đã khóa vĩnh viễn, không thể tạo phiếu điều chỉnh');
+    }
+
     // Kiểm tra nhân viên
     const nhanVien = await this.prisma.nhanVien.findUnique({
       where: { id: data.nhanVienId },
@@ -394,8 +398,21 @@ export class SnapshotDieuChinhService {
       },
     });
 
-    // Ghi log lịch sử
+    // Cập nhật ChiTietBangLuong và ghi log lịch sử
     for (const ct of phieu.chiTiets) {
+      // Cập nhật số tiền trong ChiTietBangLuong
+      await this.prisma.chiTietBangLuong.updateMany({
+        where: {
+          bangLuongId: phieu.bangLuongId,
+          nhanVienId: phieu.nhanVienId,
+          khoanLuongId: ct.khoanLuongId,
+        },
+        data: {
+          soTien: ct.soTienMoi,
+        },
+      });
+
+      // Ghi log lịch sử
       await this.prisma.lichSuChinhSua.create({
         data: {
           bangLuongId: phieu.bangLuongId,

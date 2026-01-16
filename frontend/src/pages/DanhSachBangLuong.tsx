@@ -36,29 +36,46 @@ export default function DanhSachBangLuong() {
 
   const taoMoiMutation = useMutation({
     mutationFn: async (data: { thang: number; nam: number; phongBanIds: number[]; tenBangLuong: string }) => {
-      // Tạo bảng lương cho từng phòng ban được chọn
-      const results = await Promise.all(
+      // BUG-003 P0: Sử dụng Promise.allSettled để handle partial failures
+      const results = await Promise.allSettled(
         data.phongBanIds.map(phongBanId => 
           bangLuongApi.taoMoi({
             thang: data.thang,
             nam: data.nam,
             phongBanId,
-            tenBangLuong: data.phongBanIds.length > 1 ? '' : data.tenBangLuong, // Nếu nhiều PB thì tự động tạo tên
+            tenBangLuong: data.phongBanIds.length > 1 ? '' : data.tenBangLuong,
           })
         )
       )
-      return results
+      
+      const successful = results.filter(r => r.status === 'fulfilled')
+      const failed = results.filter(r => r.status === 'rejected')
+      
+      return { successful, failed, total: results.length }
     },
-    onSuccess: (results) => {
+    onSuccess: ({ successful, failed, total }) => {
       queryClient.invalidateQueries({ queryKey: ['bang-luong'] })
-      toast.success(`Tạo ${results.length} bảng lương thành công!`)
-      setShowModal(false)
-      setFormData({
-        thang: new Date().getMonth() + 1,
-        nam: new Date().getFullYear(),
-        phongBanIds: [],
-        tenBangLuong: '',
-      })
+      
+      if (successful.length > 0 && failed.length === 0) {
+        toast.success(`Tạo ${successful.length} bảng lương thành công!`)
+      } else if (successful.length > 0 && failed.length > 0) {
+        toast.success(`Tạo ${successful.length}/${total} bảng lương thành công!`)
+        toast.error(`${failed.length} bảng lương tạo thất bại`)
+      } else if (failed.length > 0) {
+        const firstError = failed[0] as PromiseRejectedResult
+        const errorMessage = (firstError.reason as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Có lỗi xảy ra'
+        toast.error(errorMessage)
+      }
+      
+      if (successful.length > 0) {
+        setShowModal(false)
+        setFormData({
+          thang: new Date().getMonth() + 1,
+          nam: new Date().getFullYear(),
+          phongBanIds: [],
+          tenBangLuong: '',
+        })
+      }
     },
     onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra')

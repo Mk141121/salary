@@ -12,6 +12,7 @@ import {
   trangThaiHopDongLabel,
   formatCurrency,
 } from '../services/nhanVienMoRongApi';
+import { VietnameseDatePicker } from './VietnameseDatePicker';
 
 interface Props {
   nhanVienId: number;
@@ -185,20 +186,17 @@ export default function TabHopDong({ nhanVienId }: Props) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Từ ngày</label>
-              <input
-                type="date"
+              <VietnameseDatePicker
                 value={form.tuNgay}
-                onChange={(e) => setForm({ ...form, tuNgay: e.target.value })}
+                onChange={(val) => setForm({ ...form, tuNgay: val })}
                 className="w-full border rounded-lg px-3 py-2"
-                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Đến ngày (để trống nếu vô thời hạn)</label>
-              <input
-                type="date"
+              <VietnameseDatePicker
                 value={form.denNgay}
-                onChange={(e) => setForm({ ...form, denNgay: e.target.value })}
+                onChange={(val) => setForm({ ...form, denNgay: val })}
                 className="w-full border rounded-lg px-3 py-2"
               />
             </div>
@@ -259,12 +257,10 @@ export default function TabHopDong({ nhanVienId }: Props) {
           <form onSubmit={handleNgung} className="flex gap-4 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium mb-1">Ngày kết thúc</label>
-              <input
-                type="date"
+              <VietnameseDatePicker
                 value={ngungForm.ngayKetThuc}
-                onChange={(e) => setNgungForm({ ...ngungForm, ngayKetThuc: e.target.value })}
+                onChange={(val) => setNgungForm({ ...ngungForm, ngayKetThuc: val })}
                 className="w-full border rounded-lg px-3 py-2"
-                required
               />
             </div>
             <div className="flex-1">

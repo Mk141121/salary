@@ -21,6 +21,13 @@ import {
   Truck,
   Package,
   History,
+  Wallet,
+  BookOpen,
+  CalendarDays,
+  FileText,
+  CheckCircle,
+  CalendarRange,
+  ListTodo,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
@@ -35,11 +42,32 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { path: '/', label: 'Trang chủ', icon: Home },
   { path: '/bang-luong', label: 'Bảng lương', icon: FileSpreadsheet },
+  { path: '/ung-luong', label: 'Ứng lương', icon: Wallet },
+  { 
+    path: '/so-luong', 
+    label: 'Sổ lương', 
+    icon: BookOpen,
+    children: [
+      { path: '/so-luong/nhan-vien', label: 'Theo nhân viên', icon: Users },
+      { path: '/so-luong/phong-ban', label: 'Theo phòng ban', icon: Building2 },
+    ]
+  },
   { path: '/phong-ban', label: 'Phòng ban', icon: Building2 },
   { path: '/nhan-vien', label: 'Nhân viên', icon: Users },
   { path: '/nhom-nhan-vien', label: 'Nhóm nhân viên', icon: Users },
   { path: '/khoan-luong', label: 'Khoản lương', icon: DollarSign },
   { path: '/cham-cong', label: 'Chấm công', icon: ClipboardList },
+  { 
+    path: '/nghi-phep', 
+    label: 'Nghỉ phép', 
+    icon: CalendarDays,
+    children: [
+      { path: '/nghi-phep/don-cua-toi', label: 'Đơn nghỉ của tôi', icon: FileText },
+      { path: '/nghi-phep/duyet', label: 'Duyệt nghỉ phép', icon: CheckCircle },
+      { path: '/nghi-phep/lich', label: 'Lịch nghỉ phép', icon: CalendarRange },
+      { path: '/nghi-phep/loai-nghi', label: 'Danh mục loại nghỉ', icon: ListTodo },
+    ]
+  },
   { path: '/quy-che', label: 'Quy chế lương', icon: Cog },
   { path: '/su-kien', label: 'Sự kiện thưởng/phạt', icon: Award },
   { path: '/import-excel', label: 'Import Excel', icon: Upload },

@@ -1,6 +1,7 @@
 // Trang Audit Log - Lịch sử thao tác
 import { useState, useEffect } from 'react'
 import { auditLogApi, AuditLog } from '../services/rbacApi'
+import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 const HANH_DONG_LABELS: Record<string, { label: string; color: string; icon: string }> = {
   TAO: { label: 'Tạo mới', color: 'bg-green-100 text-green-700', icon: '➕' },
@@ -100,19 +101,17 @@ export default function AuditLogPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Từ ngày</label>
-            <input
-              type="date"
+            <VietnameseDatePicker
               value={filterTuNgay}
-              onChange={(e) => setFilterTuNgay(e.target.value)}
+              onChange={setFilterTuNgay}
               className="w-full border rounded-lg px-3 py-2"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
-            <input
-              type="date"
+            <VietnameseDatePicker
               value={filterDenNgay}
-              onChange={(e) => setFilterDenNgay(e.target.value)}
+              onChange={setFilterDenNgay}
               className="w-full border rounded-lg px-3 py-2"
             />
           </div>

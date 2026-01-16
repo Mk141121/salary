@@ -1,6 +1,7 @@
 // Quản lý Kỳ đánh giá KPI
 import { useState, useEffect } from 'react'
 import { kyDanhGiaApi, KyDanhGiaKPI, LoaiKyDanhGia, TrangThaiKyDanhGia } from '../services/kpiApi'
+import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 const LOAI_KY_LABELS: Record<LoaiKyDanhGia, string> = {
   THANG: 'Tháng',
@@ -255,22 +256,18 @@ export default function KyDanhGiaKPIPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Từ ngày *</label>
-                  <input
-                    type="date"
+                  <VietnameseDatePicker
                     value={formData.tuNgay}
-                    onChange={(e) => setFormData({ ...formData, tuNgay: e.target.value })}
+                    onChange={(val) => setFormData({ ...formData, tuNgay: val })}
                     className="w-full border rounded-lg px-3 py-2"
-                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Đến ngày *</label>
-                  <input
-                    type="date"
+                  <VietnameseDatePicker
                     value={formData.denNgay}
-                    onChange={(e) => setFormData({ ...formData, denNgay: e.target.value })}
+                    onChange={(val) => setFormData({ ...formData, denNgay: val })}
                     className="w-full border rounded-lg px-3 py-2"
-                    required
                   />
                 </div>
               </div>

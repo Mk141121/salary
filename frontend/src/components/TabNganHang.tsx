@@ -9,6 +9,7 @@ import {
   xoaNganHang,
   datNganHangMacDinh,
 } from '../services/nhanVienMoRongApi';
+import { VietnameseDatePicker } from './VietnameseDatePicker';
 
 interface Props {
   nhanVienId: number;
@@ -217,19 +218,17 @@ export default function TabNganHang({ nhanVienId }: Props) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Hiệu lực từ</label>
-              <input
-                type="date"
+              <VietnameseDatePicker
                 value={form.tuNgay}
-                onChange={(e) => setForm({ ...form, tuNgay: e.target.value })}
+                onChange={(val) => setForm({ ...form, tuNgay: val })}
                 className="w-full border rounded-lg px-3 py-2"
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Hiệu lực đến</label>
-              <input
-                type="date"
+              <VietnameseDatePicker
                 value={form.denNgay}
-                onChange={(e) => setForm({ ...form, denNgay: e.target.value })}
+                onChange={(val) => setForm({ ...form, denNgay: val })}
                 className="w-full border rounded-lg px-3 py-2"
               />
             </div>

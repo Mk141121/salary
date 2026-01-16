@@ -1,5 +1,5 @@
 // Chi tiết bảng lương - Giao diện giống Excel
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -306,6 +306,26 @@ export default function ChiTietBangLuong() {
     },
     [getCellValue, pendingChanges, bangLuong?.danhSachKhoanLuong]
   )
+
+  // BUG-002 P0: Warning khi có unsaved changes
+  const hasUnsavedChanges = pendingChanges.size > 0
+
+  // Block navigation khi có unsaved changes (useBlocker không hoạt động với BrowserRouter)
+  // TODO: Migrate sang createBrowserRouter để sử dụng useBlocker
+
+  // Xử lý beforeunload (đóng tab/refresh)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = 'Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời đi?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
 
   if (isLoading) {
     return (

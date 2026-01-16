@@ -28,6 +28,7 @@ import TabNganHang from '../components/TabNganHang'
 import TabNhomNhanVien from '../components/TabNhomNhanVien'
 import TabThueBH from '../components/TabThueBH'
 import TabLichSuPhongBan from '../components/TabLichSuPhongBan'
+import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 type TabType = 'thong-tin' | 'hop-dong' | 'phu-cap' | 'lich-su' | 'lich-su-phong-ban'
 
@@ -558,10 +559,9 @@ export default function ChiTietNhanVien() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Ngày sinh</label>
-                  <input
-                    type="date"
+                  <VietnameseDatePicker
                     value={formNhanVien.ngaySinh}
-                    onChange={(e) => setFormNhanVien({ ...formNhanVien, ngaySinh: e.target.value })}
+                    onChange={(val) => setFormNhanVien({ ...formNhanVien, ngaySinh: val })}
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>
@@ -597,10 +597,9 @@ export default function ChiTietNhanVien() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Ngày vào làm</label>
-                  <input
-                    type="date"
+                  <VietnameseDatePicker
                     value={formNhanVien.ngayVaoLam}
-                    onChange={(e) => setFormNhanVien({ ...formNhanVien, ngayVaoLam: e.target.value })}
+                    onChange={(val) => setFormNhanVien({ ...formNhanVien, ngayVaoLam: val })}
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>
@@ -900,20 +899,18 @@ export default function ChiTietNhanVien() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Ngày bắt đầu *</label>
-                <input
-                  type="date"
+                <VietnameseDatePicker
                   value={formPhuCap.tuNgay}
-                  onChange={(e) => setFormPhuCap({ ...formPhuCap, tuNgay: e.target.value })}
+                  onChange={(val) => setFormPhuCap({ ...formPhuCap, tuNgay: val })}
                   className="w-full border rounded-lg px-3 py-2"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">Ngày kết thúc (tùy chọn)</label>
-                <input
-                  type="date"
+                <VietnameseDatePicker
                   value={formPhuCap.denNgay}
-                  onChange={(e) => setFormPhuCap({ ...formPhuCap, denNgay: e.target.value })}
+                  onChange={(val) => setFormPhuCap({ ...formPhuCap, denNgay: val })}
                   className="w-full border rounded-lg px-3 py-2"
                 />
               </div>
@@ -970,10 +967,9 @@ export default function ChiTietNhanVien() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Ngày hiệu lực mới *</label>
-                <input
-                  type="date"
+                <VietnameseDatePicker
                   value={formTang.tuNgay}
-                  onChange={(e) => setFormTang({ ...formTang, tuNgay: e.target.value })}
+                  onChange={(val) => setFormTang({ ...formTang, tuNgay: val })}
                   className="w-full border rounded-lg px-3 py-2"
                 />
               </div>
@@ -1019,10 +1015,9 @@ export default function ChiTietNhanVien() {
 
             <div>
               <label className="block text-sm font-medium mb-1">Ngày kết thúc *</label>
-              <input
-                type="date"
+              <VietnameseDatePicker
                 value={formKetThuc.denNgay}
-                onChange={(e) => setFormKetThuc({ denNgay: e.target.value })}
+                onChange={(val) => setFormKetThuc({ denNgay: val })}
                 className="w-full border rounded-lg px-3 py-2"
               />
             </div>

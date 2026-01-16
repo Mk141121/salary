@@ -161,7 +161,7 @@ export default function TrangChu() {
                         Tháng {bl.thang}/{bl.nam}
                       </Link>
                     </td>
-                    <td className="py-3 px-3">{bl.phongBan.tenPhongBan}</td>
+                    <td className="py-3 px-3">{bl.phongBan?.tenPhongBan || 'Tất cả phòng ban'}</td>
                     <td className="py-3 px-3 text-right">{bl.soNhanVien || 0}</td>
                     <td className="py-3 px-3 text-right font-medium currency">
                       {formatTien(bl.thucLinh)}

@@ -75,6 +75,76 @@ async function main() {
   }
 
   // ============================================
+  // 2.5. TẠO DANH MỤC LOẠI NGHỈ
+  // ============================================
+  console.log('📅 Tạo danh mục loại nghỉ...');
+
+  const danhMucLoaiNghi = [
+    { 
+      maLoaiNghi: 'PHEP_NAM', 
+      tenLoaiNghi: 'Phép năm', 
+      nhomLoai: 'CO_PHEP',
+      coTinhLuong: true,
+      coTinhChuyenCan: true,
+      thuTuHienThi: 1,
+    },
+    { 
+      maLoaiNghi: 'OM', 
+      tenLoaiNghi: 'Nghỉ ốm', 
+      nhomLoai: 'CO_PHEP',
+      coTinhLuong: true,
+      coTinhChuyenCan: true,
+      thuTuHienThi: 2,
+    },
+    { 
+      maLoaiNghi: 'THAI_SAN', 
+      tenLoaiNghi: 'Nghỉ thai sản', 
+      nhomLoai: 'CO_PHEP',
+      coTinhLuong: false,
+      coTinhChuyenCan: true,
+      thuTuHienThi: 3,
+    },
+    { 
+      maLoaiNghi: 'VIEC_RIENG_CO_LUONG', 
+      tenLoaiNghi: 'Việc riêng có lương', 
+      nhomLoai: 'CO_PHEP',
+      coTinhLuong: true,
+      coTinhChuyenCan: true,
+      thuTuHienThi: 4,
+    },
+    { 
+      maLoaiNghi: 'VIEC_RIENG_KHONG_LUONG', 
+      tenLoaiNghi: 'Việc riêng không lương', 
+      nhomLoai: 'CO_PHEP',
+      coTinhLuong: false,
+      coTinhChuyenCan: true,
+      thuTuHienThi: 5,
+    },
+    { 
+      maLoaiNghi: 'KHONG_PHEP', 
+      tenLoaiNghi: 'Nghỉ không phép', 
+      nhomLoai: 'KHONG_PHEP',
+      coTinhLuong: false,
+      coTinhChuyenCan: false,
+      thuTuHienThi: 99,
+    },
+  ];
+
+  for (const loaiNghi of danhMucLoaiNghi) {
+    await prisma.danhMucLoaiNghi.upsert({
+      where: { maLoaiNghi: loaiNghi.maLoaiNghi },
+      update: {
+        tenLoaiNghi: loaiNghi.tenLoaiNghi,
+        nhomLoai: loaiNghi.nhomLoai,
+        coTinhLuong: loaiNghi.coTinhLuong,
+        coTinhChuyenCan: loaiNghi.coTinhChuyenCan,
+        thuTuHienThi: loaiNghi.thuTuHienThi,
+      },
+      create: loaiNghi,
+    });
+  }
+
+  // ============================================
   // 3. TẠO NHÂN VIÊN TỪ FILE CHẤM CÔNG
   // ============================================
   console.log('👥 Tạo nhân viên từ file chấm công...');
@@ -781,6 +851,7 @@ async function main() {
   console.log('📊 Thống kê:');
   console.log(`   - Khoản lương: ${danhMucKhoanLuong.length}`);
   console.log(`   - Phòng ban: ${phongBans.length + 1} (+ Nhân Sự)`);
+  console.log(`   - Loại nghỉ: ${danhMucLoaiNghi.length}`);
   console.log(`   - Nhân viên: ${nhanViens.length} (từ file chấm công)`);
   console.log(`   - Phụ cấp nhân viên: ${phuCapNhanVienData.length}`);
   console.log(`   - Bảng lương mẫu: 1 (Nhân Sự)`);

@@ -26,6 +26,9 @@ import { HopDongModule } from './modules/hop-dong/hop-dong.module';
 import { NganHangModule } from './modules/ngan-hang/ngan-hang.module';
 import { NhomNhanVienModule } from './modules/nhom-nhan-vien/nhom-nhan-vien.module';
 import { ThueBHModule } from './modules/thue-bh/thue-bh.module';
+import { UngLuongModule } from './modules/ung-luong/ung-luong.module';
+import { SoLuongModule } from './modules/so-luong/so-luong.module';
+import { NghiPhepModule } from './modules/nghi-phep/nghi-phep.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -72,6 +75,9 @@ import { HealthController } from './health.controller';
     NganHangModule,
     NhomNhanVienModule,
     ThueBHModule,
+    UngLuongModule,
+    SoLuongModule,
+    NghiPhepModule,
   ],
   controllers: [HealthController],
   providers: [

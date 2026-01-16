@@ -7,6 +7,7 @@ import {
   TrangThaiQuyChe 
 } from '../services/ruleEngineApi'
 import { phongBanApi } from '../services/api'
+import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 // Badge trạng thái
 const TrangThaiBadge = ({ trangThai }: { trangThai: TrangThaiQuyChe }) => {
@@ -396,10 +397,9 @@ export default function QuanLyQuyChe() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Áp dụng từ ngày <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
+                <VietnameseDatePicker
                   value={form.tuNgay}
-                  onChange={(e) => setForm({ ...form, tuNgay: e.target.value })}
+                  onChange={(val) => setForm({ ...form, tuNgay: val })}
                   className="w-full border rounded-lg px-3 py-2"
                 />
               </div>

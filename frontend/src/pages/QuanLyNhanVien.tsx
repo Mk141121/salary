@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Edit2, Trash2, Search, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { nhanVienApi, phongBanApi, NhanVien, TrangThaiNhanVien } from '../services/api'
+import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 // Map trạng thái sang tiếng Việt
 const TRANG_THAI_MAP: Record<TrangThaiNhanVien, { label: string; color: string }> = {
@@ -340,10 +341,9 @@ export default function QuanLyNhanVien() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Ngày sinh</label>
-                  <input
-                    type="date"
+                  <VietnameseDatePicker
                     value={formData.ngaySinh}
-                    onChange={(e) => setFormData({ ...formData, ngaySinh: e.target.value })}
+                    onChange={(val) => setFormData({ ...formData, ngaySinh: val })}
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>
@@ -383,10 +383,9 @@ export default function QuanLyNhanVien() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Ngày vào làm</label>
-                <input
-                  type="date"
+                <VietnameseDatePicker
                   value={formData.ngayVaoLam}
-                  onChange={(e) => setFormData({ ...formData, ngayVaoLam: e.target.value })}
+                  onChange={(val) => setFormData({ ...formData, ngayVaoLam: val })}
                   className="w-full border rounded-lg px-3 py-2"
                 />
               </div>

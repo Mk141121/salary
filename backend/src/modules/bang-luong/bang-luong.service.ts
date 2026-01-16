@@ -791,8 +791,10 @@ export class BangLuongService {
       throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
     }
 
-    if (bangLuong.trangThai === 'KHOA') {
-      throw new BadRequestException('Không thể tính lại bảng lương đã khóa');
+    if (bangLuong.trangThai !== 'NHAP') {
+      throw new BadRequestException(
+        `Không thể tính lại lương cho bảng lương ở trạng thái ${bangLuong.trangThai}. Chỉ có thể tính lại khi ở trạng thái NHẬP.`
+      );
     }
 
     // Lấy tất cả ngày công của bảng lương
