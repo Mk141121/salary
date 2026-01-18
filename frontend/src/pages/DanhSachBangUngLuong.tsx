@@ -2,11 +2,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Plus, Wallet, Trash2, Lock, Check } from 'lucide-react'
+import { Plus, Wallet, Trash2, Lock, Check, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { ungLuongApi, phongBanApi } from '../services/api'
 import { formatTien, formatNgay } from '../utils'
 import { VietnameseMonthPicker, VietnameseDatePicker } from '../components/VietnameseDatePicker'
+import { useAuth } from '../contexts/AuthContext'
 
 const getTrangThaiClass = (trangThai: string) => {
   switch (trangThai) {
@@ -36,6 +37,8 @@ const getTrangThaiLabel = (trangThai: string) => {
 
 export default function DanhSachBangUngLuong() {
   const queryClient = useQueryClient()
+  const { coVaiTro } = useAuth()
+  const isAdmin = coVaiTro('ADMIN')
   const [showModal, setShowModal] = useState(false)
   const [filterThangNam, setFilterThangNam] = useState(() => {
     const now = new Date()
@@ -98,7 +101,7 @@ export default function DanhSachBangUngLuong() {
   })
 
   const xoaMutation = useMutation({
-    mutationFn: ungLuongApi.xoa,
+    mutationFn: ({ id, force }: { id: number; force?: boolean }) => ungLuongApi.xoa(id, force),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bang-ung-luong'] })
       toast.success('Xóa bảng ứng lương thành công!')
@@ -138,13 +141,16 @@ export default function DanhSachBangUngLuong() {
     taoMoiMutation.mutate(formData)
   }
 
-  const handleXoa = (id: number, trangThai: string) => {
-    if (trangThai !== 'NHAP') {
+  const handleXoa = (id: number, trangThai: string, force = false) => {
+    if (trangThai !== 'NHAP' && !force) {
       toast.error('Chỉ có thể xóa bảng ứng lương đang ở trạng thái Nháp')
       return
     }
-    if (confirm('Bạn có chắc muốn xóa bảng ứng lương này?')) {
-      xoaMutation.mutate(id)
+    const confirmMsg = force
+      ? '⚠️ CẢNH BÁO: Bạn đang xóa cưỡng chế bảng ứng lương đã khóa. Thao tác này sẽ được ghi lại. Tiếp tục?'
+      : 'Bạn có chắc muốn xóa bảng ứng lương này?'
+    if (confirm(confirmMsg)) {
+      xoaMutation.mutate({ id, force })
     }
   }
 
@@ -295,6 +301,15 @@ export default function DanhSachBangUngLuong() {
                             title="Khóa"
                           >
                             <Lock size={18} />
+                          </button>
+                        )}
+                        {bul.trangThai === 'DA_KHOA' && isAdmin && (
+                          <button
+                            onClick={() => handleXoa(bul.id, bul.trangThai, true)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            title="[Admin] Xóa cưỡng chế"
+                          >
+                            <AlertTriangle size={18} />
                           </button>
                         )}
                       </div>

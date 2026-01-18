@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Kiểm Thử Sprint 8 (Anti-fraud: Device Binding)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #c0392b;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .fail {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+
+        .warning {
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+            border: 1px solid #faebcc;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e83e8c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Báo Cáo Kiểm Thử Sprint 8</h1>
+        <div>
+            <strong>Tính năng:</strong> Anti-fraud: 1 Device Binding + Offline Sync<br>
+            <strong>Thời gian:</strong> 2026-01-18 05:40<br>
+            <strong>Trạng thái Progress Report:</strong> 🟡 Đang làm (In Progress)
+        </div>
+
+        <div class="status-box fail">
+            KẾT QUẢ: KHÔNG TÌM THẤY TÍNH NĂNG (FEATURE MISSING)
+        </div>
+
+        <p>Qua quá trình kiểm thử chuyên sâu (Deep Test) trên source code và môi trường runtime, hệ thống <strong>chưa
+                được triển khai</strong> các tính năng cam kết của Sprint 8.</p>
+
+        <h2>1. Phân tích Codebase (Static Analysis)</h2>
+        <ul>
+            <li>❌ <strong>Database Model:</strong> Không tìm thấy model <code>ThietBiNhanVien</code> trong
+                <code>schema.prisma</code>.</li>
+            <li>❌ <strong>API Endpoints:</strong> Không tồn tại các endpoint quản lý thiết bị như
+                <code>/api/anti-fraud/bind-device</code>, <code>/api/anti-fraud/devices</code>.</li>
+            <li>❌ <strong>Logic:</strong> Không có logic kiểm tra <code>deviceId</code> trong quá trình đăng nhập
+                (Login) hoặc chấm công (Check-in).</li>
+        </ul>
+
+        <h2>2. Kiểm thử Runtime (Dynamic Testing)</h2>
+        <div class="status-box warning">
+            Phát hiện lỗi nghiêm trọng liên quan đến Sprint 7
+        </div>
+        <p>Trong quá trình kiểm thử, phát hiện module Anti-fraud (GPS/Geofence - Sprint 7) mặc dù đã có code nhưng
+            <strong>chưa được kích hoạt</strong>:</p>
+        <ul>
+            <li>Module <code>AntiFraudModule</code> chưa được import vào <code>AppModule</code>.</li>
+            <li>Hậu quả: Tất cả API liên quan đến Anti-fraud (bao gồm <code>/api/anti-fraud/gps-checkin</code>) đều trả
+                về lỗi <strong>404 Not Found</strong>.</li>
+        </ul>
+
+        <h2>3. Kết quả chi tiết kịch bản test</h2>
+        <table border="1" cellpadding="10" cellspacing="0" style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background-color:#eee;">
+                    <th>Kịch bản</th>
+                    <th>Kết quả mong đợi</th>
+                    <th>Kết quả thực tế</th>
+                    <th>Đánh giá</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Gọi API Bind Device</td>
+                    <td>200 OK / 201 Created</td>
+                    <td>404 Not Found</td>
+                    <td style="color:red; font-weight:bold;">FAIL</td>
+                </tr>
+                <tr>
+                    <td>Check-in với Device ID lạ</td>
+                    <td>403 Forbidden (Blocked)</td>
+                    <td>404 Not Found (API chưa active)</td>
+                    <td style="color:red; font-weight:bold;">FAIL</td>
+                </tr>
+                <tr>
+                    <td>Check-in (Chức năng nền tảng Sprint 7)</td>
+                    <td>200 OK</td>
+                    <td>404 Not Found</td>
+                    <td style="color:orange; font-weight:bold;">BLOCKED</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>4. Khuyến nghị</h2>
+        <ol>
+            <li><strong>Ưu tiên 1 (Fix Sprint 7):</strong> Import <code>AntiFraudModule</code> vào
+                <code>AppModule</code> để kích hoạt tính năng GPS/Geofence.</li>
+            <li><strong>Ưu tiên 2 (Implement Sprint 8):</strong>
+                <ul>
+                    <li>Tạo model <code>ThietBiNhanVien</code>.</li>
+                    <li>Viết API Bind/Unbind thiết bị.</li>
+                    <li>Cập nhật Guard để chặn đăng nhập từ thiết bị lạ.</li>
+                </ul>
+            </li>
+        </ol>
+
+    </div>
+
+</body>
+
+</html>

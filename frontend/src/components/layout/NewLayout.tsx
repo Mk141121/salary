@@ -1,11 +1,12 @@
-// Layout Component mới - Tích hợp Sidebar, Header, Breadcrumbs, Quick Actions, Command Palette
+// Layout Component - Premium Dribbble Style
 import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import Header from './Header'
-import Sidebar from './Sidebar'
+import SidebarDribbble from './SidebarDribbble'
+import HeaderPremium from './HeaderPremium'
 import CommandPalette from '../command-palette/CommandPalette'
 import { useCommandPalette } from '../../hooks/useCommandPalette'
 import { useRecentPages } from '../../hooks/useRecentPages'
+import { initTheme } from '../../lib/theme'
 
 export default function NewLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -14,6 +15,11 @@ export default function NewLayout() {
   
   // Track recent pages
   useRecentPages()
+
+  // Initialize theme on mount
+  useEffect(() => {
+    initTheme()
+  }, [])
 
   // Responsive: tự động collapse sidebar trên màn hình nhỏ
   useEffect(() => {
@@ -34,48 +40,52 @@ export default function NewLayout() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Listen for command palette events
+  useEffect(() => {
+    const handleOpenPalette = () => commandPalette.open()
+    window.addEventListener('open-command-palette', handleOpenPalette)
+    return () => window.removeEventListener('open-command-palette', handleOpenPalette)
+  }, [commandPalette])
+
   const toggleSidebar = () => {
-    if (sidebarOpen && !sidebarCollapsed) {
-      setSidebarCollapsed(true)
-    } else if (sidebarOpen && sidebarCollapsed) {
-      setSidebarOpen(false)
-    } else {
-      setSidebarOpen(true)
-      setSidebarCollapsed(false)
-    }
+    setSidebarCollapsed(!sidebarCollapsed)
   }
 
-  // Tính toán margin cho main content
-  const getMainMargin = () => {
-    if (!sidebarOpen) return 'ml-0'
-    if (sidebarCollapsed) return 'ml-16'
-    return 'ml-64'
-  }
+  // Tính toán margin cho main content - Dribbble style với sidebar bo góc
+  const sidebarWidth = sidebarCollapsed ? 72 : 260
+  const contentMargin = sidebarWidth + 36 // sidebar + margin + padding
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <Header
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={toggleSidebar}
-        onOpenCommandPalette={commandPalette.open}
+    <div 
+      className="min-h-screen"
+      style={{ background: 'var(--bg-app)' }}
+    >
+      {/* Sidebar - Dribbble Style */}
+      <SidebarDribbble
+        isOpen={sidebarOpen}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
       />
 
-      <div className="flex pt-14">
-        {/* Sidebar */}
-        <Sidebar
-          isOpen={sidebarOpen}
-          isCollapsed={sidebarCollapsed}
+      {/* Main content area */}
+      <div 
+        className="min-h-screen transition-all duration-300"
+        style={{
+          marginLeft: sidebarOpen ? `${contentMargin}px` : '24px',
+          paddingRight: '24px',
+        }}
+      >
+        {/* Header - Premium Style */}
+        <HeaderPremium
+          onToggleSidebar={toggleSidebar}
+          sidebarCollapsed={sidebarCollapsed}
         />
 
-        {/* Main content */}
-        <main
-          className={`
-            flex-1 p-6 transition-all duration-300 min-h-[calc(100vh-3.5rem)]
-            ${getMainMargin()}
-          `}
-        >
-          <Outlet />
+        {/* Page content */}
+        <main className="pt-20 pb-8">
+          <div className="animate-fade-in">
+            <Outlet />
+          </div>
         </main>
       </div>
 
@@ -88,7 +98,7 @@ export default function NewLayout() {
       {/* Mobile overlay khi sidebar mở */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-30 md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}

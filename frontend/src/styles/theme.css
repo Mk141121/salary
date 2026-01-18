@@ -1,0 +1,130 @@
+/* ===========================================
+   Theme System - Light Only
+   Premium SaaS Style
+   =========================================== */
+
+/* ============ LIGHT THEME (Default) ============ */
+:root,
+:root[data-theme="light"] {
+  /* Background */
+  --bg-app: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
+  --bg-0: #f8fafc;
+  --bg-1: #ffffff;
+  --bg-2: #f1f5f9;
+  --bg-3: #e2e8f0;
+  
+  /* Panel/Card - Glassmorphism */
+  --panel: rgba(255, 255, 255, 0.75);
+  --panel-hover: rgba(255, 255, 255, 0.90);
+  --panel-solid: #ffffff;
+  
+  /* Sidebar - Keep dark for contrast */
+  --sidebar-bg: linear-gradient(180deg, #0B1220 0%, #0F1B2E 100%);
+  --sidebar-solid: #0B1220;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-active: rgba(83, 243, 154, 0.15);
+  
+  /* Text */
+  --text: #0f172a;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
+  --text-invert: #f8fafc;
+  
+  /* Border */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.15);
+  --border-focus: rgba(16, 185, 129, 0.5);
+  
+  /* Input */
+  --input-bg: rgba(255, 255, 255, 0.80);
+  --input-border: rgba(0, 0, 0, 0.12);
+  --input-focus: rgba(16, 185, 129, 0.3);
+  
+  /* Table */
+  --table-header: rgba(241, 245, 249, 0.95);
+  --table-row-even: rgba(0, 0, 0, 0.02);
+  --table-row-hover: rgba(16, 185, 129, 0.08);
+  
+  /* Scrollbar */
+  --scrollbar-track: rgba(0, 0, 0, 0.05);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+  
+  /* Status Colors */
+  --status-nhap: rgba(255, 176, 32, 0.12);
+  --status-nhap-text: #D97706;
+  --status-chot: rgba(34, 197, 94, 0.12);
+  --status-chot-text: #16A34A;
+  --status-khoa: rgba(255, 77, 109, 0.12);
+  --status-khoa-text: #DC2626;
+  
+  /* Accent Colors */
+  --accent: #10B981;
+  --accent-hover: #059669;
+  --accent-light: rgba(16, 185, 129, 0.1);
+  
+  --cyan: #06B6D4;
+  --cyan-light: rgba(6, 182, 212, 0.1);
+  
+  --purple: #8B5CF6;
+  --purple-light: rgba(139, 92, 246, 0.1);
+  
+  --danger: #EF4444;
+  --danger-light: rgba(239, 68, 68, 0.1);
+  
+  --warning: #F59E0B;
+  --warning-light: rgba(245, 158, 11, 0.1);
+}
+
+/* ============ SCROLLBAR STYLING ============ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ============ SELECTION ============ */
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+  color: var(--text);
+}
+
+/* ============ FOCUS VISIBLE ============ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ============ BACKDROP BLUR SUPPORT ============ */
+@supports (backdrop-filter: blur(20px)) {
+  .glass {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+
+@supports not (backdrop-filter: blur(20px)) {
+  .glass {
+    background: var(--panel-solid) !important;
+  }
+}

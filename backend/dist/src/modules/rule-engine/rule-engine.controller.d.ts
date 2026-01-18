@@ -24,10 +24,10 @@ export declare class RuleEngineController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
+        phienBan: number;
         maCongThuc: string;
         tenCongThuc: string;
         congThuc: string;
-        phienBan: number;
     })[]>;
     layCongThuc(id: number): Promise<{
         bienSos: {
@@ -50,10 +50,10 @@ export declare class RuleEngineController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
+        phienBan: number;
         maCongThuc: string;
         tenCongThuc: string;
         congThuc: string;
-        phienBan: number;
     }>;
     taoCongThuc(dto: TaoCongThucDto): Promise<{
         bienSos: {
@@ -76,10 +76,10 @@ export declare class RuleEngineController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
+        phienBan: number;
         maCongThuc: string;
         tenCongThuc: string;
         congThuc: string;
-        phienBan: number;
     }>;
     capNhatCongThuc(id: number, dto: CapNhatCongThucDto): Promise<{
         bienSos: {
@@ -102,17 +102,17 @@ export declare class RuleEngineController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
+        phienBan: number;
         maCongThuc: string;
         tenCongThuc: string;
         congThuc: string;
-        phienBan: number;
     }>;
     layLichSuCongThuc(maCongThuc: string): Promise<{
         id: number;
+        phienBan: number;
         nguoiThayDoi: string;
         ngayThayDoi: Date;
         maCongThuc: string;
-        phienBan: number;
         congThucCu: string;
         congThucMoi: string;
         lyDoThayDoi: string | null;

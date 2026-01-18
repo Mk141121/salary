@@ -3,35 +3,78 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LocSoLuongDto, TimKiemSoLuongDto } from './dto';
 
-// Loại nguồn dữ liệu cho entry sổ lương
-export type LoaiNguonSoLuong =
-  | 'BANG_LUONG'
-  | 'DIEU_CHINH'
-  | 'UNG_LUONG'
-  | 'KPI'
-  | 'THUONG_PHAT'
-  | 'CHIA_HANG'
-  | 'GIAO_HANG';
-
-// Entry trong sổ lương
-export interface EntrySoLuong {
-  ngayHachToan: Date;
-  loaiNguon: LoaiNguonSoLuong;
-  khoanLuong: string;
-  soTien: number;
-  moTa: string;
-  refId: number;
-  refType: string;
-  chiTiet?: Record<string, unknown>;
+// Interfaces cho response - export de controller dung
+export interface BangLuongItem {
+  bangLuongId: number;
+  thangNam: string;
+  thang: number;
+  nam: number;
+  luongCoBan: number;
+  phuCapTong: number;
+  thuongKPI: number;
+  thuongThuNhap: number;
+  khauTruTong: number;
+  ungLuong: number;
+  bhxh: number;
+  bhyt: number;
+  bhtn: number;
+  thueTNCN: number;
+  thucLanh: number;
+  ngayCong: number;
+  nghiCoPhep: number;
+  nghiKhongPhep: number;
+  chotNgay?: string;
 }
 
-// Tổng hợp sổ lương
-export interface TongHopSoLuong {
+export interface DieuChinhItem {
+  phieuDieuChinhId: number;
+  ngayTao: string;
+  loaiPhieu: string;
+  tenKhoanLuong: string;
+  loaiKhoan: string;
+  soTien: number;
+  ghiChu?: string;
+}
+
+export interface UngLuongItem {
+  bangUngLuongId: number;
+  maBang: string;
+  thangNam: string;
+  soTienDuyet: number;
+  trangThai: string;
+  ngayChot?: string;
+}
+
+export interface KPIItem {
+  kyDanhGiaId: number;
+  thang: number;
+  nam: number;
+  tongDiem: number;
+  xepLoai: string;
+  tienThuong: number;
+}
+
+export interface ThuongPhatItem {
+  suKienId: number;
+  loai: 'THUONG' | 'PHAT';
+  ten: string;
+  soTien: number;
+  ngay: string;
+  lyDo?: string;
+}
+
+export interface TongKetNV {
+  tongLuong: number;
+  tongThuong: number;
+  tongPhat: number;
+  tongKhauTru: number;
+  tongUng: number;
+  tongThucNhan: number;
+}
+
+export interface TongHopPhongBan {
   tongThuNhap: number;
   tongKhauTru: number;
-  tongUngLuong: number;
-  tongKhauTruUng: number;
-  tongDieuChinh: number;
   tongThuong: number;
   tongPhat: number;
   thucLinh: number;
@@ -44,48 +87,171 @@ export class SoLuongService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Lấy sổ lương theo nhân viên
+   * Lấy sổ lương theo nhân viên - format đầy đủ cho frontend
    */
-  async laySoLuongNhanVien(
-    nhanVienId: number,
-    dto: LocSoLuongDto,
-  ): Promise<{ nhanVien: Record<string, unknown>; entries: EntrySoLuong[]; tongHop: TongHopSoLuong }> {
+  async laySoLuongNhanVien(nhanVienId: number, dto: LocSoLuongDto) {
     const nhanVien = await this.prisma.nhanVien.findUnique({
       where: { id: nhanVienId },
       include: { phongBan: true },
     });
 
     if (!nhanVien) {
-      throw new NotFoundException(`Không tìm thấy nhân viên với ID: ${nhanVienId}`);
+      throw new NotFoundException(`Khong tim thay nhan vien voi ID: ${nhanVienId}`);
     }
 
     const tuNgay = dto.tuNgay ? new Date(dto.tuNgay) : new Date(new Date().getFullYear(), 0, 1);
     const denNgay = dto.denNgay ? new Date(dto.denNgay) : new Date();
 
-    const entries: EntrySoLuong[] = [];
+    // Chuyen doi tuNgay/denNgay thanh thang/nam de filter
+    const tuThang = tuNgay.getMonth() + 1;
+    const tuNam = tuNgay.getFullYear();
+    const denThangVal = denNgay.getMonth() + 1;
+    const denNamVal = denNgay.getFullYear();
 
-    // 1. Lấy từ Bảng lương (snapshot)
-    const snapshots = await this.prisma.snapshotBangLuong.findMany({
-      where: {
-        nhanVienId,
-        ngayChot: { gte: tuNgay, lte: denNgay },
+    // 1. Lay Bang luong
+    const bangLuongs = await this.layBangLuongs(nhanVienId, tuThang, tuNam, denThangVal, denNamVal);
+
+    // 2. Lay Phieu dieu chinh
+    const dieuChinhs = await this.layDieuChinhs(nhanVienId, tuNgay, denNgay);
+
+    // 3. Lay Ung luong
+    const ungLuongs = await this.layUngLuongs(nhanVienId, tuNgay, denNgay);
+
+    // 4. Lay KPI
+    const kpis = await this.layKPIs(nhanVienId, tuThang, tuNam, denThangVal, denNamVal);
+
+    // 5. Lay Thuong phat
+    const thuongPhats = await this.layThuongPhats(nhanVienId, tuNgay, denNgay);
+
+    // Tinh tong ket
+    const tongKet = this.tinhTongKetNV(bangLuongs, dieuChinhs, ungLuongs, kpis, thuongPhats);
+
+    return {
+      nhanVien: {
+        id: nhanVien.id,
+        maNhanVien: nhanVien.maNhanVien,
+        hoTen: nhanVien.hoTen,
+        phongBan: nhanVien.phongBan ? { tenPhongBan: nhanVien.phongBan.tenPhongBan } : undefined,
       },
-      orderBy: { ngayChot: 'desc' },
+      bangLuongs,
+      dieuChinhs,
+      ungLuongs,
+      kpis,
+      thuongPhats,
+      tongKet,
+    };
+  }
+
+  /**
+   * Lay bang luong cho nhan vien trong khoang thoi gian
+   */
+  private async layBangLuongs(
+    nhanVienId: number,
+    tuThang: number,
+    tuNam: number,
+    denThang: number,
+    denNam: number,
+  ): Promise<BangLuongItem[]> {
+    // Lay tat ca bang luong DA_CHOT trong khoang thoi gian
+    const orConditions = this.buildMonthRangeCondition(tuThang, tuNam, denThang, denNam);
+    
+    const bangLuongs = await this.prisma.bangLuong.findMany({
+      where: {
+        trangThai: 'DA_CHOT',
+        OR: orConditions,
+      },
+      select: { id: true, thang: true, nam: true, ngayChot: true },
+      orderBy: [{ nam: 'desc' }, { thang: 'desc' }],
     });
 
-    for (const ss of snapshots) {
-      entries.push({
-        ngayHachToan: ss.ngayChot,
-        loaiNguon: 'BANG_LUONG',
-        khoanLuong: ss.tenKhoan,
-        soTien: ss.loaiKhoan === 'THU_NHAP' ? Number(ss.soTien) : -Number(ss.soTien),
-        moTa: `Bảng lương - ${ss.tenKhoan}`,
-        refId: ss.bangLuongId,
-        refType: 'BangLuong',
+    const result: BangLuongItem[] = [];
+
+    for (const bl of bangLuongs) {
+      // Lay snapshots cho bang luong nay va nhan vien
+      const snapshots = await this.prisma.snapshotBangLuong.findMany({
+        where: {
+          bangLuongId: bl.id,
+          nhanVienId,
+        },
+      });
+
+      if (snapshots.length === 0) continue;
+
+      // Tong hop cac khoan
+      let luongCoBan = 0;
+      let phuCapTong = 0;
+      let thuongKPI = 0;
+      let thuongThuNhap = 0;
+      let khauTruTong = 0;
+      let bhxh = 0;
+      let bhyt = 0;
+      let bhtn = 0;
+      let thueTNCN = 0;
+
+      for (const ss of snapshots) {
+        const soTien = Number(ss.soTien);
+        const tenKhoan = ss.tenKhoan.toLowerCase();
+
+        if (ss.loaiKhoan === 'THU_NHAP') {
+          if (tenKhoan.includes('luong co ban') || tenKhoan.includes('lương cơ bản')) {
+            luongCoBan += soTien;
+          } else if (tenKhoan.includes('thuong kpi') || tenKhoan.includes('thưởng kpi')) {
+            thuongKPI += soTien;
+          } else if (tenKhoan.includes('thuong') || tenKhoan.includes('thưởng')) {
+            thuongThuNhap += soTien;
+          } else {
+            phuCapTong += soTien;
+          }
+        } else if (ss.loaiKhoan === 'KHAU_TRU') {
+          if (tenKhoan.includes('bhxh')) {
+            bhxh += soTien;
+          } else if (tenKhoan.includes('bhyt')) {
+            bhyt += soTien;
+          } else if (tenKhoan.includes('bhtn')) {
+            bhtn += soTien;
+          } else if (tenKhoan.includes('thue') || tenKhoan.includes('thuế') || tenKhoan.includes('tncn')) {
+            thueTNCN += soTien;
+          } else {
+            khauTruTong += soTien;
+          }
+        }
+      }
+
+      const ngayCong = 26; // TODO: Lay tu bang cham cong
+
+      const thucLanh = luongCoBan + phuCapTong + thuongKPI + thuongThuNhap 
+        - khauTruTong - bhxh - bhyt - bhtn - thueTNCN;
+
+      result.push({
+        bangLuongId: bl.id,
+        thangNam: `T${bl.thang}/${bl.nam}`,
+        thang: bl.thang,
+        nam: bl.nam,
+        luongCoBan,
+        phuCapTong,
+        thuongKPI,
+        thuongThuNhap,
+        khauTruTong,
+        ungLuong: 0,
+        bhxh,
+        bhyt,
+        bhtn,
+        thueTNCN,
+        thucLanh,
+        ngayCong,
+        nghiCoPhep: 0,
+        nghiKhongPhep: 0,
+        chotNgay: bl.ngayChot?.toISOString(),
       });
     }
 
-    // 2. Lấy từ Phiếu điều chỉnh
+    return result;
+  }
+
+  /**
+   * Lay phieu dieu chinh
+   */
+  private async layDieuChinhs(nhanVienId: number, tuNgay: Date, denNgay: Date): Promise<DieuChinhItem[]> {
     const phieuDCs = await this.prisma.phieuDieuChinh.findMany({
       where: {
         nhanVienId,
@@ -100,25 +266,29 @@ export class SoLuongService {
       orderBy: { ngayDuyet: 'desc' },
     });
 
+    const result: DieuChinhItem[] = [];
+
     for (const pdc of phieuDCs) {
       for (const ct of pdc.chiTiets) {
-        const isKhauTruUng = ct.khoanLuong.maKhoan === 'KHAU_TRU_UNG_LUONG';
-        entries.push({
-          ngayHachToan: pdc.ngayDuyet!,
-          loaiNguon: isKhauTruUng ? 'UNG_LUONG' : 'DIEU_CHINH',
-          khoanLuong: ct.khoanLuong.tenKhoan,
-          soTien:
-            pdc.loaiDieuChinh === 'TANG'
-              ? Number(ct.chenhLech)
-              : -Number(ct.chenhLech),
-          moTa: `Điều chỉnh: ${pdc.lyDo}`,
-          refId: pdc.id,
-          refType: 'PhieuDieuChinh',
+        result.push({
+          phieuDieuChinhId: pdc.id,
+          ngayTao: pdc.ngayTao.toISOString(),
+          loaiPhieu: pdc.loaiDieuChinh,
+          tenKhoanLuong: ct.khoanLuong.tenKhoan,
+          loaiKhoan: pdc.loaiDieuChinh === 'TANG' ? 'CONG_THEM' : 'TRU_BOT',
+          soTien: Number(ct.chenhLech),
+          ghiChu: pdc.lyDo,
         });
       }
     }
 
-    // 3. Lấy từ Bảng ứng lương (snapshot)
+    return result;
+  }
+
+  /**
+   * Lay ung luong
+   */
+  private async layUngLuongs(nhanVienId: number, tuNgay: Date, denNgay: Date): Promise<UngLuongItem[]> {
     const snapshotUngs = await this.prisma.snapshotChiTietBangUngLuong.findMany({
       where: {
         nhanVienId,
@@ -126,50 +296,60 @@ export class SoLuongService {
         soTienUngDuyet: { gt: 0 },
       },
       include: {
-        snapshot: true,
+        snapshot: {
+          include: { bangUngLuong: true },
+        },
       },
       orderBy: { ngayTao: 'desc' },
     });
 
-    for (const su of snapshotUngs) {
-      entries.push({
-        ngayHachToan: su.snapshot.ngayChot,
-        loaiNguon: 'UNG_LUONG',
-        khoanLuong: 'Ứng lương',
-        soTien: Number(su.soTienUngDuyet),
-        moTa: `Ứng lương kỳ ${su.snapshot.thangNam}`,
-        refId: su.snapshot.bangUngLuongId,
-        refType: 'BangUngLuong',
-      });
-    }
+    return snapshotUngs.map((su) => ({
+      bangUngLuongId: su.snapshot.bangUngLuongId,
+      maBang: su.snapshot.bangUngLuong.maBangUngLuong,
+      thangNam: su.snapshot.thangNam,
+      soTienDuyet: Number(su.soTienUngDuyet),
+      trangThai: su.snapshot.bangUngLuong.trangThai,
+      ngayChot: su.snapshot.ngayChot.toISOString(),
+    }));
+  }
 
-    // 4. Lấy từ KPI
+  /**
+   * Lay KPI
+   */
+  private async layKPIs(
+    nhanVienId: number,
+    tuThang: number,
+    tuNam: number,
+    denThang: number,
+    denNam: number,
+  ): Promise<KPIItem[]> {
+    const orConditions = this.buildMonthRangeCondition(tuThang, tuNam, denThang, denNam);
+    
     const kpiDanhGias = await this.prisma.danhGiaKPINhanVien.findMany({
       where: {
         nhanVienId,
         trangThai: 'DA_DUYET',
-        ngayDuyet: { gte: tuNgay, lte: denNgay },
         soTienThuong: { gt: 0 },
+        kyDanhGia: { OR: orConditions },
       },
-      include: {
-        kyDanhGia: true,
-      },
+      include: { kyDanhGia: true },
       orderBy: { ngayDuyet: 'desc' },
     });
 
-    for (const kpi of kpiDanhGias) {
-      entries.push({
-        ngayHachToan: kpi.ngayDuyet!,
-        loaiNguon: 'KPI',
-        khoanLuong: 'Thưởng KPI',
-        soTien: Number(kpi.soTienThuong),
-        moTa: `Thưởng KPI ${kpi.kyDanhGia.tenKy} - ${kpi.xepLoai}`,
-        refId: kpi.id,
-        refType: 'DanhGiaKPINhanVien',
-      });
-    }
+    return kpiDanhGias.map((kpi) => ({
+      kyDanhGiaId: kpi.kyDanhGiaId,
+      thang: kpi.kyDanhGia.thang || 0,
+      nam: kpi.kyDanhGia.nam,
+      tongDiem: Number(kpi.diemTongKet || 0),
+      xepLoai: kpi.xepLoai || 'D',
+      tienThuong: Number(kpi.soTienThuong),
+    }));
+  }
 
-    // 5. Lấy từ Sự kiện thưởng/phạt
+  /**
+   * Lay thuong phat
+   */
+  private async layThuongPhats(nhanVienId: number, tuNgay: Date, denNgay: Date): Promise<ThuongPhatItem[]> {
     const suKiens = await this.prisma.suKienThuongPhat.findMany({
       where: {
         nhanVienId,
@@ -179,67 +359,129 @@ export class SoLuongService {
       orderBy: { duyetLuc: 'desc' },
     });
 
-    for (const sk of suKiens) {
-      entries.push({
-        ngayHachToan: sk.duyetLuc!,
-        loaiNguon: 'THUONG_PHAT',
-        khoanLuong: sk.loaiSuKien === 'THUONG' ? 'Thưởng' : 'Phạt',
-        soTien: sk.loaiSuKien === 'THUONG' ? Number(sk.soTien) : -Number(sk.soTien),
-        moTa: `${sk.maSuKien}: ${sk.ghiChu || ''}`,
-        refId: sk.id,
-        refType: 'SuKienThuongPhat',
-      });
+    return suKiens.map((sk) => ({
+      suKienId: sk.id,
+      loai: sk.loaiSuKien as 'THUONG' | 'PHAT',
+      ten: sk.maSuKien,
+      soTien: Number(sk.soTien),
+      ngay: sk.duyetLuc!.toISOString(),
+      lyDo: sk.ghiChu || undefined,
+    }));
+  }
+
+  /**
+   * Tinh tong ket cho nhan vien
+   */
+  private tinhTongKetNV(
+    bangLuongs: BangLuongItem[],
+    dieuChinhs: DieuChinhItem[],
+    ungLuongs: UngLuongItem[],
+    kpis: KPIItem[],
+    thuongPhats: ThuongPhatItem[],
+  ): TongKetNV {
+    let tongLuong = 0;
+    let tongThuong = 0;
+    let tongPhat = 0;
+    let tongKhauTru = 0;
+    let tongUng = 0;
+
+    // Tu bang luong
+    for (const bl of bangLuongs) {
+      tongLuong += bl.luongCoBan + bl.phuCapTong;
+      tongThuong += bl.thuongKPI + bl.thuongThuNhap;
+      tongKhauTru += bl.khauTruTong + bl.bhxh + bl.bhyt + bl.bhtn + bl.thueTNCN;
     }
 
-    // Sắp xếp theo ngày
-    entries.sort((a, b) => b.ngayHachToan.getTime() - a.ngayHachToan.getTime());
+    // Tu dieu chinh
+    for (const dc of dieuChinhs) {
+      if (dc.loaiKhoan === 'CONG_THEM') {
+        tongLuong += dc.soTien;
+      } else {
+        tongKhauTru += dc.soTien;
+      }
+    }
 
-    // Tính tổng hợp
-    const tongHop = this.tinhTongHop(entries);
+    // Tu ung luong
+    for (const ul of ungLuongs) {
+      tongUng += ul.soTienDuyet;
+    }
+
+    // Tu KPI
+    for (const kpi of kpis) {
+      tongThuong += kpi.tienThuong;
+    }
+
+    // Tu thuong phat
+    for (const tp of thuongPhats) {
+      if (tp.loai === 'THUONG') {
+        tongThuong += tp.soTien;
+      } else {
+        tongPhat += tp.soTien;
+      }
+    }
+
+    const tongThucNhan = tongLuong + tongThuong - tongPhat - tongKhauTru;
 
     return {
-      nhanVien: {
-        id: nhanVien.id,
-        maNhanVien: nhanVien.maNhanVien,
-        hoTen: nhanVien.hoTen,
-        phongBan: nhanVien.phongBan?.tenPhongBan,
-      },
-      entries,
-      tongHop,
+      tongLuong,
+      tongThuong,
+      tongPhat,
+      tongKhauTru,
+      tongUng,
+      tongThucNhan,
     };
   }
 
   /**
-   * Lấy sổ lương theo phòng ban
+   * Build dieu kien loc theo khoang thang/nam
    */
-  async laySoLuongPhongBan(
-    phongBanId: number,
-    dto: LocSoLuongDto,
-  ): Promise<{
-    phongBan: Record<string, unknown>;
-    tongHop: TongHopSoLuong;
-    theoNhanVien: Array<{ nhanVien: Record<string, unknown>; tongHop: TongHopSoLuong }>;
-  }> {
+  private buildMonthRangeCondition(
+    tuThang: number,
+    tuNam: number,
+    denThang: number,
+    denNam: number,
+  ): Array<Record<string, unknown>> {
+    if (tuNam === denNam) {
+      return [{ nam: tuNam, thang: { gte: tuThang, lte: denThang } }];
+    } else if (denNam - tuNam === 1) {
+      return [
+        { nam: tuNam, thang: { gte: tuThang } },
+        { nam: denNam, thang: { lte: denThang } },
+      ];
+    } else {
+      return [
+        { nam: tuNam, thang: { gte: tuThang } },
+        { nam: { gt: tuNam, lt: denNam } },
+        { nam: denNam, thang: { lte: denThang } },
+      ];
+    }
+  }
+
+  /**
+   * Lay so luong theo phong ban
+   */
+  async laySoLuongPhongBan(phongBanId: number, dto: LocSoLuongDto) {
     const phongBan = await this.prisma.phongBan.findUnique({
       where: { id: phongBanId },
     });
 
     if (!phongBan) {
-      throw new NotFoundException(`Không tìm thấy phòng ban với ID: ${phongBanId}`);
+      throw new NotFoundException(`Khong tim thay phong ban voi ID: ${phongBanId}`);
     }
 
-    // Lấy danh sách nhân viên trong phòng ban
+    // Lay danh sach nhan vien trong phong ban
     const nhanViens = await this.prisma.nhanVien.findMany({
       where: { phongBanId, trangThai: 'DANG_LAM' },
     });
 
-    const theoNhanVien: Array<{ nhanVien: Record<string, unknown>; tongHop: TongHopSoLuong }> = [];
-    let tongHopPB: TongHopSoLuong = {
+    const theoNhanVien: Array<{ 
+      nhanVien: { id: number; maNhanVien: string; hoTen: string }; 
+      tongHop: TongHopPhongBan 
+    }> = [];
+    
+    const tongHopPB: TongHopPhongBan = {
       tongThuNhap: 0,
       tongKhauTru: 0,
-      tongUngLuong: 0,
-      tongKhauTruUng: 0,
-      tongDieuChinh: 0,
       tongThuong: 0,
       tongPhat: 0,
       thucLinh: 0,
@@ -247,20 +489,29 @@ export class SoLuongService {
 
     for (const nv of nhanViens) {
       const result = await this.laySoLuongNhanVien(nv.id, dto);
+      const nvTongHop: TongHopPhongBan = {
+        tongThuNhap: result.tongKet.tongLuong,
+        tongKhauTru: result.tongKet.tongKhauTru,
+        tongThuong: result.tongKet.tongThuong,
+        tongPhat: result.tongKet.tongPhat,
+        thucLinh: result.tongKet.tongThucNhan,
+      };
+
       theoNhanVien.push({
-        nhanVien: result.nhanVien,
-        tongHop: result.tongHop,
+        nhanVien: {
+          id: result.nhanVien.id,
+          maNhanVien: result.nhanVien.maNhanVien,
+          hoTen: result.nhanVien.hoTen,
+        },
+        tongHop: nvTongHop,
       });
 
-      // Cộng dồn vào tổng phòng ban
-      tongHopPB.tongThuNhap += result.tongHop.tongThuNhap;
-      tongHopPB.tongKhauTru += result.tongHop.tongKhauTru;
-      tongHopPB.tongUngLuong += result.tongHop.tongUngLuong;
-      tongHopPB.tongKhauTruUng += result.tongHop.tongKhauTruUng;
-      tongHopPB.tongDieuChinh += result.tongHop.tongDieuChinh;
-      tongHopPB.tongThuong += result.tongHop.tongThuong;
-      tongHopPB.tongPhat += result.tongHop.tongPhat;
-      tongHopPB.thucLinh += result.tongHop.thucLinh;
+      // Cong don
+      tongHopPB.tongThuNhap += nvTongHop.tongThuNhap;
+      tongHopPB.tongKhauTru += nvTongHop.tongKhauTru;
+      tongHopPB.tongThuong += nvTongHop.tongThuong;
+      tongHopPB.tongPhat += nvTongHop.tongPhat;
+      tongHopPB.thucLinh += nvTongHop.thucLinh;
     }
 
     return {
@@ -275,7 +526,55 @@ export class SoLuongService {
   }
 
   /**
-   * Tìm kiếm sổ lương
+   * Lay so luong tat ca phong ban
+   */
+  async laySoLuongTatCaPhongBan(dto: LocSoLuongDto) {
+    const phongBans = await this.prisma.phongBan.findMany({
+      where: { trangThai: 'ACTIVE' },
+      orderBy: { tenPhongBan: 'asc' },
+    });
+
+    const theoPhongBan: Array<{
+      phongBan: { id: number; maPhongBan: string; tenPhongBan: string };
+      tongHop: TongHopPhongBan;
+      soNhanVien: number;
+    }> = [];
+
+    const tongHopAll: TongHopPhongBan = {
+      tongThuNhap: 0,
+      tongKhauTru: 0,
+      tongThuong: 0,
+      tongPhat: 0,
+      thucLinh: 0,
+    };
+
+    for (const pb of phongBans) {
+      try {
+        const result = await this.laySoLuongPhongBan(pb.id, dto);
+        theoPhongBan.push({
+          phongBan: result.phongBan,
+          tongHop: result.tongHop,
+          soNhanVien: result.theoNhanVien.length,
+        });
+
+        tongHopAll.tongThuNhap += result.tongHop.tongThuNhap;
+        tongHopAll.tongKhauTru += result.tongHop.tongKhauTru;
+        tongHopAll.tongThuong += result.tongHop.tongThuong;
+        tongHopAll.tongPhat += result.tongHop.tongPhat;
+        tongHopAll.thucLinh += result.tongHop.thucLinh;
+      } catch {
+        // Skip phong ban khong co nhan vien
+      }
+    }
+
+    return {
+      tongHop: tongHopAll,
+      theoPhongBan,
+    };
+  }
+
+  /**
+   * Tim kiem so luong
    */
   async timKiem(dto: TimKiemSoLuongDto) {
     const { keyword, tuNgay, denNgay, phongBanId, trang = 1, soLuong = 20 } = dto;
@@ -315,8 +614,8 @@ export class SoLuongService {
         const soLuongData = await this.laySoLuongNhanVien(nv.id, locDto);
         return {
           nhanVien: soLuongData.nhanVien,
-          tongHop: soLuongData.tongHop,
-          soEntries: soLuongData.entries.length,
+          tongKet: soLuongData.tongKet,
+          soBangLuong: soLuongData.bangLuongs.length,
         };
       }),
     );
@@ -333,99 +632,55 @@ export class SoLuongService {
   }
 
   /**
-   * Tính tổng hợp từ danh sách entries
-   */
-  private tinhTongHop(entries: EntrySoLuong[]): TongHopSoLuong {
-    let tongThuNhap = 0;
-    let tongKhauTru = 0;
-    let tongUngLuong = 0;
-    let tongKhauTruUng = 0;
-    let tongDieuChinh = 0;
-    let tongThuong = 0;
-    let tongPhat = 0;
-
-    for (const entry of entries) {
-      switch (entry.loaiNguon) {
-        case 'BANG_LUONG':
-          if (entry.soTien > 0) {
-            tongThuNhap += entry.soTien;
-          } else {
-            tongKhauTru += Math.abs(entry.soTien);
-          }
-          break;
-        case 'UNG_LUONG':
-          if (entry.soTien > 0) {
-            tongUngLuong += entry.soTien;
-          } else {
-            tongKhauTruUng += Math.abs(entry.soTien);
-          }
-          break;
-        case 'DIEU_CHINH':
-          tongDieuChinh += entry.soTien;
-          break;
-        case 'KPI':
-        case 'THUONG_PHAT':
-          if (entry.soTien > 0) {
-            tongThuong += entry.soTien;
-          } else {
-            tongPhat += Math.abs(entry.soTien);
-          }
-          break;
-      }
-    }
-
-    const thucLinh =
-      tongThuNhap +
-      tongUngLuong +
-      tongDieuChinh +
-      tongThuong -
-      tongKhauTru -
-      tongKhauTruUng -
-      tongPhat;
-
-    return {
-      tongThuNhap,
-      tongKhauTru,
-      tongUngLuong,
-      tongKhauTruUng,
-      tongDieuChinh,
-      tongThuong,
-      tongPhat,
-      thucLinh,
-    };
-  }
-
-  /**
-   * Lấy chi tiết một entry (để drill-down)
+   * Lay chi tiet entry theo refType va refId
    */
   async layChiTietEntry(refType: string, refId: number) {
     switch (refType) {
-      case 'BangLuong':
+      case 'LUONG':
         return this.prisma.bangLuong.findUnique({
           where: { id: refId },
-          include: { phongBan: true },
+          include: {
+            phongBan: true,
+            chiTiets: true,
+            ngayCong: true,
+          },
         });
-      case 'PhieuDieuChinh':
+
+      case 'DIEU_CHINH':
         return this.prisma.phieuDieuChinh.findUnique({
           where: { id: refId },
           include: {
-            nhanVien: true,
-            chiTiets: { include: { khoanLuong: true } },
+            chiTiets: true,
           },
         });
-      case 'BangUngLuong':
-        return this.prisma.bangUngLuong.findUnique({
+
+      case 'UNG_LUONG':
+        return this.prisma.snapshotBangUngLuong.findUnique({
           where: { id: refId },
+          include: {
+            bangUngLuong: true,
+            chiTiets: true,
+          },
         });
-      case 'DanhGiaKPINhanVien':
+
+      case 'KPI':
         return this.prisma.danhGiaKPINhanVien.findUnique({
           where: { id: refId },
-          include: { kyDanhGia: true },
+          include: {
+            kyDanhGia: true,
+            ketQuaKPIs: true,
+          },
         });
-      case 'SuKienThuongPhat':
+
+      case 'THUONG_PHAT':
         return this.prisma.suKienThuongPhat.findUnique({
           where: { id: refId },
+          include: {
+            nhanVien: true,
+            phongBan: true,
+          },
         });
+
       default:
         return null;
     }

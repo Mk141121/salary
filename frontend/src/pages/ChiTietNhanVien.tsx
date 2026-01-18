@@ -291,8 +291,8 @@ export default function ChiTietNhanVien() {
   const phuCapTamDung = phuCaps?.filter((pc: PhuCapNhanVien) => pc.trangThai === 'TAM_DUNG') || []
   const phuCapKetThuc = phuCaps?.filter((pc: PhuCapNhanVien) => pc.trangThai === 'KET_THUC') || []
 
-  // Tính tổng phụ cấp hiệu lực
-  const tongPhuCap = phuCapHieuLuc.reduce((sum: number, pc: PhuCapNhanVien) => sum + pc.soTien, 0)
+  // Tính tổng phụ cấp hiệu lực (soTien có thể là string từ Decimal)
+  const tongPhuCap = phuCapHieuLuc.reduce((sum: number, pc: PhuCapNhanVien) => sum + Number(pc.soTien || 0), 0)
 
   if (loadingNV) {
     return (

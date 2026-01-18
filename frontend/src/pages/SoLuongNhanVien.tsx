@@ -141,27 +141,27 @@ export default function SoLuongNhanVien() {
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-500">Tổng lương</p>
-                <p className="text-lg font-bold text-gray-800">{formatTien(soLuong.tongKet.tongLuong)}</p>
+                <p className="text-lg font-bold text-gray-800">{formatTien(soLuong.tongKet?.tongLuong ?? 0)}</p>
               </div>
               <div className="bg-green-50 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-500">Tổng thưởng</p>
-                <p className="text-lg font-bold text-green-600">{formatTien(soLuong.tongKet.tongThuong)}</p>
+                <p className="text-lg font-bold text-green-600">{formatTien(soLuong.tongKet?.tongThuong ?? 0)}</p>
               </div>
               <div className="bg-red-50 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-500">Tổng phạt</p>
-                <p className="text-lg font-bold text-red-600">{formatTien(soLuong.tongKet.tongPhat)}</p>
+                <p className="text-lg font-bold text-red-600">{formatTien(soLuong.tongKet?.tongPhat ?? 0)}</p>
               </div>
               <div className="bg-orange-50 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-500">Tổng khấu trừ</p>
-                <p className="text-lg font-bold text-orange-600">{formatTien(soLuong.tongKet.tongKhauTru)}</p>
+                <p className="text-lg font-bold text-orange-600">{formatTien(soLuong.tongKet?.tongKhauTru ?? 0)}</p>
               </div>
               <div className="bg-purple-50 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-500">Tổng ứng</p>
-                <p className="text-lg font-bold text-purple-600">{formatTien(soLuong.tongKet.tongUng)}</p>
+                <p className="text-lg font-bold text-purple-600">{formatTien(soLuong.tongKet?.tongUng ?? 0)}</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-500">Thực nhận</p>
-                <p className="text-lg font-bold text-blue-600">{formatTien(soLuong.tongKet.tongThucNhan)}</p>
+                <p className="text-lg font-bold text-blue-600">{formatTien(soLuong.tongKet?.tongThucNhan ?? 0)}</p>
               </div>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function SoLuongNhanVien() {
             >
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <FileSpreadsheet size={20} />
-                Lịch sử bảng lương ({soLuong.bangLuongs.length})
+                Lịch sử bảng lương ({soLuong.bangLuongs?.length ?? 0})
               </h3>
               {expandedSection === 'bangLuongs' ? <ChevronUp /> : <ChevronDown />}
             </button>
@@ -195,7 +195,7 @@ export default function SoLuongNhanVien() {
                     </tr>
                   </thead>
                   <tbody>
-                    {soLuong.bangLuongs.map((bl) => (
+                    {soLuong.bangLuongs?.map((bl) => (
                       <tr key={bl.bangLuongId} className="border-b hover:bg-gray-50">
                         <td className="py-2 px-3 font-medium">{bl.thangNam}</td>
                         <td className="py-2 px-3 text-right">{bl.ngayCong}</td>
@@ -222,7 +222,7 @@ export default function SoLuongNhanVien() {
             >
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Calendar size={20} />
-                Phiếu điều chỉnh ({soLuong.dieuChinhs.length})
+                Phiếu điều chỉnh ({soLuong.dieuChinhs?.length ?? 0})
               </h3>
               {expandedSection === 'dieuChinhs' ? <ChevronUp /> : <ChevronDown />}
             </button>
@@ -240,7 +240,7 @@ export default function SoLuongNhanVien() {
                     </tr>
                   </thead>
                   <tbody>
-                    {soLuong.dieuChinhs.map((dc, idx) => (
+                    {soLuong.dieuChinhs?.map((dc, idx) => (
                       <tr key={idx} className="border-b hover:bg-gray-50">
                         <td className="py-2 px-3">{new Date(dc.ngayTao).toLocaleDateString('vi-VN')}</td>
                         <td className="py-2 px-3">{dc.loaiPhieu}</td>
@@ -270,7 +270,7 @@ export default function SoLuongNhanVien() {
             >
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <TrendingUp size={20} />
-                Ứng lương ({soLuong.ungLuongs.length})
+                Ứng lương ({soLuong.ungLuongs?.length ?? 0})
               </h3>
               {expandedSection === 'ungLuongs' ? <ChevronUp /> : <ChevronDown />}
             </button>
@@ -287,7 +287,7 @@ export default function SoLuongNhanVien() {
                     </tr>
                   </thead>
                   <tbody>
-                    {soLuong.ungLuongs.map((ul) => (
+                    {soLuong.ungLuongs?.map((ul) => (
                       <tr key={ul.bangUngLuongId} className="border-b hover:bg-gray-50">
                         <td className="py-2 px-3 font-medium">{ul.maBang}</td>
                         <td className="py-2 px-3">{ul.thangNam}</td>

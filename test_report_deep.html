@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Kiểm Thử Chuyên Sâu (Deep Test)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .pass {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e83e8c;
+        }
+
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Báo Cáo Kiểm Thử Chuyên Sâu</h1>
+        <div>
+            <strong>Dự án:</strong> Hệ Thống Tính Lương<br>
+            <strong>Thời gian:</strong> 2026-01-17 16:30<br>
+            <strong>Phương pháp:</strong> Manual Deep Testing Script
+        </div>
+
+        <div class="status-box pass">
+            KẾT QUẢ CHUNG: ĐẠT (PASS)
+        </div>
+
+        <p>Hệ thống đã trải qua quy trình kiểm thử API thực tế (End-to-End) mô phỏng người dùng quản trị. Kết quả cho
+            thấy các luồng dữ liệu chính hoạt động chính xác.</p>
+
+        <h2>1. Kịch bản kiểm thử (Test Scenario)</h2>
+        <ul>
+            <li><strong>Bước 1:</strong> Đăng nhập với tài khoản Admin mặc định (admin/admin123).</li>
+            <li><strong>Bước 2:</strong> Sử dụng Token nhận được để xác thực phiên làm việc.</li>
+            <li><strong>Bước 3:</strong> Truy cập API bảo mật (RBAC) để lấy danh sách người dùng.</li>
+            <li><strong>Bước 4:</strong> Truy cập API nghiệp vụ để lấy danh sách phòng ban.</li>
+        </ul>
+
+        <h2>2. Kết quả chi tiết</h2>
+
+        <h3>🔐 Authentication (Xác thực)</h3>
+        <div class="status-box pass">
+            Trạng thái: PASSED
+        </div>
+        <ul>
+            <li>API <code>/api/rbac/dang-nhap</code> hoạt động tốt.</li>
+            <li>Phản hồi: Trả về <code>token</code>, thông tin user và danh sách quyền hợp lệ.</li>
+        </ul>
+
+        <h3>🛡️ Authorization (Phân quyền)</h3>
+        <div class="status-box pass">
+            Trạng thái: PASSED
+        </div>
+        <ul>
+            <li>Token hợp lệ truy cập được các route bảo vệ (`@UseGuards`).</li>
+            <li>API <code>/api/rbac/kiem-tra-token</code> trả về status 200 OK.</li>
+        </ul>
+
+        <h3>🏢 Business Logic (Nghiệp vụ)</h3>
+        <div class="status-box pass">
+            Trạng thái: PASSED
+        </div>
+        <ul>
+            <li>API <code>/api/phong-ban</code> trả về dữ liệu chính xác.</li>
+            <li><strong>Kết quả thực tế:</strong> Tìm thấy 6 phòng ban (bao gồm dữ liệu seed).</li>
+            <li>API <code>/api/rbac/nguoi-dung</code> trả về 1 user (Admin).</li>
+        </ul>
+
+        <h2>3. Logs Kiểm thử</h2>
+        <pre>
+🚀 Starting Deep Test Manual...
+1️⃣ Testing Login...
+✅ Login Successful!
+2️⃣ Testing Token Verification...
+✅ Token Verified: Valid (Status 200)
+3️⃣ Testing Get Users List (RBAC Check)...
+✅ Get Users Successful. Found 1 users.
+4️⃣ Testing Get Departments...
+✅ Get Departments Successful. Found 6 departments.
+🏁 Deep Test Completed Successfully.
+    </pre>
+
+        <h2>4. Kết luận</h2>
+        <p>Hệ thống Backend hoạt động ổn định, cơ chế xác thực và phân quyền RBAC vận hành đúng thiết kế. Dữ liệu mẫu
+            (Seed Data) đã được nạp thành công và có thể truy xuất qua API.</p>
+
+    </div>
+
+</body>
+
+</html>

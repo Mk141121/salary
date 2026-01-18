@@ -34,6 +34,18 @@ const hop_dong_module_1 = require("./modules/hop-dong/hop-dong.module");
 const ngan_hang_module_1 = require("./modules/ngan-hang/ngan-hang.module");
 const nhom_nhan_vien_module_1 = require("./modules/nhom-nhan-vien/nhom-nhan-vien.module");
 const thue_bh_module_1 = require("./modules/thue-bh/thue-bh.module");
+const ung_luong_module_1 = require("./modules/ung-luong/ung-luong.module");
+const so_luong_module_1 = require("./modules/so-luong/so-luong.module");
+const nghi_phep_module_1 = require("./modules/nghi-phep/nghi-phep.module");
+const ca_lam_viec_module_1 = require("./modules/ca-lam-viec/ca-lam-viec.module");
+const phan_ca_module_1 = require("./modules/phan-ca/phan-ca.module");
+const yeu_cau_module_1 = require("./modules/yeu-cau/yeu-cau.module");
+const employee_portal_module_1 = require("./modules/employee-portal/employee-portal.module");
+const thong_bao_module_1 = require("./modules/thong-bao/thong-bao.module");
+const anti_fraud_module_1 = require("./modules/anti-fraud/anti-fraud.module");
+const timesheet_module_1 = require("./modules/timesheet/timesheet.module");
+const payroll_sync_module_1 = require("./modules/payroll-sync/payroll-sync.module");
+const reports_module_1 = require("./modules/reports/reports.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -82,6 +94,18 @@ exports.AppModule = AppModule = __decorate([
             ngan_hang_module_1.NganHangModule,
             nhom_nhan_vien_module_1.NhomNhanVienModule,
             thue_bh_module_1.ThueBHModule,
+            ung_luong_module_1.UngLuongModule,
+            so_luong_module_1.SoLuongModule,
+            nghi_phep_module_1.NghiPhepModule,
+            ca_lam_viec_module_1.CaLamViecModule,
+            phan_ca_module_1.PhanCaModule,
+            yeu_cau_module_1.YeuCauModule,
+            employee_portal_module_1.EmployeePortalModule,
+            thong_bao_module_1.ThongBaoModule,
+            anti_fraud_module_1.AntiFraudModule,
+            timesheet_module_1.TimesheetModule,
+            payroll_sync_module_1.PayrollSyncModule,
+            reports_module_1.ReportsModule,
         ],
         controllers: [health_controller_1.HealthController],
         providers: [

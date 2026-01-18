@@ -66,17 +66,18 @@ export interface GiaoHang {
 
 export interface LichSuImport {
   id: number;
-  loai: 'CHIA_HANG' | 'GIAO_HANG';
+  loaiImport: 'CHIA_HANG' | 'GIAO_HANG';
   tenFile: string;
-  thoiGianImport: string;
+  ngayDuLieu: string;
+  importLuc: string;
   nguoiImportId: number;
-  nguoiImport: { hoTen: string };
-  soLuongDong: number;
-  soDongThanhCong: number;
-  soDongThatBai: number;
+  nguoiImport: { id: number; hoTen: string; tenDangNhap: string };
+  soDong: number;
+  soDongHopLe: number;
+  soDongLoi: number;
   trangThai: 'THANH_CONG' | 'THAT_BAI';
   fileHash?: string;
-  ghiChu?: string;
+  noiDungLoiJson?: string;
 }
 
 export interface QuerySanLuongParams {
@@ -90,7 +91,7 @@ export interface QuerySanLuongParams {
 }
 
 export interface QueryLichSuImportParams {
-  loai?: 'CHIA_HANG' | 'GIAO_HANG';
+  loaiImport?: 'CHIA_HANG' | 'GIAO_HANG';
   tuNgay?: string;
   denNgay?: string;
   trangThai?: 'THANH_CONG' | 'THAT_BAI';
@@ -202,12 +203,36 @@ export const adminSuaGiaoHang = async (
 
 /**
  * Lấy lịch sử import
+ * Backend trả về mảng trực tiếp, frontend pagination bằng client-side
  */
 export const layLichSuImport = async (
   params: QueryLichSuImportParams,
 ): Promise<{ items: LichSuImport[]; total: number }> => {
-  const res = await api.get('/san-luong/lich-su-import', { params });
-  return res.data;
+  const res = await api.get('/san-luong/lich-su-import', { 
+    params: {
+      loaiImport: params.loaiImport,
+      tuNgay: params.tuNgay,
+      denNgay: params.denNgay,
+    } 
+  });
+  // Backend trả về mảng trực tiếp
+  const allItems: LichSuImport[] = Array.isArray(res.data) ? res.data : [];
+  
+  // Client-side pagination và filtering by trangThai
+  let filteredItems = allItems;
+  if (params.trangThai) {
+    filteredItems = allItems.filter(item => item.trangThai === params.trangThai);
+  }
+  
+  const page = params.page || 1;
+  const limit = params.limit || 20;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  
+  return {
+    items: filteredItems.slice(startIndex, endIndex),
+    total: filteredItems.length,
+  };
 };
 
 /**

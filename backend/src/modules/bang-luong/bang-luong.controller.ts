@@ -150,11 +150,17 @@ export class BangLuongController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Xóa bảng lương' })
+  @ApiOperation({ summary: 'Xóa bảng lương (ADMIN có thể xóa bảng đã khóa với force=true)' })
   @ApiResponse({ status: 200, description: 'Xóa thành công' })
   @ApiResponse({ status: 400, description: 'Không thể xóa bảng lương đã chốt' })
-  async xoa(@Param('id', ParseIntPipe) id: number) {
-    return this.bangLuongService.xoa(id);
+  async xoa(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('force') force?: string,
+    @NguoiDungHienTai() nguoiDung?: { id: number; tenDangNhap: string; vaiTros?: string[] },
+  ) {
+    const isAdmin = nguoiDung?.vaiTros?.includes('ADMIN') || nguoiDung?.tenDangNhap === 'admin';
+    const forceDelete = force === 'true' && isAdmin;
+    return this.bangLuongService.xoa(id, forceDelete, nguoiDung?.tenDangNhap);
   }
 
   @Post(':id/so-sanh-excel')

@@ -36,21 +36,38 @@ let SnapshotDieuChinhService = class SnapshotDieuChinhService {
             throw new common_1.BadRequestException('Bảng lương đã được chốt trước đó');
         }
         const ngayChot = new Date();
-        const snapshotData = bangLuong.chiTiets.map((ct) => ({
-            bangLuongId: ct.bangLuongId,
-            nhanVienId: ct.nhanVienId,
-            maNhanVien: ct.nhanVien.maNhanVien,
-            hoTen: ct.nhanVien.hoTen,
-            phongBan: bangLuong.phongBan.tenPhongBan,
-            khoanLuongId: ct.khoanLuongId,
-            maKhoan: ct.khoanLuong.maKhoan,
-            tenKhoan: ct.khoanLuong.tenKhoan,
-            loaiKhoan: ct.khoanLuong.loai,
-            soTien: ct.soTien,
-            nguon: ct.nguon,
-            ngayChot,
-            nguoiChot,
-        }));
+        const nhanVienIds = bangLuong.chiTiets.map((ct) => ct.nhanVienId);
+        const lichSuPhongBans = await this.prisma.nhanVienPhongBan.findMany({
+            where: {
+                nhanVienId: { in: nhanVienIds },
+                denNgay: null,
+            },
+            include: {
+                donViCon: true,
+            },
+        });
+        const donViConMap = new Map(lichSuPhongBans.map((ls) => [ls.nhanVienId, ls.donViCon]));
+        const snapshotData = bangLuong.chiTiets.map((ct) => {
+            const donViCon = donViConMap.get(ct.nhanVienId);
+            return {
+                bangLuongId: ct.bangLuongId,
+                nhanVienId: ct.nhanVienId,
+                maNhanVien: ct.nhanVien.maNhanVien,
+                hoTen: ct.nhanVien.hoTen,
+                phongBan: bangLuong.phongBan.tenPhongBan,
+                phongBanId: bangLuong.phongBan.id,
+                donViConId: donViCon?.id || null,
+                donViCon: donViCon?.tenDonVi || null,
+                khoanLuongId: ct.khoanLuongId,
+                maKhoan: ct.khoanLuong.maKhoan,
+                tenKhoan: ct.khoanLuong.tenKhoan,
+                loaiKhoan: ct.khoanLuong.loai,
+                soTien: ct.soTien,
+                nguon: ct.nguon,
+                ngayChot,
+                nguoiChot,
+            };
+        });
         await this.prisma.snapshotBangLuong.deleteMany({
             where: { bangLuongId },
         });
@@ -180,6 +197,9 @@ let SnapshotDieuChinhService = class SnapshotDieuChinhService {
         if (bangLuong.trangThai === 'NHAP') {
             throw new common_1.BadRequestException('Bảng lương chưa chốt, không cần phiếu điều chỉnh');
         }
+        if (bangLuong.trangThai === 'KHOA') {
+            throw new common_1.BadRequestException('Bảng lương đã khóa vĩnh viễn, không thể tạo phiếu điều chỉnh');
+        }
         const nhanVien = await this.prisma.nhanVien.findUnique({
             where: { id: data.nhanVienId },
         });
@@ -278,6 +298,16 @@ let SnapshotDieuChinhService = class SnapshotDieuChinhService {
             },
         });
         for (const ct of phieu.chiTiets) {
+            await this.prisma.chiTietBangLuong.updateMany({
+                where: {
+                    bangLuongId: phieu.bangLuongId,
+                    nhanVienId: phieu.nhanVienId,
+                    khoanLuongId: ct.khoanLuongId,
+                },
+                data: {
+                    soTien: ct.soTienMoi,
+                },
+            });
             await this.prisma.lichSuChinhSua.create({
                 data: {
                     bangLuongId: phieu.bangLuongId,

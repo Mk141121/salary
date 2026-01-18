@@ -1,0 +1,116 @@
+import { CaLamViecService } from './ca-lam-viec.service';
+import { TaoCaLamViecDto, CapNhatCaLamViecDto, LocCaLamViecDto } from './ca-lam-viec.dto';
+export declare class CaLamViecController {
+    private readonly caLamViecService;
+    constructor(caLamViecService: CaLamViecService);
+    layDanhSach(filter: LocCaLamViecDto): Promise<{
+        data: {
+            id: number;
+            moTa: string | null;
+            trangThai: boolean;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
+            ngayTao: Date;
+            ngayCapNhat: Date;
+            phongBanId: number | null;
+            mauHienThi: string | null;
+            gioVao: string;
+            gioRa: string;
+            maCa: string;
+            tenCa: string;
+            nghiGiuaCaPhut: number;
+            graceInPhut: number;
+            graceLatePhut: number;
+            isCaDem: boolean;
+        }[];
+        total: number;
+    }>;
+    layDanhSachActive(phongBanId?: string): Promise<{
+        id: number;
+        mauHienThi: string | null;
+        gioVao: string;
+        gioRa: string;
+        maCa: string;
+        tenCa: string;
+        isCaDem: boolean;
+    }[]>;
+    layChiTiet(id: number): Promise<{
+        id: number;
+        moTa: string | null;
+        trangThai: boolean;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        phongBanId: number | null;
+        mauHienThi: string | null;
+        gioVao: string;
+        gioRa: string;
+        maCa: string;
+        tenCa: string;
+        nghiGiuaCaPhut: number;
+        graceInPhut: number;
+        graceLatePhut: number;
+        isCaDem: boolean;
+    }>;
+    tao(dto: TaoCaLamViecDto, req: any): Promise<{
+        id: number;
+        moTa: string | null;
+        trangThai: boolean;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        phongBanId: number | null;
+        mauHienThi: string | null;
+        gioVao: string;
+        gioRa: string;
+        maCa: string;
+        tenCa: string;
+        nghiGiuaCaPhut: number;
+        graceInPhut: number;
+        graceLatePhut: number;
+        isCaDem: boolean;
+    }>;
+    capNhat(id: number, dto: CapNhatCaLamViecDto, req: any): Promise<{
+        id: number;
+        moTa: string | null;
+        trangThai: boolean;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        phongBanId: number | null;
+        mauHienThi: string | null;
+        gioVao: string;
+        gioRa: string;
+        maCa: string;
+        tenCa: string;
+        nghiGiuaCaPhut: number;
+        graceInPhut: number;
+        graceLatePhut: number;
+        isCaDem: boolean;
+    }>;
+    xoa(id: number): Promise<{
+        message: string;
+    }>;
+    toggleTrangThai(id: number, req: any): Promise<{
+        id: number;
+        moTa: string | null;
+        trangThai: boolean;
+        taoBoi: number | null;
+        capNhatBoi: number | null;
+        ngayTao: Date;
+        ngayCapNhat: Date;
+        phongBanId: number | null;
+        mauHienThi: string | null;
+        gioVao: string;
+        gioRa: string;
+        maCa: string;
+        tenCa: string;
+        nghiGiuaCaPhut: number;
+        graceInPhut: number;
+        graceLatePhut: number;
+        isCaDem: boolean;
+    }>;
+}

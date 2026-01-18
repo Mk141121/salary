@@ -15,7 +15,12 @@ let PhongBanModule = class PhongBanModule {
 exports.PhongBanModule = PhongBanModule;
 exports.PhongBanModule = PhongBanModule = __decorate([
     (0, common_1.Module)({
-        controllers: [phong_ban_controller_1.PhongBanController],
+        controllers: [
+            phong_ban_controller_1.PhongBanController,
+            phong_ban_controller_1.DonViConController,
+            phong_ban_controller_1.NhanVienPhongBanController,
+            phong_ban_controller_1.PhanQuyenPhongBanController,
+        ],
         providers: [phong_ban_service_1.PhongBanService],
         exports: [phong_ban_service_1.PhongBanService],
     })

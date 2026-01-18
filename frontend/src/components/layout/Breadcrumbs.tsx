@@ -1,4 +1,4 @@
-// Breadcrumbs Component - Hiển thị đường dẫn theo route
+// Breadcrumbs Component - Premium Style
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
 import { useMemo } from 'react'
@@ -50,7 +50,7 @@ export default function Breadcrumbs() {
   }
 
   return (
-    <nav className="flex items-center space-x-1 text-sm">
+    <nav className="flex items-center gap-1">
       {breadcrumbs.map((item, index) => {
         const isLast = index === breadcrumbs.length - 1
         const isFirst = index === 0
@@ -59,22 +59,30 @@ export default function Breadcrumbs() {
           <div key={index} className="flex items-center">
             {/* Separator */}
             {index > 0 && (
-              <ChevronRight size={14} className="mx-1 text-gray-400" />
+              <ChevronRight size={14} className="mx-1.5 text-text-muted" />
             )}
 
             {/* Item */}
             {item.path && !isLast ? (
               <Link
                 to={item.path}
-                className="flex items-center text-gray-600 hover:text-primary-600 transition-colors"
+                className="
+                  flex items-center gap-1.5 px-2 py-1 rounded-lg
+                  text-text-secondary text-sm
+                  hover:text-text hover:bg-panel
+                  transition-all
+                "
               >
-                {isFirst && <Home size={14} className="mr-1" />}
-                <span className="hover:underline">{item.label}</span>
+                {isFirst && <Home size={14} />}
+                <span>{item.label}</span>
               </Link>
             ) : (
               <span
                 className={`
-                  ${isLast ? 'text-gray-900 font-medium' : 'text-gray-500'}
+                  px-2 py-1 rounded-lg text-sm
+                  ${isLast 
+                    ? 'text-text font-medium bg-panel border border-border' 
+                    : 'text-text-muted'}
                   max-w-[200px] truncate
                 `}
                 title={item.label}

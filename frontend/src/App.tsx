@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { NewLayout } from './components/layout'
+import NewLayout from './components/layout/NewLayout'
 import TrangChu from './pages/TrangChu'
 import DanhSachBangLuong from './pages/DanhSachBangLuong'
 import ChiTietBangLuong from './pages/ChiTietBangLuong'
@@ -37,6 +37,32 @@ import DanhMucLoaiNghi from './pages/DanhMucLoaiNghi'
 import DonNghiCuaToi from './pages/DonNghiCuaToi'
 import DuyetNghiPhep from './pages/DuyetNghiPhep'
 import LichNghiPhep from './pages/LichNghiPhep'
+// Phase 2: Xếp Ca (Scheduling) pages
+import DanhMucCaLamViec from './pages/DanhMucCaLamViec'
+import LichPhanCa from './pages/LichPhanCa'
+// Phase 2: Yêu cầu (Request) pages
+import DonYeuCauCuaToi from './pages/DonYeuCauCuaToi'
+import DuyetYeuCau from './pages/DuyetYeuCau'
+// Sprint 5: Employee Portal pages
+import MobileLayout from './components/layout/MobileLayout'
+import PortalHome from './pages/portal/PortalHome'
+import PortalSchedule from './pages/portal/PortalSchedule'
+import PortalAttendance from './pages/portal/PortalAttendance'
+import PortalRequests from './pages/portal/PortalRequests'
+import PortalProfile from './pages/portal/PortalProfile'
+// Sprint 6: Thông báo
+import ThongBaoPage from './pages/ThongBaoPage'
+// Sprint 7: Anti-fraud GPS + Geofence
+import CauHinhGeofence from './pages/CauHinhGeofence'
+import GPSLogs from './pages/GPSLogs'
+// Sprint 8: Device Binding
+import QuanLyThietBi from './pages/QuanLyThietBi'
+// Sprint 9: Timesheet Management
+import BangCongThang from './pages/BangCongThang'
+// Sprint 10: Payroll Sync Pipeline
+import PayrollSync from './pages/PayrollSync'
+// Sprint 12: Reports
+import { ReportsPage } from './pages/reports'
 import { RequireAuth } from './contexts/AuthContext'
 
 function App() {
@@ -89,12 +115,48 @@ function App() {
         <Route path="nghi-phep/duyet" element={<RequireAuth><DuyetNghiPhep /></RequireAuth>} />
         <Route path="nghi-phep/lich" element={<RequireAuth><LichNghiPhep /></RequireAuth>} />
         
+        {/* Phase 2: Xếp Ca (Scheduling) routes */}
+        <Route path="xep-ca/danh-muc-ca" element={<RequireAuth><DanhMucCaLamViec /></RequireAuth>} />
+        <Route path="xep-ca/lich-phan-ca" element={<RequireAuth><LichPhanCa /></RequireAuth>} />
+        
+        {/* Phase 2: Yêu cầu (Request) routes */}
+        <Route path="yeu-cau/don-cua-toi" element={<RequireAuth><DonYeuCauCuaToi /></RequireAuth>} />
+        <Route path="yeu-cau/duyet" element={<RequireAuth><DuyetYeuCau /></RequireAuth>} />
+        
         {/* Admin routes */}
         <Route path="quan-tri/nguoi-dung" element={<RequireAuth><QuanLyNguoiDung /></RequireAuth>} />
         <Route path="quan-tri/audit-log" element={<RequireAuth><AuditLog /></RequireAuth>} />
         
+        {/* Sprint 7: Anti-fraud GPS + Geofence routes */}
+        <Route path="anti-fraud/geofence" element={<RequireAuth><CauHinhGeofence /></RequireAuth>} />
+        <Route path="anti-fraud/gps-logs" element={<RequireAuth><GPSLogs /></RequireAuth>} />
+        {/* Sprint 8: Device Binding routes */}
+        <Route path="anti-fraud/devices" element={<RequireAuth><QuanLyThietBi /></RequireAuth>} />
+        
+        {/* Sprint 9: Timesheet Management routes */}
+        <Route path="timesheet" element={<RequireAuth><BangCongThang /></RequireAuth>} />
+        
+        {/* Sprint 10: Payroll Sync Pipeline routes */}
+        <Route path="payroll-sync" element={<RequireAuth><PayrollSync /></RequireAuth>} />
+        
+        {/* Sprint 12: Reports routes */}
+        <Route path="reports" element={<RequireAuth><ReportsPage /></RequireAuth>} />
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+      
+      {/* Sprint 5: Employee Portal (Mobile-first) */}
+      <Route path="/portal" element={<RequireAuth><MobileLayout /></RequireAuth>}>
+        <Route index element={<PortalHome />} />
+        <Route path="lich-lam" element={<PortalSchedule />} />
+        <Route path="cham-cong" element={<PortalAttendance />} />
+        <Route path="yeu-cau" element={<PortalRequests />} />
+        <Route path="ca-nhan" element={<PortalProfile />} />
+        <Route path="thong-bao" element={<ThongBaoPage />} />
+      </Route>
+      
+      {/* Sprint 6: Thông báo (Standalone for Admin) */}
+      <Route path="/thong-bao" element={<RequireAuth><ThongBaoPage /></RequireAuth>} />
     </Routes>
   )
 }

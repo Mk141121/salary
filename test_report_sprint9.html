@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Kiểm Thử Sprint 9: Timesheet Management</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .pass {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+
+        .fail {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e83e8c;
+        }
+
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Báo Cáo Kiểm Thử Sprint 9: Timesheet Management</h1>
+        <div>
+            <strong>Phạm vi:</strong> Bảng công, Yêu cầu sửa công, Duyệt sửa công, Lịch sử sửa công<br>
+            <strong>Thời gian:</strong> 2026-01-18 06:48<br>
+            <strong>Trạng thái:</strong> ✅ PASSED (Final)
+        </div>
+
+        <div class="status-box pass">
+            KẾT QUẢ TỔNG QUAN: ĐẠT 100%
+        </div>
+
+        <p>Module Quản lý Bảng công (Timesheet) đã hoạt động ổn định. Tất cả các lỗi phát hiện trước đó đã được khắc
+            phục hoàn toàn.</p>
+
+        <h2>1. Các tính năng đã kiểm thử</h2>
+        <ul>
+            <li>✅ <strong>Xem Bảng Công:</strong> Đã fix lỗi 500, dữ liệu trả về chính xác cho từng nhân viên/ngày.</li>
+            <li>✅ <strong>Yêu cầu sửa công (Nhân viên):</strong> Nhân viên có thể tạo yêu cầu khi quên chấm công hoặc
+                sai giờ.</li>
+            <li>✅ <strong>Duyệt yêu cầu (Quản lý/Admin):</strong> Admin có thể duyệt yêu cầu, hệ thống tự động cập nhật
+                giờ vào/ra trong bảng công.</li>
+            <li>✅ <strong>Sửa công trực tiếp (HR):</strong> HR có quyền sửa trực tiếp bảng công.</li>
+            <li>✅ <strong>Audit Log (Lịch sử):</strong> Mọi thay đổi đều được ghi lại trong bảng
+                <code>LichSuSuaCong</code>.</li>
+        </ul>
+
+        <h2>2. Quá trình Fix lỗi</h2>
+        <ul>
+            <li>✅ <strong>Lỗi 500 (Enum mismatch):</strong> Đã thay thế <code>DANG_LAM_VIEC</code> thành
+                <code>DANG_LAM</code> trong service code để khớp với Database. Test case đã Passed.</li>
+            <li>✅ <strong>Lỗi thiếu Model:</strong> Đã đồng bộ Database thành công.</li>
+        </ul>
+
+        <h2>3. Logs Kiểm thử chi tiết (Re-test)</h2>
+        <pre>
+🚀 Starting Deep Test Sprint 9: Timesheet Management...
+
+🔐 [1] Authenticating...
+✅ Admin Authenticated
+✅ Employee Authenticated (huong.ttt)
+
+📅 [2] Viewing Timesheet...
+✅ Timesheet Fetched. Total Users: 1
+   Sample User: Lâm Như Ngọc
+
+📝 [3] Creating Correction Request (Employee)...
+✅ Correction Request Created. ID: 3
+
+✅ [4] Approving Request (Admin)...
+✅ Request Approved.
+
+🛠️ [5] Direct Correction (HR)...
+✅ Direct Correction Successful.
+
+📜 [6] Viewing Correction History...
+✅ History Retrieved. Total records: 16
+   Latest Log: gioRa by Lâm Như Ngọc
+
+🏁 Sprint 9 Test Completed.
+    </pre>
+
+        <h2>4. Kết luận</h2>
+        <p>Module Timesheet đã sẵn sàng để tích hợp vào Frontend.</p>
+
+    </div>
+
+</body>
+
+</html>

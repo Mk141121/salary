@@ -64,8 +64,10 @@ let BangLuongController = class BangLuongController {
     async khoa(id, nguoiDung) {
         return this.bangLuongService.khoaBangLuong(id, nguoiDung?.id, nguoiDung?.tenDangNhap);
     }
-    async xoa(id) {
-        return this.bangLuongService.xoa(id);
+    async xoa(id, force, nguoiDung) {
+        const isAdmin = nguoiDung?.vaiTros?.includes('ADMIN') || nguoiDung?.tenDangNhap === 'admin';
+        const forceDelete = force === 'true' && isAdmin;
+        return this.bangLuongService.xoa(id, forceDelete, nguoiDung?.tenDangNhap);
     }
     async soSanhExcel(id, tongExcel) {
         return this.tinhLuongService.soSanhVoiExcel(id, tongExcel);
@@ -231,12 +233,14 @@ __decorate([
 ], BangLuongController.prototype, "khoa", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Xóa bảng lương' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Xóa bảng lương (ADMIN có thể xóa bảng đã khóa với force=true)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Xóa thành công' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Không thể xóa bảng lương đã chốt' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('force')),
+    __param(2, (0, common_2.NguoiDungHienTai)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, String, Object]),
     __metadata("design:returntype", Promise)
 ], BangLuongController.prototype, "xoa", null);
 __decorate([

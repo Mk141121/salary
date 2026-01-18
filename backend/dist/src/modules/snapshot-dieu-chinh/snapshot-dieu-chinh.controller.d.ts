@@ -28,6 +28,7 @@ export declare class SnapshotDieuChinhController {
                 tenKhoan: string;
                 maNhanVien: string;
                 hoTen: string;
+                phongBanId: number | null;
                 nhanVienId: number;
                 khoanLuongId: number;
                 soTien: import("@prisma/client/runtime/library").Decimal;
@@ -35,6 +36,8 @@ export declare class SnapshotDieuChinhController {
                 nguoiChot: string;
                 bangLuongId: number;
                 nguon: import(".prisma/client").$Enums.NguonChiTiet;
+                donViConId: number | null;
+                donViCon: string | null;
                 loaiKhoan: import(".prisma/client").$Enums.LoaiKhoanLuong;
             }[];
             tongThuNhap: number;
@@ -59,6 +62,8 @@ export declare class SnapshotDieuChinhController {
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -73,8 +78,6 @@ export declare class SnapshotDieuChinhController {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
         chiTiets: ({
             khoanLuong: {
@@ -159,6 +162,8 @@ export declare class SnapshotDieuChinhController {
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -173,8 +178,6 @@ export declare class SnapshotDieuChinhController {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
         chiTiets: ({
             khoanLuong: {

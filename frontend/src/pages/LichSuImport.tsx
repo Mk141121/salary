@@ -8,7 +8,7 @@ const LichSuImportPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<QueryLichSuImportParams>({
-    loai: undefined,
+    loaiImport: undefined,
     trangThai: undefined,
     page: 1,
     limit: 20,
@@ -36,10 +36,10 @@ const LichSuImportPage: React.FC = () => {
     return new Date(dateStr).toLocaleString('vi-VN');
   };
 
-  const handleLoaiChange = (loai: string) => {
+  const handleLoaiChange = (loaiImport: string) => {
     setFilters((prev) => ({
       ...prev,
-      loai: loai === '' ? undefined : (loai as 'CHIA_HANG' | 'GIAO_HANG'),
+      loaiImport: loaiImport === '' ? undefined : (loaiImport as 'CHIA_HANG' | 'GIAO_HANG'),
       page: 1,
     }));
   };
@@ -83,7 +83,7 @@ const LichSuImportPage: React.FC = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
           <select
-            value={filters.loai || ''}
+            value={filters.loaiImport || ''}
             onChange={(e) => handleLoaiChange(e.target.value)}
             className="border rounded-lg px-3 py-2"
           >
@@ -179,31 +179,31 @@ const LichSuImportPage: React.FC = () => {
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.loai === 'CHIA_HANG'
+                          item.loaiImport === 'CHIA_HANG'
                             ? 'bg-blue-100 text-blue-800'
                             : 'bg-green-100 text-green-800'
                         }`}
                       >
-                        {item.loai === 'CHIA_HANG' ? 'Chia hàng' : 'Giao hàng'}
+                        {item.loaiImport === 'CHIA_HANG' ? 'Chia hàng' : 'Giao hàng'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title={item.tenFile}>
                       {item.tenFile}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(item.thoiGianImport)}
+                      {formatDate(item.importLuc)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       {item.nguoiImport?.hoTen || 'N/A'}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {item.soLuongDong}
+                      {item.soDong}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 text-center font-medium">
-                      {item.soDongThanhCong}
+                      {item.soDongHopLe}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-red-600 text-center font-medium">
-                      {item.soDongThatBai}
+                      {item.soDongLoi}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span
@@ -285,13 +285,13 @@ const LichSuImportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-sm font-medium text-gray-500">Import chia hàng</h3>
           <p className="text-2xl font-bold text-blue-600 mt-1">
-            {data.filter((d) => d.loai === 'CHIA_HANG').length}
+            {data.filter((d) => d.loaiImport === 'CHIA_HANG').length}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-sm font-medium text-gray-500">Import giao hàng</h3>
           <p className="text-2xl font-bold text-green-600 mt-1">
-            {data.filter((d) => d.loai === 'GIAO_HANG').length}
+            {data.filter((d) => d.loaiImport === 'GIAO_HANG').length}
           </p>
         </div>
       </div>

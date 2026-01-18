@@ -65,6 +65,127 @@ let ThongTinCongTyService = class ThongTinCongTyService {
             },
         });
     }
+    async layDanhSachDonGia(phongBanId) {
+        const where = { trangThai: true };
+        if (phongBanId !== undefined) {
+            where.OR = [{ phongBanId }, { phongBanId: null }];
+        }
+        return this.prisma.cauHinhDonGia.findMany({
+            where,
+            include: {
+                phongBan: {
+                    select: { id: true, tenPhongBan: true },
+                },
+            },
+            orderBy: { maBien: 'asc' },
+        });
+    }
+    async layDonGia(id) {
+        const donGia = await this.prisma.cauHinhDonGia.findUnique({
+            where: { id },
+            include: {
+                phongBan: {
+                    select: { id: true, tenPhongBan: true },
+                },
+            },
+        });
+        if (!donGia) {
+            throw new common_1.NotFoundException(`Không tìm thấy đơn giá với ID: ${id}`);
+        }
+        return donGia;
+    }
+    async taoDonGia(dto) {
+        return this.prisma.cauHinhDonGia.create({
+            data: {
+                maBien: dto.maBien.toUpperCase(),
+                tenBien: dto.tenBien,
+                moTa: dto.moTa,
+                giaTri: dto.giaTri,
+                donVi: dto.donVi || 'VND',
+                phongBanId: dto.phongBanId,
+            },
+            include: {
+                phongBan: {
+                    select: { id: true, tenPhongBan: true },
+                },
+            },
+        });
+    }
+    async capNhatDonGia(id, dto) {
+        const existing = await this.prisma.cauHinhDonGia.findUnique({
+            where: { id },
+        });
+        if (!existing) {
+            throw new common_1.NotFoundException(`Không tìm thấy đơn giá với ID: ${id}`);
+        }
+        return this.prisma.cauHinhDonGia.update({
+            where: { id },
+            data: dto,
+            include: {
+                phongBan: {
+                    select: { id: true, tenPhongBan: true },
+                },
+            },
+        });
+    }
+    async xoaDonGia(id) {
+        const existing = await this.prisma.cauHinhDonGia.findUnique({
+            where: { id },
+        });
+        if (!existing) {
+            throw new common_1.NotFoundException(`Không tìm thấy đơn giá với ID: ${id}`);
+        }
+        return this.prisma.cauHinhDonGia.delete({
+            where: { id },
+        });
+    }
+    async khoiTaoDonGiaMau() {
+        const donGiaMau = [
+            {
+                maBien: 'DON_GIA_SP',
+                tenBien: 'Đơn giá sản phẩm',
+                moTa: 'Số tiền thưởng trên mỗi sản phẩm đạt',
+                giaTri: 1000,
+                donVi: 'VND',
+            },
+            {
+                maBien: 'DON_GIA_KHOI_LUONG',
+                tenBien: 'Đơn giá khối lượng giao hàng',
+                moTa: 'Số tiền thưởng trên mỗi đơn vị khối lượng giao hàng thành công',
+                giaTri: 500,
+                donVi: 'VND',
+            },
+            {
+                maBien: 'DON_GIA_PHAT_TRE',
+                tenBien: 'Đơn giá phạt trễ giờ',
+                moTa: 'Số tiền phạt cho mỗi lần trễ giờ',
+                giaTri: 50000,
+                donVi: 'VND',
+            },
+            {
+                maBien: 'HE_SO_LOI_SP',
+                tenBien: 'Hệ số phạt lỗi sản phẩm',
+                moTa: 'Hệ số nhân để tính phạt khi có sản phẩm lỗi',
+                giaTri: 1.5,
+                donVi: 'lần',
+            },
+        ];
+        const results = [];
+        for (const dg of donGiaMau) {
+            const existing = await this.prisma.cauHinhDonGia.findFirst({
+                where: { maBien: dg.maBien, phongBanId: null },
+            });
+            if (!existing) {
+                results.push(await this.prisma.cauHinhDonGia.create({
+                    data: dg,
+                }));
+            }
+        }
+        return {
+            message: `Đã khởi tạo ${results.length} đơn giá mẫu`,
+            data: results,
+        };
+    }
 };
 exports.ThongTinCongTyService = ThongTinCongTyService;
 exports.ThongTinCongTyService = ThongTinCongTyService = __decorate([

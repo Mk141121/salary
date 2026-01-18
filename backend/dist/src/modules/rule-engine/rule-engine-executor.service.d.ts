@@ -32,14 +32,16 @@ export declare class RuleEngineExecutor {
     chayRuleEngine(bangLuongId: number, nguoiThucHien?: string, nguoiDungId?: number): Promise<KetQuaEngine>;
     private thucHienRuleEngine;
     private chuanBiDuLieuNhanVien;
+    private boSungDuLieuSanLuong;
+    private layCauHinhBienSo;
     private kiemTraDieuKien;
     private tinhToanRule;
     private layGiaTriBien;
     xemTrace(bangLuongId: number, nhanVienId?: number): Promise<({
         quyChe: {
             id: number;
-            phienBan: number;
             tenQuyChe: string;
+            phienBan: number;
         };
         khoanLuong: {
             id: number;

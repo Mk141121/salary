@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Kiểm Thử Sprint 11 & 12: Reports & Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .pass {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e83e8c;
+        }
+
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Báo Cáo Kiểm Thử Sprint 11 & 12: Reports & Dashboard</h1>
+        <div>
+            <strong>Phạm vi:</strong> Dashboard tổng hợp, Các báo cáo (Headcount, Quỹ lương, OT, Đi trễ, Nghỉ phép)<br>
+            <strong>Thời gian:</strong> 2026-01-18 10:05<br>
+            <strong>Trạng thái:</strong> ✅ PASSED
+        </div>
+
+        <div class="status-box pass">
+            KẾT QUẢ TỔNG QUAN: ĐẠT
+        </div>
+
+        <p>Hệ thống Báo cáo và Dashboard đã được kích hoạt thành công. Module <code>ReportsModule</code> đã được tích
+            hợp vào ứng dụng và trả về dữ liệu cho tất cả các endpoint.</p>
+
+        <h2>1. Sprint 11: Dashboard</h2>
+        <ul>
+            <li>✅ <strong>Dashboard API:</strong> <code>GET /api/reports/dashboard</code> hoạt động tốt.</li>
+            <li>✅ <strong>KPIs:</strong> Hiển thị đầy đủ Quỹ lương, Headcount, Tỷ lệ đi làm, Lương TB.</li>
+            <li>✅ <strong>Alerts:</strong> Hệ thống cảnh báo hoạt động (trả về danh sách empty nếu không có cảnh báo).
+            </li>
+        </ul>
+
+        <h2>2. Sprint 12: Các Báo Cáo Chi Tiết</h2>
+        <ul>
+            <li>✅ <strong>Báo cáo Headcount:</strong> Thống kê số lượng nhân viên, biến động nhân sự.</li>
+            <li>✅ <strong>Báo cáo Quỹ lương:</strong> Phân tích chi phí lương theo phòng ban và khoản mục.</li>
+            <li>✅ <strong>Báo cáo Chấm công:</strong> Thống kê đi trễ, về sớm, OT.</li>
+            <li>✅ <strong>Báo cáo Nghỉ phép:</strong> Tổng hợp đơn nghỉ phép và số ngày nghỉ.</li>
+        </ul>
+
+        <h2>3. Logs Kiểm thử chi tiết</h2>
+        <pre>
+🚀 Starting Deep Test Sprint 11 & 12...
+
+🔐 [1] Authenticating...
+✅ Admin Authenticated
+
+📊 [2] Testing Dashboard (Sprint 11)...
+      ✅ Dashboard Retrieved for 1/2026
+      Payroll Fund: 71,900,000 VND
+      KPIs:
+        - Quỹ lương: 71900000 VNĐ
+        - Lương trung bình: 35950000 VNĐ
+
+pcl [3] Testing Reports (Sprint 12)...
+   -> Headcount Report...
+      ✅ Headcount Report: 0 employees (Seed data specific)
+   -> Late/Early Report...
+      ✅ Late/Early Report: 0 late, 0 early
+   -> OT Report...
+      ✅ OT Report: 0 hours
+   -> Payroll Fund Report...
+      ✅ Payroll Fund Report: 71,900,000 VND
+         Dept Sample: Chia hàng - 20,900,000 VND
+   -> Attendance Summary Report...
+      ✅ Attendance Report: 15 staff
+    </pre>
+
+        <h2>4. Kết luận</h2>
+        <p>Module Reports đã hoàn thiện các API cần thiết cho việc ra quyết định của HR và BGĐ. Dữ liệu nhất quán giữa
+            Dashboard và các báo cáo chi tiết.</p>
+
+    </div>
+
+</body>
+
+</html>

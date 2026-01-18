@@ -35,14 +35,14 @@ export declare class QuyCheController {
             ngayCapNhat: Date;
             khoanLuongId: number;
             nguoiTao: string | null;
-            thuTuUuTien: number;
-            quyCheId: number;
             tenRule: string;
             loaiRule: import(".prisma/client").$Enums.LoaiRule;
             dieuKienJson: string | null;
             congThucJson: string;
+            thuTuUuTien: number;
             cheDoGop: import(".prisma/client").$Enums.CheDoGop;
             choPhepChinhTay: boolean;
+            quyCheId: number;
         })[];
     } & {
         id: number;
@@ -54,8 +54,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     })[]>;
     layChiTiet(id: number): Promise<{
         daChotLuong: boolean;
@@ -80,10 +80,16 @@ export declare class QuyCheController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -110,14 +116,14 @@ export declare class QuyCheController {
             ngayCapNhat: Date;
             khoanLuongId: number;
             nguoiTao: string | null;
-            thuTuUuTien: number;
-            quyCheId: number;
             tenRule: string;
             loaiRule: import(".prisma/client").$Enums.LoaiRule;
             dieuKienJson: string | null;
             congThucJson: string;
+            thuTuUuTien: number;
             cheDoGop: import(".prisma/client").$Enums.CheDoGop;
             choPhepChinhTay: boolean;
+            quyCheId: number;
         })[];
         id: number;
         moTa: string | null;
@@ -128,8 +134,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     tao(dto: TaoQuyCheDto): Promise<{
         phongBan: {
@@ -137,10 +143,16 @@ export declare class QuyCheController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -154,8 +166,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     capNhat(id: number, dto: CapNhatQuyCheDto): Promise<{
         phongBan: {
@@ -163,10 +175,16 @@ export declare class QuyCheController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -178,14 +196,14 @@ export declare class QuyCheController {
             ngayCapNhat: Date;
             khoanLuongId: number;
             nguoiTao: string | null;
-            thuTuUuTien: number;
-            quyCheId: number;
             tenRule: string;
             loaiRule: import(".prisma/client").$Enums.LoaiRule;
             dieuKienJson: string | null;
             congThucJson: string;
+            thuTuUuTien: number;
             cheDoGop: import(".prisma/client").$Enums.CheDoGop;
             choPhepChinhTay: boolean;
+            quyCheId: number;
         }[];
     } & {
         id: number;
@@ -197,8 +215,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     nhanBan(id: number, dto: NhanBanQuyCheDto): Promise<{
         phongBan: {
@@ -206,10 +224,16 @@ export declare class QuyCheController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -236,14 +260,14 @@ export declare class QuyCheController {
             ngayCapNhat: Date;
             khoanLuongId: number;
             nguoiTao: string | null;
-            thuTuUuTien: number;
-            quyCheId: number;
             tenRule: string;
             loaiRule: import(".prisma/client").$Enums.LoaiRule;
             dieuKienJson: string | null;
             congThucJson: string;
+            thuTuUuTien: number;
             cheDoGop: import(".prisma/client").$Enums.CheDoGop;
             choPhepChinhTay: boolean;
+            quyCheId: number;
         })[];
     } & {
         id: number;
@@ -255,8 +279,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     kichHoat(id: number): Promise<{
         phongBan: {
@@ -264,10 +288,16 @@ export declare class QuyCheController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -279,14 +309,14 @@ export declare class QuyCheController {
             ngayCapNhat: Date;
             khoanLuongId: number;
             nguoiTao: string | null;
-            thuTuUuTien: number;
-            quyCheId: number;
             tenRule: string;
             loaiRule: import(".prisma/client").$Enums.LoaiRule;
             dieuKienJson: string | null;
             congThucJson: string;
+            thuTuUuTien: number;
             cheDoGop: import(".prisma/client").$Enums.CheDoGop;
             choPhepChinhTay: boolean;
+            quyCheId: number;
         }[];
     } & {
         id: number;
@@ -298,8 +328,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     ngung(id: number): Promise<{
         id: number;
@@ -311,8 +341,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     xoa(id: number): Promise<{
         id: number;
@@ -324,8 +354,8 @@ export declare class QuyCheController {
         tuNgay: Date;
         denNgay: Date | null;
         nguoiTao: string | null;
-        phienBan: number;
         tenQuyChe: string;
+        phienBan: number;
     }>;
     layDanhSachRule(quyCheId: number): Promise<({
         khoanLuong: {
@@ -342,14 +372,14 @@ export declare class QuyCheController {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     })[]>;
     taoRule(quyCheId: number, dto: Omit<TaoQuyCheRuleDto, 'quyCheId'>): Promise<{
         khoanLuong: {
@@ -374,14 +404,14 @@ export declare class QuyCheController {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     }>;
     sapXepRule(quyCheId: number, dto: SapXepRuleDto): Promise<({
         khoanLuong: {
@@ -398,14 +428,14 @@ export declare class QuyCheController {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     })[]>;
 }
 export declare class QuyCheRuleController {
@@ -442,10 +472,16 @@ export declare class QuyCheRuleController {
                 maPhongBan: string;
                 tenPhongBan: string;
                 moTa: string | null;
-                trangThai: boolean;
+                trangThai: string;
+                phongBanChaId: number | null;
+                capDo: number;
+                loaiPhongBan: string | null;
+                nguoiQuanLyId: number | null;
                 gioVaoChuan: string;
                 gioRaChuan: string;
                 phutChoPhepTre: number;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
                 ngayTao: Date;
                 ngayCapNhat: Date;
             };
@@ -459,8 +495,8 @@ export declare class QuyCheRuleController {
             tuNgay: Date;
             denNgay: Date | null;
             nguoiTao: string | null;
-            phienBan: number;
             tenQuyChe: string;
+            phienBan: number;
         };
         khoanLuong: {
             id: number;
@@ -483,14 +519,14 @@ export declare class QuyCheRuleController {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     }>;
     capNhat(id: number, dto: CapNhatQuyCheRuleDto): Promise<{
         khoanLuong: {
@@ -515,14 +551,14 @@ export declare class QuyCheRuleController {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     }>;
     xoa(id: number): Promise<{
         id: number;
@@ -532,14 +568,14 @@ export declare class QuyCheRuleController {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     }>;
     validate(dto: ValidateRuleDto): Promise<import("./dto/quy-che-rule.dto").KetQuaValidate>;
     preview(dto: PreviewRuleDto): Promise<import("./dto/quy-che-rule.dto").KetQuaPreview>;
@@ -568,8 +604,8 @@ export declare class SuKienThuongPhatController {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -606,16 +642,24 @@ export declare class SuKienThuongPhatController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -630,8 +674,6 @@ export declare class SuKienThuongPhatController {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -643,8 +685,8 @@ export declare class SuKienThuongPhatController {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -656,16 +698,24 @@ export declare class SuKienThuongPhatController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -680,8 +730,6 @@ export declare class SuKienThuongPhatController {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -693,8 +741,8 @@ export declare class SuKienThuongPhatController {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -711,16 +759,24 @@ export declare class SuKienThuongPhatController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -735,8 +791,6 @@ export declare class SuKienThuongPhatController {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -748,8 +802,8 @@ export declare class SuKienThuongPhatController {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -761,16 +815,24 @@ export declare class SuKienThuongPhatController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -785,8 +847,6 @@ export declare class SuKienThuongPhatController {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -798,8 +858,8 @@ export declare class SuKienThuongPhatController {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -816,8 +876,8 @@ export declare class SuKienThuongPhatController {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -843,8 +903,8 @@ export declare class RuleEngineExecutorController {
     xemTrace(id: number, nhanVienId?: string): Promise<({
         quyChe: {
             id: number;
-            phienBan: number;
             tenQuyChe: string;
+            phienBan: number;
         };
         khoanLuong: {
             id: number;

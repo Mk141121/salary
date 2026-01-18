@@ -29,6 +29,10 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             'CONG_CHUAN', 'CONG_THUC_TE', 'SO_GIO_OT', 'SO_GIO_OT_DEM',
             'SO_GIO_OT_CN', 'SO_GIO_OT_LE', 'SO_LAN_DI_MUON', 'SO_LAN_VE_SOM',
             'DOANH_SO', 'TY_LE_HOA_HONG', 'DIEM_KPI', 'HE_SO_KPI',
+            'TONG_SP_DAT', 'TONG_SP_LOI',
+            'TONG_KHOI_LUONG_THANH_CONG', 'TONG_SO_LAN_TRE_GIO', 'TONG_SO_LAN_KHONG_LAY_PHIEU',
+            'DON_GIA_SP', 'DON_GIA_KHOI_LUONG', 'DON_GIA_PHAT_TRE', 'DON_GIA_PHAT_KHONG_PHIEU',
+            'HE_SO_LOI_SP',
         ];
     }
     async chayRuleEngine(bangLuongId, nguoiThucHien, nguoiDungId) {
@@ -114,11 +118,14 @@ let RuleEngineExecutor = class RuleEngineExecutor {
         await tx.ruleTrace.deleteMany({
             where: { bangLuongId },
         });
+        const cauHinhBienSo = await this.layCauHinhBienSo(tx, bangLuong.phongBanId);
         const ketQuaChiTiet = [];
         let soDongTao = 0;
         let soTraceGhi = 0;
         for (const nhanVien of nhanViens) {
             const duLieu = await this.chuanBiDuLieuNhanVien(tx, nhanVien, bangLuong.thang, bangLuong.nam);
+            await this.boSungDuLieuSanLuong(tx, duLieu, bangLuongId);
+            duLieu.cauHinhBienSo = cauHinhBienSo;
             const ketQuaTheoKhoan = new Map();
             for (const rule of quyChe.rules) {
                 try {
@@ -305,7 +312,61 @@ let RuleEngineExecutor = class RuleEngineExecutor {
             soLanDiMuon: chamCong ? chamCong.soLanDiMuon : 0,
             soLanVeSom: chamCong ? chamCong.soLanVeSom : 0,
             suKien,
+            tongSpDat: 0,
+            tongSpLoi: 0,
+            tongKhoiLuongThanhCong: 0,
+            tongSoLanTreGio: 0,
+            tongSoLanKhongLayPhieu: 0,
+            cauHinhBienSo: {},
         };
+    }
+    async boSungDuLieuSanLuong(tx, duLieu, bangLuongId) {
+        const snapshotChiaHang = await tx.snapshotSanLuongChiaHang.findUnique({
+            where: {
+                bangLuongId_nhanVienId: {
+                    bangLuongId,
+                    nhanVienId: duLieu.nhanVienId,
+                },
+            },
+        });
+        if (snapshotChiaHang) {
+            duLieu.tongSpDat = snapshotChiaHang.tongSpDat;
+            duLieu.tongSpLoi = snapshotChiaHang.tongSpLoi;
+        }
+        const snapshotGiaoHang = await tx.snapshotGiaoHang.findUnique({
+            where: {
+                bangLuongId_nhanVienId: {
+                    bangLuongId,
+                    nhanVienId: duLieu.nhanVienId,
+                },
+            },
+        });
+        if (snapshotGiaoHang) {
+            duLieu.tongKhoiLuongThanhCong = Number(snapshotGiaoHang.tongKhoiLuongThanhCong);
+            duLieu.tongSoLanTreGio = snapshotGiaoHang.tongSoLanTreGio;
+            duLieu.tongSoLanKhongLayPhieu = snapshotGiaoHang.tongSoLanKhongLayPhieu;
+        }
+    }
+    async layCauHinhBienSo(tx, phongBanId) {
+        const bienSo = {};
+        const danhSachDonGia = await tx.cauHinhDonGia.findMany({
+            where: {
+                trangThai: true,
+                OR: [
+                    { phongBanId: phongBanId },
+                    { phongBanId: null },
+                ],
+            },
+            orderBy: [
+                { phongBanId: 'desc' },
+            ],
+        });
+        for (const dg of danhSachDonGia) {
+            if (!bienSo[dg.maBien]) {
+                bienSo[dg.maBien] = Number(dg.giaTri);
+            }
+        }
+        return bienSo;
     }
     kiemTraDieuKien(rule, duLieu) {
         if (!rule.dieuKienJson) {
@@ -445,6 +506,12 @@ let RuleEngineExecutor = class RuleEngineExecutor {
                     SO_GIO_OT_LE: duLieu.soGioOTLe,
                     SO_LAN_DI_MUON: duLieu.soLanDiMuon,
                     SO_LAN_VE_SOM: duLieu.soLanVeSom,
+                    TONG_SP_DAT: duLieu.tongSpDat,
+                    TONG_SP_LOI: duLieu.tongSpLoi,
+                    TONG_KHOI_LUONG_THANH_CONG: duLieu.tongKhoiLuongThanhCong,
+                    TONG_SO_LAN_TRE_GIO: duLieu.tongSoLanTreGio,
+                    TONG_SO_LAN_KHONG_LAY_PHIEU: duLieu.tongSoLanKhongLayPhieu,
+                    ...duLieu.cauHinhBienSo,
                 };
                 for (const [ten, giaTri] of Object.entries(bienGiaTri)) {
                     const regex = new RegExp(`\\b${ten}\\b`, 'g');

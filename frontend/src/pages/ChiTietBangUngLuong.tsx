@@ -28,6 +28,7 @@ interface ChiTietUngLuong {
   soNgayCong: number
   soNgayNghi: number
   soNgayNghiKhongPhep: number
+  laTamTinh?: boolean // True = tạm tính theo lịch (chưa có chấm công thực tế)
   duocPhepUng: boolean
   lyDoKhongDat: string | null
   soTienUngDeXuat: number
@@ -466,7 +467,14 @@ export default function ChiTietBangUngLuong() {
                     </td>
                     <td className="py-2 px-4">{ct.nhanVien?.hoTen}</td>
                     <td className="py-2 px-4">{ct.phongBan?.tenPhongBan}</td>
-                    <td className="py-2 px-4 text-right">{Number(ct.soNgayCong).toFixed(1)}</td>
+                    <td className="py-2 px-4 text-right">
+                      {Number(ct.soNgayCong).toFixed(1)}
+                      {ct.laTamTinh && (
+                        <span className="ml-1 px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded" title="Tạm tính theo lịch (chưa có chấm công thực tế)">
+                          ~
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2 px-4 text-right">{Number(ct.soNgayNghi).toFixed(1)}</td>
                     <td className="py-2 px-4 text-right">
                       {Number(ct.soNgayNghiKhongPhep) > 0 && (

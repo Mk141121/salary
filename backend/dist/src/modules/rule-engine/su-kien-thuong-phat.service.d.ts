@@ -25,8 +25,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -38,16 +38,24 @@ export declare class SuKienThuongPhatService {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -62,8 +70,6 @@ export declare class SuKienThuongPhatService {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -75,8 +81,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -88,16 +94,24 @@ export declare class SuKienThuongPhatService {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -112,8 +126,6 @@ export declare class SuKienThuongPhatService {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -125,8 +137,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -143,16 +155,24 @@ export declare class SuKienThuongPhatService {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -167,8 +187,6 @@ export declare class SuKienThuongPhatService {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -180,8 +198,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -193,16 +211,24 @@ export declare class SuKienThuongPhatService {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
         nhanVien: {
             id: number;
             trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
             maNhanVien: string;
@@ -217,8 +243,6 @@ export declare class SuKienThuongPhatService {
             gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
             ngaySinh: Date | null;
             diaChi: string | null;
-            taoBoi: number | null;
-            capNhatBoi: number | null;
         };
     } & {
         id: number;
@@ -230,8 +254,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -248,8 +272,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;
@@ -265,8 +289,8 @@ export declare class SuKienThuongPhatService {
         soTien: import("@prisma/client/runtime/library").Decimal;
         ghiChu: string | null;
         nguoiTao: string | null;
-        ngay: Date;
         giaTri: import("@prisma/client/runtime/library").Decimal;
+        ngay: Date;
         maSuKien: string;
         loaiSuKien: import(".prisma/client").$Enums.LoaiSuKien;
         duyetBoi: string | null;

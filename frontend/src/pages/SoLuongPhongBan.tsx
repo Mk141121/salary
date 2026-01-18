@@ -1,18 +1,15 @@
 // Sổ lương phòng ban - Thống kê theo phòng ban
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Building2,
   Download,
   TrendingUp,
-  TrendingDown,
   Users,
   DollarSign,
-  ChevronDown,
-  ChevronUp,
   BarChart3,
 } from 'lucide-react'
-import { phongBanApi, soLuongApi } from '../services/api'
+import { phongBanApi, soLuongApi, SoLuongPhongBanData } from '../services/api'
 import { formatTien } from '../utils'
 import { VietnameseMonthPicker } from '../components/VietnameseDatePicker'
 
@@ -20,45 +17,6 @@ interface PhongBan {
   id: number
   maPhongBan: string
   tenPhongBan: string
-}
-
-interface ThangData {
-  thangNam: string
-  soNhanVien: number
-  tongLuongCoBan: number
-  tongPhuCap: number
-  tongThuong: number
-  tongKhauTru: number
-  tongBHXH: number
-  tongThue: number
-  tongThucLanh: number
-}
-
-interface NhanVienData {
-  nhanVienId: number
-  maNhanVien: string
-  hoTen: string
-  luongCoBan: number
-  phuCapTong: number
-  thuongTong: number
-  khauTruTong: number
-  thucLanh: number
-}
-
-interface SoLuongPhongBanData {
-  phongBan: PhongBan
-  thongKeTheoThang: ThangData[]
-  chiTietNhanVien: NhanVienData[]
-  tongKet: {
-    soNhanVien: number
-    tongLuongCoBan: number
-    tongPhuCap: number
-    tongThuong: number
-    tongKhauTru: number
-    tongBHXH: number
-    tongThue: number
-    tongThucLanh: number
-  }
 }
 
 export default function SoLuongPhongBan() {
@@ -72,8 +30,6 @@ export default function SoLuongPhongBan() {
     const d = new Date()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
   })
-  const [viewMode, setViewMode] = useState<'thang' | 'nhanvien'>('thang')
-  const [expandedNV, setExpandedNV] = useState<number | null>(null)
 
   // Lấy danh sách phòng ban
   const { data: phongBansRaw } = useQuery({
@@ -94,20 +50,6 @@ export default function SoLuongPhongBan() {
       }),
     enabled: !!selectedPhongBanId,
   })
-
-  // Tính % thay đổi giữa các tháng
-  const trendData = useMemo(() => {
-    if (!soLuong?.thongKeTheoThang || soLuong.thongKeTheoThang.length < 2) return null
-    
-    const months = soLuong.thongKeTheoThang
-    const first = months[0]
-    const last = months[months.length - 1]
-    
-    const change = last.tongThucLanh - first.tongThucLanh
-    const pct = first.tongThucLanh > 0 ? (change / first.tongThucLanh) * 100 : 0
-    
-    return { change, pct, isUp: change >= 0 }
-  }, [soLuong?.thongKeTheoThang])
 
   return (
     <div>
@@ -154,25 +96,6 @@ export default function SoLuongPhongBan() {
               className="w-full border rounded-lg px-3 py-2"
             />
           </div>
-
-          {/* View mode */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Chế độ xem</label>
-            <div className="flex rounded-lg overflow-hidden border">
-              <button
-                onClick={() => setViewMode('thang')}
-                className={`flex-1 px-4 py-2 ${viewMode === 'thang' ? 'bg-blue-600 text-white' : 'bg-white'}`}
-              >
-                Theo tháng
-              </button>
-              <button
-                onClick={() => setViewMode('nhanvien')}
-                className={`flex-1 px-4 py-2 ${viewMode === 'nhanvien' ? 'bg-blue-600 text-white' : 'bg-white'}`}
-              >
-                Theo NV
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -193,22 +116,11 @@ export default function SoLuongPhongBan() {
                   <Building2 size={28} className="text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">{soLuong.phongBan.tenPhongBan}</h2>
-                  <p className="text-gray-500">Mã: {soLuong.phongBan.maPhongBan}</p>
+                  <h2 className="text-xl font-bold">{soLuong.phongBan?.tenPhongBan}</h2>
+                  <p className="text-gray-500">Mã: {soLuong.phongBan?.maPhongBan}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                {trendData && (
-                  <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                    trendData.isUp ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                  }`}>
-                    {trendData.isUp ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-                    <span className="font-medium">
-                      {trendData.isUp ? '+' : ''}{trendData.pct.toFixed(1)}%
-                    </span>
-                    <span className="text-sm">so với đầu kỳ</span>
-                  </div>
-                )}
                 <button className="btn btn-secondary">
                   <Download size={18} />
                   Xuất Excel
@@ -223,144 +135,74 @@ export default function SoLuongPhongBan() {
                   <Users size={18} />
                   <span className="text-sm">Số nhân viên</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-800">{soLuong.tongKet.soNhanVien}</p>
+                <p className="text-2xl font-bold text-gray-800">{soLuong.theoNhanVien?.length ?? 0}</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-gray-500 mb-1">
                   <DollarSign size={18} />
-                  <span className="text-sm">Tổng lương cơ bản</span>
+                  <span className="text-sm">Tổng thu nhập</span>
                 </div>
-                <p className="text-xl font-bold text-blue-600">{formatTien(soLuong.tongKet.tongLuongCoBan)}</p>
+                <p className="text-xl font-bold text-blue-600">{formatTien(soLuong.tongHop?.tongThuNhap ?? 0)}</p>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-gray-500 mb-1">
                   <TrendingUp size={18} />
                   <span className="text-sm">Tổng thưởng</span>
                 </div>
-                <p className="text-xl font-bold text-green-600">{formatTien(soLuong.tongKet.tongThuong)}</p>
+                <p className="text-xl font-bold text-green-600">{formatTien(soLuong.tongHop?.tongThuong ?? 0)}</p>
               </div>
               <div className="bg-purple-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-gray-500 mb-1">
                   <BarChart3 size={18} />
-                  <span className="text-sm">Tổng thực lãnh</span>
+                  <span className="text-sm">Thực lĩnh</span>
                 </div>
-                <p className="text-xl font-bold text-purple-600">{formatTien(soLuong.tongKet.tongThucLanh)}</p>
+                <p className="text-xl font-bold text-purple-600">{formatTien(soLuong.tongHop?.thucLinh ?? 0)}</p>
               </div>
             </div>
           </div>
 
-          {/* View theo tháng */}
-          {viewMode === 'thang' && (
-            <div className="card">
-              <h3 className="text-lg font-semibold mb-4">Thống kê theo tháng</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left py-3 px-4 font-medium">Tháng</th>
-                      <th className="text-right py-3 px-4 font-medium">Số NV</th>
-                      <th className="text-right py-3 px-4 font-medium">Lương cơ bản</th>
-                      <th className="text-right py-3 px-4 font-medium">Phụ cấp</th>
-                      <th className="text-right py-3 px-4 font-medium">Thưởng</th>
-                      <th className="text-right py-3 px-4 font-medium">Khấu trừ</th>
-                      <th className="text-right py-3 px-4 font-medium">BHXH</th>
-                      <th className="text-right py-3 px-4 font-medium">Thuế TNCN</th>
-                      <th className="text-right py-3 px-4 font-medium">Thực lãnh</th>
+          {/* Chi tiết theo nhân viên */}
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Chi tiết theo nhân viên ({soLuong.theoNhanVien?.length ?? 0})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-medium">Mã NV</th>
+                    <th className="text-left py-3 px-4 font-medium">Họ tên</th>
+                    <th className="text-right py-3 px-4 font-medium">Thu nhập</th>
+                    <th className="text-right py-3 px-4 font-medium">Khấu trừ</th>
+                    <th className="text-right py-3 px-4 font-medium">Thưởng</th>
+                    <th className="text-right py-3 px-4 font-medium">Phạt</th>
+                    <th className="text-right py-3 px-4 font-medium">Thực lĩnh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {soLuong.theoNhanVien?.map((item) => (
+                    <tr key={item.nhanVien?.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium">{item.nhanVien?.maNhanVien}</td>
+                      <td className="py-3 px-4">{item.nhanVien?.hoTen}</td>
+                      <td className="py-3 px-4 text-right">{formatTien(item.tongHop?.tongThuNhap ?? 0)}</td>
+                      <td className="py-3 px-4 text-right text-red-600">{formatTien(item.tongHop?.tongKhauTru ?? 0)}</td>
+                      <td className="py-3 px-4 text-right text-green-600">{formatTien(item.tongHop?.tongThuong ?? 0)}</td>
+                      <td className="py-3 px-4 text-right text-orange-600">{formatTien(item.tongHop?.tongPhat ?? 0)}</td>
+                      <td className="py-3 px-4 text-right font-bold text-blue-600">{formatTien(item.tongHop?.thucLinh ?? 0)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {soLuong.thongKeTheoThang.map((t, idx) => (
-                      <tr key={idx} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium">{t.thangNam}</td>
-                        <td className="py-3 px-4 text-right">{t.soNhanVien}</td>
-                        <td className="py-3 px-4 text-right">{formatTien(t.tongLuongCoBan)}</td>
-                        <td className="py-3 px-4 text-right">{formatTien(t.tongPhuCap)}</td>
-                        <td className="py-3 px-4 text-right text-green-600">{formatTien(t.tongThuong)}</td>
-                        <td className="py-3 px-4 text-right text-red-600">{formatTien(t.tongKhauTru)}</td>
-                        <td className="py-3 px-4 text-right">{formatTien(t.tongBHXH)}</td>
-                        <td className="py-3 px-4 text-right">{formatTien(t.tongThue)}</td>
-                        <td className="py-3 px-4 text-right font-bold text-blue-600">{formatTien(t.tongThucLanh)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-100 font-semibold">
-                    <tr>
-                      <td className="py-3 px-4">Tổng cộng</td>
-                      <td className="py-3 px-4 text-right">{soLuong.tongKet.soNhanVien}</td>
-                      <td className="py-3 px-4 text-right">{formatTien(soLuong.tongKet.tongLuongCoBan)}</td>
-                      <td className="py-3 px-4 text-right">{formatTien(soLuong.tongKet.tongPhuCap)}</td>
-                      <td className="py-3 px-4 text-right text-green-600">{formatTien(soLuong.tongKet.tongThuong)}</td>
-                      <td className="py-3 px-4 text-right text-red-600">{formatTien(soLuong.tongKet.tongKhauTru)}</td>
-                      <td className="py-3 px-4 text-right">{formatTien(soLuong.tongKet.tongBHXH)}</td>
-                      <td className="py-3 px-4 text-right">{formatTien(soLuong.tongKet.tongThue)}</td>
-                      <td className="py-3 px-4 text-right text-blue-600">{formatTien(soLuong.tongKet.tongThucLanh)}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-100 font-semibold">
+                  <tr>
+                    <td colSpan={2} className="py-3 px-4">Tổng cộng</td>
+                    <td className="py-3 px-4 text-right">{formatTien(soLuong.tongHop?.tongThuNhap ?? 0)}</td>
+                    <td className="py-3 px-4 text-right text-red-600">{formatTien(soLuong.tongHop?.tongKhauTru ?? 0)}</td>
+                    <td className="py-3 px-4 text-right text-green-600">{formatTien(soLuong.tongHop?.tongThuong ?? 0)}</td>
+                    <td className="py-3 px-4 text-right text-orange-600">{formatTien(soLuong.tongHop?.tongPhat ?? 0)}</td>
+                    <td className="py-3 px-4 text-right text-blue-600">{formatTien(soLuong.tongHop?.thucLinh ?? 0)}</td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
-          )}
-
-          {/* View theo nhân viên */}
-          {viewMode === 'nhanvien' && (
-            <div className="card">
-              <h3 className="text-lg font-semibold mb-4">Chi tiết theo nhân viên</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left py-3 px-4 font-medium">Mã NV</th>
-                      <th className="text-left py-3 px-4 font-medium">Họ tên</th>
-                      <th className="text-right py-3 px-4 font-medium">Lương cơ bản</th>
-                      <th className="text-right py-3 px-4 font-medium">Phụ cấp</th>
-                      <th className="text-right py-3 px-4 font-medium">Thưởng</th>
-                      <th className="text-right py-3 px-4 font-medium">Khấu trừ</th>
-                      <th className="text-right py-3 px-4 font-medium">Thực lãnh</th>
-                      <th className="text-center py-3 px-4 font-medium">Chi tiết</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {soLuong.chiTietNhanVien.map((nv) => (
-                      <>
-                        <tr key={nv.nhanVienId} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4 font-medium">{nv.maNhanVien}</td>
-                          <td className="py-3 px-4">{nv.hoTen}</td>
-                          <td className="py-3 px-4 text-right">{formatTien(nv.luongCoBan)}</td>
-                          <td className="py-3 px-4 text-right">{formatTien(nv.phuCapTong)}</td>
-                          <td className="py-3 px-4 text-right text-green-600">{formatTien(nv.thuongTong)}</td>
-                          <td className="py-3 px-4 text-right text-red-600">{formatTien(nv.khauTruTong)}</td>
-                          <td className="py-3 px-4 text-right font-bold text-blue-600">{formatTien(nv.thucLanh)}</td>
-                          <td className="py-3 px-4 text-center">
-                            <button
-                              onClick={() => setExpandedNV(expandedNV === nv.nhanVienId ? null : nv.nhanVienId)}
-                              className="p-1 hover:bg-gray-100 rounded"
-                            >
-                              {expandedNV === nv.nhanVienId ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </button>
-                          </td>
-                        </tr>
-                        {expandedNV === nv.nhanVienId && (
-                          <tr>
-                            <td colSpan={8} className="bg-gray-50 p-4">
-                              <p className="text-sm text-gray-500 text-center">
-                                Xem chi tiết trong{' '}
-                                <a
-                                  href={`/so-luong/nhan-vien?id=${nv.nhanVienId}`}
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Sổ lương nhân viên
-                                </a>
-                              </p>
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          </div>
         </>
       )}
 

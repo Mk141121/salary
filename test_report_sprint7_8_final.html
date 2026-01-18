@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Kiểm Thử Sprint 7 & 8 (Final)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #27ae60;
+            border-bottom: 2px solid #2ecc71;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .pass {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e83e8c;
+        }
+
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Báo Cáo Kiểm Thử Sprint 7 & 8 (Final)</h1>
+        <div>
+            <strong>Phạm vi:</strong> Anti-fraud (Geofence, GPS, Device Binding)<br>
+            <strong>Thời gian:</strong> 2026-01-18 06:12<br>
+            <strong>Trạng thái:</strong> ✅ HOÀN THÀNH (PASSED)
+        </div>
+
+        <div class="status-box pass">
+            KẾT QUẢ: ĐẠT (PASS)
+        </div>
+
+        <p>Hệ thống đã trải qua quá trình sửa lỗi (Fix) và kiểm thử lại (Re-test). Các tính năng Anti-fraud đã hoạt động
+            chính xác.</p>
+
+        <h2>1. Các vấn đề đã xử lý</h2>
+        <ul>
+            <li>✅ <strong>Module Configuration:</strong> Đã import <code>AntiFraudModule</code> vào
+                <code>AppModule</code> để kích hoạt API.</li>
+            <li>✅ <strong>Database Schema:</strong> Đã đồng bộ model <code>ThietBiNhanVien</code> và
+                <code>LichSuThietBi</code> vào Database (Prisma Push).</li>
+            <li>✅ <strong>Compatibility:</strong> Đã cập nhật <code>JwtAuthGuard</code> để alias <code>req.user</code>
+                nhằm tương thích với Controller (sửa lỗi 500).</li>
+        </ul>
+
+        <h2>2. Sprint 7 Testing: GPS & Geofence</h2>
+        <div class="status-box pass">
+            Trạng thái: PASSED
+        </div>
+        <ul>
+            <li>✅ <strong>Tạo Geofence:</strong> API <code>POST /api/anti-fraud/geofence</code> hoạt động tốt.</li>
+            <li>✅ <strong>GPS Check-in:</strong> API <code>POST /api/anti-fraud/gps-checkin</code> xác thực chính xác
+                tọa độ.</li>
+            <li>✅ <strong>Logic Vị trí:</strong> Kiểm tra được nhân viên đang nằm trong bán kính Geofence ("HOP_LE").
+            </li>
+        </ul>
+
+        <h2>3. Sprint 8 Testing: Device Binding (1 Thiết bị)</h2>
+        <div class="status-box pass">
+            Trạng thái: PASSED
+        </div>
+        <ul>
+            <li>✅ <strong>Bind Device:</strong> API <code>POST /api/anti-fraud/bind-device</code> cho phép đăng ký thiết
+                bị lần đầu.</li>
+            <li>✅ <strong>Check Device (Hợp lệ):</strong> Hệ thống nhận diện đúng thiết bị đã đăng ký (Returns Valid &
+                Bound).</li>
+            <li>✅ <strong>Check Device (Không hợp lệ):</strong> Hệ thống <strong>CHẶN</strong> truy cập từ thiết bị lạ
+                ("Invalid/Blocked").</li>
+        </ul>
+
+        <h2>4. Logs Kiểm thử thực tế</h2>
+        <pre>
+🚀 Starting Combined Deep Test (Sprint 7 & 8)...
+
+🔐 [1] Authenticating...
+✅ Login Successful.
+🔄 ensuring Employee User exists for testing...
+   Found NV0017 (ID: 7). Creating User...
+   User available. Logging in as huong.ttt...
+✅ Logged in as Employee (huong.ttt)
+
+🌍 [2] Testing Sprint 7 (Geofence & GPS)...
+✅ Created Geofence
+✅ GPS Check-in Successful! Status: HOP_LE
+   -> Location: Inside Geofence (Correct)
+
+📱 [3] Testing Sprint 8 (Device Binding)...
+✅ My Device: Empty (Correct)
+✅ Bind Device Successful! Device: Test Phone
+✅ Check Device "DEVICE_TEST_01": Valid & Bound
+✅ Check Device "DEVICE_OTHER_99": Invalid/Blocked (Correct)
+
+🏁 Combined Test Completed.
+    </pre>
+
+        <h2>5. Kết luận</h2>
+        <p>Module Anti-fraud (Sprint 7 & 8) đã sẵn sàng để triển khai (Deploy). Các lỗi 404 và 500 đã được khắc phục
+            hoàn toàn.</p>
+
+    </div>
+
+</body>
+
+</html>

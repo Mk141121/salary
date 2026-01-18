@@ -29,6 +29,15 @@ import { ThueBHModule } from './modules/thue-bh/thue-bh.module';
 import { UngLuongModule } from './modules/ung-luong/ung-luong.module';
 import { SoLuongModule } from './modules/so-luong/so-luong.module';
 import { NghiPhepModule } from './modules/nghi-phep/nghi-phep.module';
+import { CaLamViecModule } from './modules/ca-lam-viec/ca-lam-viec.module';
+import { PhanCaModule } from './modules/phan-ca/phan-ca.module';
+import { YeuCauModule } from './modules/yeu-cau/yeu-cau.module';
+import { EmployeePortalModule } from './modules/employee-portal/employee-portal.module';
+import { ThongBaoModule } from './modules/thong-bao/thong-bao.module';
+import { AntiFraudModule } from './modules/anti-fraud/anti-fraud.module';
+import { TimesheetModule } from './modules/timesheet/timesheet.module';
+import { PayrollSyncModule } from './modules/payroll-sync/payroll-sync.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -78,6 +87,24 @@ import { HealthController } from './health.controller';
     UngLuongModule,
     SoLuongModule,
     NghiPhepModule,
+    // Phase 2: Module Xếp Ca (Scheduling)
+    CaLamViecModule,
+    PhanCaModule,
+    // Sprint 4: Module Yêu cầu (OT/Trễ/Sớm/Công tác)
+    YeuCauModule,
+    // Sprint 5: Employee Portal
+    EmployeePortalModule,
+    // Sprint 6: Thông báo (Notification)
+    ThongBaoModule,
+    // Sprint 7: Anti-fraud GPS + Geofence
+    AntiFraudModule,
+    // Sprint 9: Timesheet Management (Bảng công tháng + Sửa công)
+    TimesheetModule,
+    // Sprint 10: Payroll Sync Pipeline + Rule Trace
+    PayrollSyncModule,
+    // Sprint 11 & 12: Reports & Dashboard
+    ReportsModule,
+
   ],
   controllers: [HealthController],
   providers: [
@@ -104,4 +131,4 @@ import { HealthController } from './health.controller';
   ],
   exports: [AuditLogService],
 })
-export class AppModule {}
+export class AppModule { }

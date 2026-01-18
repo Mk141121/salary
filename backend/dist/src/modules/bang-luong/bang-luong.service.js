@@ -528,15 +528,24 @@ let BangLuongService = BangLuongService_1 = class BangLuongService {
         });
         return result;
     }
-    async xoa(id) {
+    async xoa(id, forceDelete = false, nguoiXoa) {
         const bangLuong = await this.prisma.bangLuong.findUnique({
             where: { id },
         });
         if (!bangLuong) {
             throw new common_1.NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
         }
-        if (bangLuong.trangThai !== 'NHAP') {
-            throw new common_1.BadRequestException('Không thể xóa bảng lương đã chốt hoặc khóa');
+        if (!forceDelete && bangLuong.trangThai !== 'NHAP') {
+            throw new common_1.BadRequestException('Không thể xóa bảng lương đã chốt hoặc khóa. ADMIN có thể dùng ?force=true để xóa.');
+        }
+        if (forceDelete && bangLuong.trangThai !== 'NHAP') {
+            await this.auditLogService.ghiLog({
+                tenDangNhap: nguoiXoa || 'system',
+                hanhDong: 'XOA',
+                bangDuLieu: 'BangLuong',
+                banGhiId: String(id),
+                moTa: `ADMIN xóa bảng lương đã ${bangLuong.trangThai}: ${bangLuong.tenBangLuong} (T${bangLuong.thang}/${bangLuong.nam})`,
+            });
         }
         return this.prisma.bangLuong.delete({
             where: { id },
@@ -563,8 +572,8 @@ let BangLuongService = BangLuongService_1 = class BangLuongService {
         if (!bangLuong) {
             throw new common_1.NotFoundException(`Không tìm thấy bảng lương với ID: ${bangLuongId}`);
         }
-        if (bangLuong.trangThai === 'KHOA') {
-            throw new common_1.BadRequestException('Không thể tính lại bảng lương đã khóa');
+        if (bangLuong.trangThai !== 'NHAP') {
+            throw new common_1.BadRequestException(`Không thể tính lại lương cho bảng lương ở trạng thái ${bangLuong.trangThai}. Chỉ có thể tính lại khi ở trạng thái NHẬP.`);
         }
         const danhSachNgayCong = await this.ngayCongService.layTatCaNgayCong(bangLuongId);
         let soNhanVienCapNhat = 0;

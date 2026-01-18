@@ -19,10 +19,10 @@ export declare class RBACService {
                 id: number;
                 moTa: string | null;
                 trangThai: boolean;
+                capDo: number;
                 ngayTao: Date;
                 maVaiTro: string;
                 tenVaiTro: string;
-                capDo: number;
             };
         } & {
             id: number;
@@ -64,10 +64,10 @@ export declare class RBACService {
                 id: number;
                 moTa: string | null;
                 trangThai: boolean;
+                capDo: number;
                 ngayTao: Date;
                 maVaiTro: string;
                 tenVaiTro: string;
-                capDo: number;
             };
         } & {
             id: number;
@@ -109,10 +109,10 @@ export declare class RBACService {
                 id: number;
                 moTa: string | null;
                 trangThai: boolean;
+                capDo: number;
                 ngayTao: Date;
                 maVaiTro: string;
                 tenVaiTro: string;
-                capDo: number;
             };
         } & {
             id: number;
@@ -184,10 +184,10 @@ export declare class RBACService {
         id: number;
         moTa: string | null;
         trangThai: boolean;
+        capDo: number;
         ngayTao: Date;
         maVaiTro: string;
         tenVaiTro: string;
-        capDo: number;
     })[]>;
     layVaiTroTheoId(id: number): Promise<{
         nguoiDungs: ({
@@ -231,10 +231,10 @@ export declare class RBACService {
         id: number;
         moTa: string | null;
         trangThai: boolean;
+        capDo: number;
         ngayTao: Date;
         maVaiTro: string;
         tenVaiTro: string;
-        capDo: number;
     }>;
     taoVaiTro(dto: TaoVaiTroDto): Promise<{
         nguoiDungs: ({
@@ -278,29 +278,29 @@ export declare class RBACService {
         id: number;
         moTa: string | null;
         trangThai: boolean;
+        capDo: number;
         ngayTao: Date;
         maVaiTro: string;
         tenVaiTro: string;
-        capDo: number;
     }>;
     capNhatVaiTro(id: number, dto: CapNhatVaiTroDto): Promise<{
         id: number;
         moTa: string | null;
         trangThai: boolean;
+        capDo: number;
         ngayTao: Date;
         maVaiTro: string;
         tenVaiTro: string;
-        capDo: number;
     }>;
     ganVaiTroChoNguoiDung(dto: GanVaiTroDto): Promise<{
         vaiTro: {
             id: number;
             moTa: string | null;
             trangThai: boolean;
+            capDo: number;
             ngayTao: Date;
             maVaiTro: string;
             tenVaiTro: string;
-            capDo: number;
         };
         nguoiDung: {
             id: number;
@@ -385,10 +385,10 @@ export declare class RBACService {
         id: number;
         moTa: string | null;
         trangThai: boolean;
+        capDo: number;
         ngayTao: Date;
         maVaiTro: string;
         tenVaiTro: string;
-        capDo: number;
     }>;
     kiemTraQuyen(nguoiDungId: number, maQuyen: string): Promise<boolean>;
     ghiAuditLog(dto: TaoAuditLogDto): Promise<{
@@ -489,10 +489,10 @@ export declare class RBACService {
         id: number;
         moTa: string | null;
         trangThai: boolean;
+        capDo: number;
         ngayTao: Date;
         maVaiTro: string;
         tenVaiTro: string;
-        capDo: number;
     })[]>;
     khoiTaoAdminMacDinh(): Promise<{
         message: string;
@@ -538,10 +538,10 @@ export declare class RBACService {
                     id: number;
                     moTa: string | null;
                     trangThai: boolean;
+                    capDo: number;
                     ngayTao: Date;
                     maVaiTro: string;
                     tenVaiTro: string;
-                    capDo: number;
                 };
             } & {
                 id: number;

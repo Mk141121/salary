@@ -90,6 +90,7 @@ let JwtAuthGuard = class JwtAuthGuard {
                 vaiTros,
                 quyens,
             };
+            request.user = request.nguoiDung;
             return true;
         }
         catch (error) {

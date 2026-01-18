@@ -292,7 +292,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     const parts = text.split(new RegExp(`(${query})`, 'gi'))
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase()
-        ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
+        ? <mark key={i} className="bg-[#53F39A]/30 text-[#53F39A] px-0.5 rounded">{part}</mark>
         : part
     )
   }
@@ -300,39 +300,50 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh]">
+      {/* Backdrop - Glassmorphism */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
       />
 
-      {/* Palette */}
+      {/* Palette - Premium Dark Style */}
       <div
-        className="relative w-full max-w-xl bg-white rounded-xl shadow-2xl overflow-hidden"
+        className="
+          relative w-full max-w-2xl overflow-hidden
+          rounded-2xl border border-white/10
+          bg-[#0B1220]/95 backdrop-blur-xl
+          shadow-2xl shadow-black/40
+          animate-fade-in
+        "
         onKeyDown={handleKeyDown}
       >
         {/* Confirm mode */}
         {confirmAction ? (
           <div className="p-6">
-            <div className="flex items-center gap-3 text-red-600 mb-4">
+            <div className="flex items-center gap-3 text-[#FF4D6D] mb-4">
               <AlertTriangle size={24} />
               <h3 className="text-lg font-semibold">Xác nhận thao tác</h3>
             </div>
             
-            <p className="text-gray-700 mb-4">
+            <p className="text-slate-300 mb-4">
               {confirmAction.confirmMessage || `Bạn có chắc muốn "${confirmAction.label}"?`}
             </p>
 
             <div className="mb-4">
-              <label className="block text-sm text-gray-600 mb-2">
-                Gõ <span className="font-mono font-bold text-red-600">{confirmAction.confirmKeyword}</span> để xác nhận:
+              <label className="block text-sm text-slate-400 mb-2">
+                Gõ <span className="font-mono font-bold text-[#FF4D6D]">{confirmAction.confirmKeyword}</span> để xác nhận:
               </label>
               <input
                 type="text"
                 value={confirmInput}
                 onChange={(e) => setConfirmInput(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="
+                  w-full px-4 py-3 rounded-xl
+                  bg-white/5 border border-white/10
+                  text-white placeholder-slate-500
+                  focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/50 focus:border-[#FF4D6D]/50
+                "
                 placeholder={`Gõ ${confirmAction.confirmKeyword}...`}
                 autoFocus
               />
@@ -341,7 +352,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => { setConfirmAction(null); setConfirmInput('') }}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
               >
                 Huỷ
               </button>
@@ -356,7 +367,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                 }}
                 disabled={!!(confirmAction.confirmKeyword &&
                   confirmInput.toUpperCase() !== confirmAction.confirmKeyword.toUpperCase())}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-[#FF4D6D] text-white rounded-xl hover:bg-[#FF4D6D]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Xác nhận
               </button>
@@ -364,9 +375,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           </div>
         ) : (
           <>
-            {/* Search input */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b">
-              <Search size={20} className="text-gray-400" />
+            {/* Search input - Premium Style */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
+              <Search size={20} className="text-slate-500" />
               <input
                 ref={inputRef}
                 type="text"
@@ -376,23 +387,26 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   setSelectedIndex(0)
                 }}
                 placeholder="Tìm trang, thao tác..."
-                className="flex-1 text-lg outline-none placeholder:text-gray-400"
+                className="
+                  flex-1 text-lg bg-transparent text-white
+                  outline-none placeholder:text-slate-500
+                "
               />
-              <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded">
+              <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs text-slate-500 bg-white/5 border border-white/10 rounded-lg">
                 ESC
               </kbd>
               <button
                 onClick={onClose}
-                className="p-1 text-gray-400 hover:text-gray-600 sm:hidden"
+                className="p-1 text-slate-500 hover:text-white sm:hidden transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Results */}
-            <div ref={listRef} className="max-h-[60vh] overflow-y-auto">
+            <div ref={listRef} className="max-h-[55vh] overflow-y-auto">
               {commandGroups.length === 0 ? (
-                <div className="px-4 py-8 text-center text-gray-500">
+                <div className="px-5 py-10 text-center text-slate-500">
                   Không tìm thấy kết quả cho "{query}"
                 </div>
               ) : (
@@ -404,7 +418,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   return (
                     <div key={group.id} className="py-2">
                       {/* Group header */}
-                      <div className="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold text-gray-500 uppercase">
+                      <div className="flex items-center gap-2 px-5 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         {group.icon}
                         {group.title}
                       </div>
@@ -421,29 +435,37 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                             onClick={() => handleItemSelect(item)}
                             onMouseEnter={() => setSelectedIndex(globalIndex)}
                             className={`
-                              w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors
-                              ${isSelected ? 'bg-primary-50' : 'hover:bg-gray-50'}
-                              ${item.danger ? 'text-red-600' : ''}
+                              w-full flex items-center gap-3 px-5 py-3 text-left transition-all duration-150
+                              ${isSelected 
+                                ? 'bg-[#53F39A]/10 border-l-2 border-l-[#53F39A]' 
+                                : 'border-l-2 border-l-transparent hover:bg-white/5'
+                              }
+                              ${item.danger ? 'text-[#FF4D6D]' : 'text-slate-300'}
                             `}
                           >
                             <span className={`
-                              flex-shrink-0
-                              ${isSelected ? 'text-primary-600' : item.danger ? 'text-red-500' : 'text-gray-500'}
+                              flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
+                              ${isSelected 
+                                ? 'bg-[#53F39A]/20 text-[#53F39A]' 
+                                : item.danger 
+                                  ? 'bg-[#FF4D6D]/10 text-[#FF4D6D]' 
+                                  : 'bg-white/5 text-slate-400'
+                              }
                             `}>
                               {item.icon}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <div className={`font-medium ${isSelected ? 'text-primary-700' : ''}`}>
+                              <div className={`font-medium ${isSelected ? 'text-white' : ''}`}>
                                 {highlightText(item.label)}
                               </div>
                               {item.description && (
-                                <div className="text-xs text-gray-500 truncate">
+                                <div className="text-xs text-slate-500 truncate">
                                   {item.description}
                                 </div>
                               )}
                             </div>
                             {item.type === 'favorite' && (
-                              <Star size={14} className="text-yellow-500" fill="currentColor" />
+                              <Star size={14} className="text-amber-400" fill="currentColor" />
                             )}
                           </button>
                         )
@@ -454,18 +476,21 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
               )}
             </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
+            {/* Footer - Premium Style */}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-white/10 bg-white/[0.02] text-xs text-slate-500">
               <div className="flex items-center gap-4">
-                <span>
-                  <kbd className="px-1.5 py-0.5 bg-gray-200 rounded">↑↓</kbd> di chuyển
+                <span className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">↑↓</kbd>
+                  <span className="hidden sm:inline">di chuyển</span>
                 </span>
-                <span>
-                  <kbd className="px-1.5 py-0.5 bg-gray-200 rounded">↵</kbd> chọn
+                <span className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">↵</kbd>
+                  <span className="hidden sm:inline">chọn</span>
                 </span>
               </div>
-              <span>
-                <kbd className="px-1.5 py-0.5 bg-gray-200 rounded">esc</kbd> đóng
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">esc</kbd>
+                <span className="hidden sm:inline">đóng</span>
               </span>
             </div>
           </>

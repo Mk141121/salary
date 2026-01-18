@@ -62,10 +62,16 @@ export declare class BangLuongService {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -116,6 +122,8 @@ export declare class BangLuongService {
             nhanVien: {
                 id: number;
                 trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
                 ngayTao: Date;
                 ngayCapNhat: Date;
                 maNhanVien: string;
@@ -130,8 +138,6 @@ export declare class BangLuongService {
                 gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
                 ngaySinh: Date | null;
                 diaChi: string | null;
-                taoBoi: number | null;
-                capNhatBoi: number | null;
             };
         } & {
             id: number;
@@ -169,6 +175,8 @@ export declare class BangLuongService {
             nhanVien: {
                 id: number;
                 trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
                 ngayTao: Date;
                 ngayCapNhat: Date;
                 maNhanVien: string;
@@ -183,8 +191,6 @@ export declare class BangLuongService {
                 gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
                 ngaySinh: Date | null;
                 diaChi: string | null;
-                taoBoi: number | null;
-                capNhatBoi: number | null;
             };
         } & {
             id: number;
@@ -237,7 +243,7 @@ export declare class BangLuongService {
         ngayChot: Date | null;
         nguoiChot: string | null;
     }>;
-    xoa(id: number): Promise<{
+    xoa(id: number, forceDelete?: boolean, nguoiXoa?: string): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
         ngayTao: Date;

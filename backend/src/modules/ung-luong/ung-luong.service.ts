@@ -360,6 +360,7 @@ export class UngLuongService {
         soNgayCong: luyKe.soNgayCong,
         soNgayNghi: luyKe.soNgayNghi,
         soNgayNghiKhongPhep: luyKe.soNgayNghiKhongPhep,
+        laTamTinh: luyKe.laTamTinh, // Flag tạm tính theo lịch
         duocPhepUng: dieuKien.duocPhepUng,
         lyDoKhongDat: dieuKien.lyDoKhongDat,
         soTienUngDeXuat: 0,
@@ -907,6 +908,56 @@ export class UngLuongService {
       });
 
       phieuDCIds.push(phieuDC.id);
+
+      // **QUAN TRỌNG: Tạo hoặc cập nhật ChiTietBangLuong để khấu trừ hiển thị trong bảng lương**
+      const soTienKhauTru = Number(ct.soTienUngDuyet);
+      
+      // Kiểm tra xem đã có chi tiết cho khoản khấu trừ này chưa
+      const existingChiTiet = await this.prisma.chiTietBangLuong.findUnique({
+        where: {
+          bangLuongId_nhanVienId_khoanLuongId: {
+            bangLuongId: dto.bangLuongApDungId,
+            nhanVienId: ct.nhanVienId,
+            khoanLuongId: khoanKhauTru.id,
+          },
+        },
+      });
+
+      if (existingChiTiet) {
+        // Cộng thêm vào số tiền đã có
+        await this.prisma.chiTietBangLuong.update({
+          where: { id: existingChiTiet.id },
+          data: {
+            soTien: Number(existingChiTiet.soTien) + soTienKhauTru,
+          },
+        });
+      } else {
+        // Tạo mới chi tiết bảng lương
+        await this.prisma.chiTietBangLuong.create({
+          data: {
+            bangLuongId: dto.bangLuongApDungId,
+            nhanVienId: ct.nhanVienId,
+            khoanLuongId: khoanKhauTru.id,
+            soTien: soTienKhauTru,
+            nguon: 'DIEU_CHINH',
+            ghiChu: `Khấu trừ ứng lương: ${bangUngLuong.maBangUngLuong}`,
+          },
+        });
+      }
+
+      // Ghi log lịch sử chỉnh sửa
+      await this.prisma.lichSuChinhSua.create({
+        data: {
+          bangLuongId: dto.bangLuongApDungId,
+          nhanVienId: ct.nhanVienId,
+          khoanLuongId: khoanKhauTru.id,
+          giaTriCu: existingChiTiet ? Number(existingChiTiet.soTien) : 0,
+          giaTriMoi: existingChiTiet ? Number(existingChiTiet.soTien) + soTienKhauTru : soTienKhauTru,
+          loaiThayDoi: 'DIEU_CHINH',
+          nguoiThayDoi: nguoiThucHien,
+          lyDo: `Khấu trừ ứng lương từ ${bangUngLuong.maBangUngLuong}`,
+        },
+      });
     }
 
     // Cập nhật trạng thái đã ghi nhận
@@ -954,7 +1005,7 @@ export class UngLuongService {
   /**
    * Xóa bảng ứng lương
    */
-  async xoa(id: number, nguoiXoa: string) {
+  async xoa(id: number, forceDelete = false, nguoiXoa?: string) {
     const bangUngLuong = await this.prisma.bangUngLuong.findUnique({
       where: { id },
     });
@@ -963,25 +1014,32 @@ export class UngLuongService {
       throw new NotFoundException(`Không tìm thấy bảng ứng lương với ID: ${id}`);
     }
 
-    if (bangUngLuong.trangThai !== 'NHAP') {
+    if (bangUngLuong.trangThai !== 'NHAP' && !forceDelete) {
       throw new BadRequestException(
         'Chỉ có thể xóa bảng ứng lương ở trạng thái NHẬP',
       );
     }
+
+    // Xóa chi tiết trước
+    await this.prisma.chiTietBangUngLuong.deleteMany({
+      where: { bangUngLuongId: id },
+    });
 
     await this.prisma.bangUngLuong.delete({
       where: { id },
     });
 
     await this.auditLogService.ghiLog({
-      tenDangNhap: nguoiXoa,
+      tenDangNhap: nguoiXoa || 'system',
       hanhDong: 'XOA',
       bangDuLieu: 'BangUngLuong',
       banGhiId: String(id),
       duLieuCu: JSON.stringify(bangUngLuong),
-      moTa: `Xóa bảng ứng lương ${bangUngLuong.maBangUngLuong}`,
+      moTa: forceDelete
+        ? `[ADMIN FORCE DELETE] Xóa cưỡng chế bảng ứng lương ${bangUngLuong.maBangUngLuong} (trạng thái: ${bangUngLuong.trangThai})`
+        : `Xóa bảng ứng lương ${bangUngLuong.maBangUngLuong}`,
     });
 
-    return { message: 'Xóa bảng ứng lương thành công' };
+    return { message: forceDelete ? 'Xóa cưỡng chế bảng ứng lương thành công' : 'Xóa bảng ứng lương thành công' };
   }
 }

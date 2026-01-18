@@ -23,8 +23,11 @@ export declare class NgayCongService {
         bangLuongId: number;
         soCongThucTe: Decimal;
         soNgayNghiPhep: Decimal;
+        soNgayNghiKhongLuong: Decimal;
         ngayCongLyThuyet: Decimal;
         soNgayNghiKhongPhep: Decimal;
+        soNgayNghiCoPhep: Decimal;
+        soNgayNghiCoLuong: Decimal;
         ngayCongDieuChinh: Decimal | null;
     } | null>;
     layTatCaNgayCong(bangLuongId: number): Promise<({
@@ -42,8 +45,11 @@ export declare class NgayCongService {
         bangLuongId: number;
         soCongThucTe: Decimal;
         soNgayNghiPhep: Decimal;
+        soNgayNghiKhongLuong: Decimal;
         ngayCongLyThuyet: Decimal;
         soNgayNghiKhongPhep: Decimal;
+        soNgayNghiCoPhep: Decimal;
+        soNgayNghiCoLuong: Decimal;
         ngayCongDieuChinh: Decimal | null;
     })[]>;
     capNhatNgayCongDieuChinh(bangLuongId: number, nhanVienId: number, ngayCongMoi: number, ghiChu?: string): Promise<{
@@ -55,8 +61,11 @@ export declare class NgayCongService {
         bangLuongId: number;
         soCongThucTe: Decimal;
         soNgayNghiPhep: Decimal;
+        soNgayNghiKhongLuong: Decimal;
         ngayCongLyThuyet: Decimal;
         soNgayNghiKhongPhep: Decimal;
+        soNgayNghiCoPhep: Decimal;
+        soNgayNghiCoLuong: Decimal;
         ngayCongDieuChinh: Decimal | null;
     }>;
     tinhNgayCongThucTe(ngayCong: any): number;
@@ -70,8 +79,11 @@ export declare class NgayCongService {
         bangLuongId: number;
         soCongThucTe: Decimal;
         soNgayNghiPhep: Decimal;
+        soNgayNghiKhongLuong: Decimal;
         ngayCongLyThuyet: Decimal;
         soNgayNghiKhongPhep: Decimal;
+        soNgayNghiCoPhep: Decimal;
+        soNgayNghiCoLuong: Decimal;
         ngayCongDieuChinh: Decimal | null;
     }>;
 }

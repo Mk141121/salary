@@ -1,43 +1,103 @@
+@import './styles/tokens.css';
+@import './styles/theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ===========================================
-   Typography System - Inter Font
-   SaaS Payroll UI Standard
+   Theme-aware Text Color Overrides
+   Override Tailwind gray colors to use theme variables
    =========================================== */
 
-:root {
-  /* Font Family */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
-  
-  /* Font Sizes */
-  --text-xs: 12px;
-  --text-sm: 13px;
-  --text-base: 14px;
-  --text-md: 16px;
-  --text-lg: 18px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
-  --text-3xl: 30px;
-  
-  /* Colors */
-  --color-text: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-bg: #f8fafc;
+/* Force text colors to respect theme */
+.text-gray-900,
+.text-gray-800 {
+  color: var(--text-primary) !important;
 }
 
-/* Global Font Application */
+.text-gray-700,
+.text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-500,
+.text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+.text-gray-300,
+.text-gray-200 {
+  color: var(--text-disabled) !important;
+}
+
+/* Hover states */
+.hover\:text-gray-900:hover,
+.hover\:text-gray-800:hover {
+  color: var(--text-primary) !important;
+}
+
+.hover\:text-gray-700:hover,
+.hover\:text-gray-600:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* Background overrides for theme */
+.bg-white {
+  background-color: var(--panel-solid) !important;
+}
+
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: var(--bg-2) !important;
+}
+
+.bg-gray-200 {
+  background-color: var(--bg-3) !important;
+}
+
+/* Border overrides */
+.border-gray-200,
+.border-gray-300 {
+  border-color: var(--border) !important;
+}
+
+.border-b {
+  border-color: var(--border) !important;
+}
+
+/* Hover backgrounds */
+.hover\:bg-gray-50:hover,
+.hover\:bg-gray-100:hover {
+  background-color: var(--panel-hover) !important;
+}
+
+/* ===========================================
+   Global Styles - Payroll Premium SaaS
+   Dribbble Reference Design
+   =========================================== */
+
+/* ============ BASE RESET ============ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============ HTML/BODY ============ */
 html {
   font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: 1.6;
-  font-weight: 400;
-  color: var(--color-text);
-  background-color: var(--color-bg);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  font-weight: var(--weight-normal);
+  color: var(--text);
+  background: var(--bg-app);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  min-height: 100vh;
 }
 
 body {
@@ -45,6 +105,12 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: var(--font-sans);
+  background: var(--bg-app);
+  color: var(--text);
+}
+
+#root {
+  min-height: 100vh;
 }
 
 /* Tabular Numbers - Quan trọng cho Payroll */
@@ -289,4 +355,308 @@ td.number,
 
 .animate-pulse-fast {
   animation: pulse 1s ease-in-out infinite;
+}
+
+/* ===========================================
+   UX Improvements - Form Controls
+   =========================================== */
+
+/* Native Select Styling */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25em 1.25em;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+}
+
+/* Select option styling (limited browser support) */
+select option {
+  padding: 0.5rem 1rem;
+  background-color: var(--panel-solid);
+  color: var(--text-primary);
+}
+
+select option:checked {
+  background-color: var(--accent-light);
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.25rem;
+  background-color: var(--input-bg);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* Radio Button Styling */
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background-color: var(--input-bg);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+input[type="radio"]:hover {
+  border-color: var(--accent);
+}
+
+input[type="radio"]:checked {
+  border-color: var(--accent);
+}
+
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent);
+  border-radius: 50%;
+}
+
+input[type="radio"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* Input/Textarea focus states */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+textarea {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="date"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* Placeholder styling */
+::placeholder {
+  color: var(--text-disabled);
+  opacity: 1;
+}
+
+/* Disabled state */
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Custom scrollbar for modal content */
+.modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--accent);
+  border-radius: 3px;
+}
+
+/* Prevent text selection on buttons */
+button {
+  user-select: none;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions for interactive elements */
+a, button, input, select, textarea {
+  transition: all 0.15s ease;
+}
+
+/* Remove tap highlight on mobile */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===========================================
+   Portal Animations - Sprint 5
+   Mobile-first PWA style animations
+   =========================================== */
+
+/* Slide up animation for modals */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-in forwards;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Scale in animation for cards */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Bounce animation for check-in button */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.5s ease-out forwards;
+}
+
+/* Pulse animation for active check-in state */
+@keyframes softPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.animate-soft-pulse {
+  animation: softPulse 2s ease-in-out infinite;
 }

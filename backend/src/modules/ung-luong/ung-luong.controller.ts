@@ -24,7 +24,7 @@ import {
   MoKhoaBangUngLuongDto,
   LocBangUngLuongDto,
 } from './dto';
-import { CongKhai, Quyen } from '../../common/decorators';
+import { CongKhai, Quyen, NguoiDungHienTai, ThongTinNguoiDung } from '../../common/decorators';
 
 @Controller('ung-luong')
 export class UngLuongController {
@@ -68,10 +68,13 @@ export class UngLuongController {
   @Quyen('UNG_LUONG_EDIT')
   async xoa(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: { user?: { tenDangNhap?: string } },
+    @Query('force') force?: string,
+    @NguoiDungHienTai() nguoiDung?: ThongTinNguoiDung,
   ) {
-    const nguoiXoa = req.user?.tenDangNhap || 'system';
-    return this.ungLuongService.xoa(id, nguoiXoa);
+    const nguoiXoa = nguoiDung?.tenDangNhap || 'system';
+    const isAdmin = nguoiDung?.vaiTros?.includes('ADMIN') || nguoiDung?.tenDangNhap === 'admin';
+    const forceDelete = force === 'true' && isAdmin;
+    return this.ungLuongService.xoa(id, forceDelete, nguoiXoa);
   }
 
   // ============================================

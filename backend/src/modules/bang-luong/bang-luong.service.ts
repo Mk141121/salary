@@ -743,7 +743,7 @@ export class BangLuongService {
   }
 
   // Xóa bảng lương
-  async xoa(id: number) {
+  async xoa(id: number, forceDelete = false, nguoiXoa?: string) {
     const bangLuong = await this.prisma.bangLuong.findUnique({
       where: { id },
     });
@@ -752,8 +752,20 @@ export class BangLuongService {
       throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
     }
 
-    if (bangLuong.trangThai !== 'NHAP') {
-      throw new BadRequestException('Không thể xóa bảng lương đã chốt hoặc khóa');
+    // Nếu không phải force delete, chỉ cho phép xóa bảng ở trạng thái NHAP
+    if (!forceDelete && bangLuong.trangThai !== 'NHAP') {
+      throw new BadRequestException('Không thể xóa bảng lương đã chốt hoặc khóa. ADMIN có thể dùng ?force=true để xóa.');
+    }
+
+    // Ghi audit log nếu là force delete
+    if (forceDelete && bangLuong.trangThai !== 'NHAP') {
+      await this.auditLogService.ghiLog({
+        tenDangNhap: nguoiXoa || 'system',
+        hanhDong: 'XOA',
+        bangDuLieu: 'BangLuong',
+        banGhiId: String(id),
+        moTa: `ADMIN xóa bảng lương đã ${bangLuong.trangThai}: ${bangLuong.tenBangLuong} (T${bangLuong.thang}/${bangLuong.nam})`,
+      });
     }
 
     // Xóa cascade sẽ xóa cả chi tiết

@@ -15,7 +15,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Hash token để lookup trong DB
@@ -45,7 +45,7 @@ export class JwtAuthGuard implements CanActivate {
     try {
       // Hash token để lookup trong DB (token được lưu dạng hash)
       const tokenHash = this.hashToken(token);
-      
+
       // Tìm phiên đăng nhập theo token hash
       const phien = await this.prisma.phienDangNhap.findFirst({
         where: {
@@ -106,6 +106,8 @@ export class JwtAuthGuard implements CanActivate {
         vaiTros,
         quyens,
       };
+      // Alias cho compatibility
+      request.user = request.nguoiDung;
 
       return true;
     } catch (error) {

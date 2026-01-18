@@ -41,14 +41,14 @@ export declare class TroLyAiService {
         ngayCapNhat: Date;
         khoanLuongId: number;
         nguoiTao: string | null;
-        thuTuUuTien: number;
-        quyCheId: number;
         tenRule: string;
         loaiRule: import(".prisma/client").$Enums.LoaiRule;
         dieuKienJson: string | null;
         congThucJson: string;
+        thuTuUuTien: number;
         cheDoGop: import(".prisma/client").$Enums.CheDoGop;
         choPhepChinhTay: boolean;
+        quyCheId: number;
     }>;
     huyDeXuat(auditId: number): Promise<{
         id: number;

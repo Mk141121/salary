@@ -1,0 +1,174 @@
+version: '3.8'
+
+# ========================================
+# HRM-LITE Version 2 - Production Docker
+# ========================================
+# Features:
+# - PostgreSQL 16 with optimized config
+# - Redis for caching & sessions
+# - Backend v2 with health checks
+# - Frontend with optimized Nginx
+# - Traefik for reverse proxy (optional)
+# ========================================
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: hrm-lite-db-v2
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hrmlite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hrmlite2026}
+      POSTGRES_DB: ${POSTGRES_DB:-hrm_lite}
+      # Performance tuning
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+    volumes:
+      - postgres_data_v2:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hrmlite} -d ${POSTGRES_DB:-hrm_lite}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - hrm-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: hrm-lite-redis-v2
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data_v2:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hrm-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # NestJS Backend v2
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.v2
+      args:
+        NODE_ENV: production
+    image: hrm-lite-backend:v2
+    container_name: hrm-lite-backend-v2
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hrmlite}:${POSTGRES_PASSWORD:-hrmlite2026}@postgres:5432/${POSTGRES_DB:-hrm_lite}?schema=public
+      # Redis
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-hrm-lite-v2-super-secret-key-2026}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000}
+      # Rate limiting
+      THROTTLE_TTL: 60
+      THROTTLE_LIMIT: 100
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    networks:
+      - hrm-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    labels:
+      - "app.version=2.0.0"
+      - "app.name=hrm-lite-backend"
+
+  # React Frontend v2 with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.v2
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    image: hrm-lite-frontend:v2
+    container_name: hrm-lite-frontend-v2
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-80}:80"
+      - "${WEB_SSL_PORT:-443}:443"
+    networks:
+      - hrm-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    labels:
+      - "app.version=2.0.0"
+      - "app.name=hrm-lite-frontend"
+
+  # Adminer - Database Management (optional)
+  adminer:
+    image: adminer:latest
+    container_name: hrm-lite-adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: nette
+    networks:
+      - hrm-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data_v2:
+    driver: local
+    name: hrm-lite-postgres-v2
+  redis_data_v2:
+    driver: local
+    name: hrm-lite-redis-v2
+
+networks:
+  hrm-network:
+    driver: bridge
+    name: hrm-lite-network-v2

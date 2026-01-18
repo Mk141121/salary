@@ -6,9 +6,9 @@ export declare class HopDongController {
     layDanhSachHopDong(nhanVienId: number): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiHopDong;
+        taoBoi: number | null;
         ngayTao: Date;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
-        taoBoi: number | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
@@ -20,9 +20,9 @@ export declare class HopDongController {
     taoHopDong(nhanVienId: number, dto: TaoHopDongDto, req: any): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiHopDong;
+        taoBoi: number | null;
         ngayTao: Date;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
-        taoBoi: number | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
@@ -39,9 +39,9 @@ export declare class HopDongController {
     } & {
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiHopDong;
+        taoBoi: number | null;
         ngayTao: Date;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
-        taoBoi: number | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
@@ -53,9 +53,9 @@ export declare class HopDongController {
     capNhatHopDong(id: number, dto: CapNhatHopDongDto): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiHopDong;
+        taoBoi: number | null;
         ngayTao: Date;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
-        taoBoi: number | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
@@ -67,9 +67,9 @@ export declare class HopDongController {
     ngungHopDong(id: number, dto: NgungHopDongDto): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiHopDong;
+        taoBoi: number | null;
         ngayTao: Date;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
-        taoBoi: number | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;
@@ -81,9 +81,9 @@ export declare class HopDongController {
     xoaHopDong(id: number): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiHopDong;
+        taoBoi: number | null;
         ngayTao: Date;
         luongCoBan: import("@prisma/client/runtime/library").Decimal;
-        taoBoi: number | null;
         nhanVienId: number;
         tuNgay: Date;
         denNgay: Date | null;

@@ -310,7 +310,7 @@ export const bangLuongApi = {
   
   khoa: (id: number) => api.post(`/bang-luong/${id}/khoa`).then((res) => res.data),
   
-  xoa: (id: number) => api.delete(`/bang-luong/${id}`).then((res) => res.data),
+  xoa: (id: number, force = false) => api.delete(`/bang-luong/${id}`, { params: { force: force ? 'true' : undefined } }).then((res) => res.data),
   
   layLichSu: (id: number) => api.get(`/bang-luong/${id}/lich-su`).then((res) => res.data),
   
@@ -641,8 +641,8 @@ export const ungLuongApi = {
     api.put(`/ung-luong/bang/${id}`, data).then((res) => res.data),
   
   // Xóa
-  xoa: (id: number) =>
-    api.delete(`/ung-luong/bang/${id}`).then((res) => res.data),
+  xoa: (id: number, force = false) =>
+    api.delete(`/ung-luong/bang/${id}`, { params: { force: force ? 'true' : undefined } }).then((res) => res.data),
   
   // Sinh danh sách nhân viên
   sinhDanhSach: (id: number, data?: { phongBanId?: number; nhomNhanVienId?: number }) =>
@@ -755,47 +755,44 @@ export interface SoLuongPhongBanData {
     maPhongBan: string
     tenPhongBan: string
   }
-  thongKeTheoThang: Array<{
-    thangNam: string
-    soNhanVien: number
-    tongLuongCoBan: number
-    tongPhuCap: number
-    tongThuong: number
+  tongHop: {
+    tongThuNhap: number
     tongKhauTru: number
-    tongBHXH: number
-    tongThue: number
-    tongThucLanh: number
-  }>
-  chiTietNhanVien: Array<{
-    nhanVienId: number
-    maNhanVien: string
-    hoTen: string
-    luongCoBan: number
-    phuCapTong: number
-    thuongTong: number
-    khauTruTong: number
-    thucLanh: number
-  }>
-  tongKet: {
-    soNhanVien: number
-    tongLuongCoBan: number
-    tongPhuCap: number
     tongThuong: number
-    tongKhauTru: number
-    tongBHXH: number
-    tongThue: number
-    tongThucLanh: number
+    tongPhat: number
+    thucLinh: number
   }
+  theoNhanVien: Array<{
+    nhanVien: {
+      id: number
+      maNhanVien: string
+      hoTen: string
+    }
+    tongHop: {
+      tongThuNhap: number
+      tongKhauTru: number
+      tongThuong: number
+      tongPhat: number
+      thucLinh: number
+    }
+  }>
 }
 
 export const soLuongApi = {
   // Sổ lương nhân viên
-  layNhanVien: (nhanVienId: number, params: { tuThang: number; tuNam: number; denThang: number; denNam: number }) =>
-    api.get(`/so-luong/nhan-vien/${nhanVienId}`, { params }).then((res) => res.data as SoLuongNhanVienData),
+  layNhanVien: (nhanVienId: number, params: { tuThang: number; tuNam: number; denThang: number; denNam: number }) => {
+    // Chuyển đổi tháng/năm thành tuNgay/denNgay
+    const tuNgay = `${params.tuNam}-${String(params.tuThang).padStart(2, '0')}-01`
+    const denNgay = new Date(params.denNam, params.denThang, 0).toISOString().split('T')[0] // Ngày cuối tháng
+    return api.get(`/so-luong/nhan-vien/${nhanVienId}`, { params: { tuNgay, denNgay } }).then((res) => res.data as SoLuongNhanVienData)
+  },
   
   // Sổ lương phòng ban
-  layPhongBan: (phongBanId: number, params: { tuThang: number; tuNam: number; denThang: number; denNam: number }) =>
-    api.get(`/so-luong/phong-ban/${phongBanId}`, { params }).then((res) => res.data as SoLuongPhongBanData),
+  layPhongBan: (phongBanId: number, params: { tuThang: number; tuNam: number; denThang: number; denNam: number }) => {
+    const tuNgay = `${params.tuNam}-${String(params.tuThang).padStart(2, '0')}-01`
+    const denNgay = new Date(params.denNam, params.denThang, 0).toISOString().split('T')[0]
+    return api.get(`/so-luong/phong-ban/${phongBanId}`, { params: { tuNgay, denNgay } }).then((res) => res.data as SoLuongPhongBanData)
+  },
   
   // Tìm kiếm
   timKiem: (params: { tuKhoa: string; loai?: 'TAT_CA' | 'BANG_LUONG' | 'UNG_LUONG' | 'DIEU_CHINH'; tuNam?: number; denNam?: number }) =>

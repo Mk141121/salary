@@ -50,6 +50,159 @@ async function main() {
         });
         createdPhongBans[pb.maPhongBan] = created.id;
     }
+    console.log('📅 Tạo danh mục loại nghỉ...');
+    const danhMucLoaiNghi = [
+        {
+            maLoaiNghi: 'PHEP_NAM',
+            tenLoaiNghi: 'Phép năm',
+            nhomLoai: 'CO_PHEP',
+            coTinhLuong: true,
+            coTinhChuyenCan: true,
+            thuTuHienThi: 1,
+        },
+        {
+            maLoaiNghi: 'OM',
+            tenLoaiNghi: 'Nghỉ ốm',
+            nhomLoai: 'CO_PHEP',
+            coTinhLuong: true,
+            coTinhChuyenCan: true,
+            thuTuHienThi: 2,
+        },
+        {
+            maLoaiNghi: 'THAI_SAN',
+            tenLoaiNghi: 'Nghỉ thai sản',
+            nhomLoai: 'CO_PHEP',
+            coTinhLuong: false,
+            coTinhChuyenCan: true,
+            thuTuHienThi: 3,
+        },
+        {
+            maLoaiNghi: 'VIEC_RIENG_CO_LUONG',
+            tenLoaiNghi: 'Việc riêng có lương',
+            nhomLoai: 'CO_PHEP',
+            coTinhLuong: true,
+            coTinhChuyenCan: true,
+            thuTuHienThi: 4,
+        },
+        {
+            maLoaiNghi: 'VIEC_RIENG_KHONG_LUONG',
+            tenLoaiNghi: 'Việc riêng không lương',
+            nhomLoai: 'CO_PHEP',
+            coTinhLuong: false,
+            coTinhChuyenCan: true,
+            thuTuHienThi: 5,
+        },
+        {
+            maLoaiNghi: 'KHONG_PHEP',
+            tenLoaiNghi: 'Nghỉ không phép',
+            nhomLoai: 'KHONG_PHEP',
+            coTinhLuong: false,
+            coTinhChuyenCan: false,
+            thuTuHienThi: 99,
+        },
+    ];
+    for (const loaiNghi of danhMucLoaiNghi) {
+        await prisma.danhMucLoaiNghi.upsert({
+            where: { maLoaiNghi: loaiNghi.maLoaiNghi },
+            update: {
+                tenLoaiNghi: loaiNghi.tenLoaiNghi,
+                nhomLoai: loaiNghi.nhomLoai,
+                coTinhLuong: loaiNghi.coTinhLuong,
+                coTinhChuyenCan: loaiNghi.coTinhChuyenCan,
+                thuTuHienThi: loaiNghi.thuTuHienThi,
+            },
+            create: loaiNghi,
+        });
+    }
+    console.log('📝 Tạo danh mục loại yêu cầu...');
+    const danhMucLoaiYeuCau = [
+        {
+            maLoai: 'OT',
+            tenLoai: 'Làm thêm giờ (OT)',
+            moTa: 'Yêu cầu làm thêm ngoài giờ quy định',
+            nhomLoai: 'THOI_GIAN',
+            yeuCauGioBatDau: true,
+            yeuCauGioKetThuc: true,
+            coTinhOT: true,
+            isActive: true,
+            thuTuHienThi: 1,
+            mauHienThi: '#FF6B35',
+            icon: 'clock',
+        },
+        {
+            maLoai: 'TRE_GIO',
+            tenLoai: 'Đi trễ',
+            moTa: 'Xin phép đi làm trễ giờ quy định',
+            nhomLoai: 'THOI_GIAN',
+            yeuCauGioBatDau: true,
+            yeuCauGioKetThuc: false,
+            coTinhOT: false,
+            isActive: true,
+            thuTuHienThi: 2,
+            mauHienThi: '#F59E0B',
+            icon: 'clock',
+        },
+        {
+            maLoai: 'VE_SOM',
+            tenLoai: 'Về sớm',
+            moTa: 'Xin phép về sớm hơn giờ quy định',
+            nhomLoai: 'THOI_GIAN',
+            yeuCauGioBatDau: false,
+            yeuCauGioKetThuc: true,
+            coTinhOT: false,
+            isActive: true,
+            thuTuHienThi: 3,
+            mauHienThi: '#10B981',
+            icon: 'clock',
+        },
+        {
+            maLoai: 'CONG_TAC',
+            tenLoai: 'Công tác',
+            moTa: 'Đi công tác ngoài văn phòng',
+            nhomLoai: 'DI_CHUYEN',
+            yeuCauGioBatDau: false,
+            yeuCauGioKetThuc: false,
+            yeuCauDiaDiem: true,
+            coTinhOT: false,
+            isActive: true,
+            thuTuHienThi: 4,
+            mauHienThi: '#3B82F6',
+            icon: 'briefcase',
+        },
+        {
+            maLoai: 'LAM_TU_XA',
+            tenLoai: 'Làm từ xa (WFH)',
+            moTa: 'Làm việc từ xa tại nhà',
+            nhomLoai: 'DI_CHUYEN',
+            yeuCauGioBatDau: false,
+            yeuCauGioKetThuc: false,
+            yeuCauDiaDiem: false,
+            coTinhOT: false,
+            isActive: true,
+            thuTuHienThi: 5,
+            mauHienThi: '#8B5CF6',
+            icon: 'home',
+        },
+    ];
+    for (const loai of danhMucLoaiYeuCau) {
+        await prisma.danhMucLoaiYeuCau.upsert({
+            where: { maLoai: loai.maLoai },
+            update: {
+                tenLoai: loai.tenLoai,
+                moTa: loai.moTa,
+                nhomLoai: loai.nhomLoai,
+                yeuCauGioBatDau: loai.yeuCauGioBatDau,
+                yeuCauGioKetThuc: loai.yeuCauGioKetThuc,
+                yeuCauDiaDiem: loai.yeuCauDiaDiem ?? false,
+                coTinhOT: loai.coTinhOT,
+                isActive: loai.isActive,
+                thuTuHienThi: loai.thuTuHienThi,
+                mauHienThi: loai.mauHienThi,
+                icon: loai.icon,
+            },
+            create: loai,
+        });
+    }
     console.log('👥 Tạo nhân viên từ file chấm công...');
     const phongNhanSu = await prisma.phongBan.upsert({
         where: { maPhongBan: 'NS' },
@@ -609,6 +762,7 @@ async function main() {
     console.log('📊 Thống kê:');
     console.log(`   - Khoản lương: ${danhMucKhoanLuong.length}`);
     console.log(`   - Phòng ban: ${phongBans.length + 1} (+ Nhân Sự)`);
+    console.log(`   - Loại nghỉ: ${danhMucLoaiNghi.length}`);
     console.log(`   - Nhân viên: ${nhanViens.length} (từ file chấm công)`);
     console.log(`   - Phụ cấp nhân viên: ${phuCapNhanVienData.length}`);
     console.log(`   - Bảng lương mẫu: 1 (Nhân Sự)`);

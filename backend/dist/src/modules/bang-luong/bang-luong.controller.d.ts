@@ -83,10 +83,16 @@ export declare class BangLuongController {
             maPhongBan: string;
             tenPhongBan: string;
             moTa: string | null;
-            trangThai: boolean;
+            trangThai: string;
+            phongBanChaId: number | null;
+            capDo: number;
+            loaiPhongBan: string | null;
+            nguoiQuanLyId: number | null;
             gioVaoChuan: string;
             gioRaChuan: string;
             phutChoPhepTre: number;
+            taoBoi: number | null;
+            capNhatBoi: number | null;
             ngayTao: Date;
             ngayCapNhat: Date;
         };
@@ -135,6 +141,8 @@ export declare class BangLuongController {
             nhanVien: {
                 id: number;
                 trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
                 ngayTao: Date;
                 ngayCapNhat: Date;
                 maNhanVien: string;
@@ -149,8 +157,6 @@ export declare class BangLuongController {
                 gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
                 ngaySinh: Date | null;
                 diaChi: string | null;
-                taoBoi: number | null;
-                capNhatBoi: number | null;
             };
         } & {
             id: number;
@@ -188,6 +194,8 @@ export declare class BangLuongController {
             nhanVien: {
                 id: number;
                 trangThai: import(".prisma/client").$Enums.TrangThaiNhanVien;
+                taoBoi: number | null;
+                capNhatBoi: number | null;
                 ngayTao: Date;
                 ngayCapNhat: Date;
                 maNhanVien: string;
@@ -202,8 +210,6 @@ export declare class BangLuongController {
                 gioiTinh: import(".prisma/client").$Enums.GioiTinh | null;
                 ngaySinh: Date | null;
                 diaChi: string | null;
-                taoBoi: number | null;
-                capNhatBoi: number | null;
             };
         } & {
             id: number;
@@ -265,7 +271,11 @@ export declare class BangLuongController {
         ngayChot: Date | null;
         nguoiChot: string | null;
     }>;
-    xoa(id: number): Promise<{
+    xoa(id: number, force?: string, nguoiDung?: {
+        id: number;
+        tenDangNhap: string;
+        vaiTros?: string[];
+    }): Promise<{
         id: number;
         trangThai: import(".prisma/client").$Enums.TrangThaiBangLuong;
         ngayTao: Date;
@@ -313,8 +323,11 @@ export declare class BangLuongController {
         bangLuongId: number;
         soCongThucTe: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiKhongLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongLyThuyet: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiKhongPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongDieuChinh: import("@prisma/client/runtime/library").Decimal | null;
     })[]>;
     layNgayCongNhanVien(id: number, nhanVienId: number): Promise<{
@@ -326,8 +339,11 @@ export declare class BangLuongController {
         bangLuongId: number;
         soCongThucTe: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiKhongLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongLyThuyet: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiKhongPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongDieuChinh: import("@prisma/client/runtime/library").Decimal | null;
     } | null>;
     khoiTaoNgayCong(id: number): Promise<{
@@ -357,8 +373,11 @@ export declare class BangLuongController {
         bangLuongId: number;
         soCongThucTe: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiKhongLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongLyThuyet: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiKhongPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongDieuChinh: import("@prisma/client/runtime/library").Decimal | null;
     }>;
     xoaDieuChinhNgayCong(id: number, nhanVienId: number): Promise<{
@@ -370,8 +389,11 @@ export declare class BangLuongController {
         bangLuongId: number;
         soCongThucTe: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiKhongLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongLyThuyet: import("@prisma/client/runtime/library").Decimal;
         soNgayNghiKhongPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoPhep: import("@prisma/client/runtime/library").Decimal;
+        soNgayNghiCoLuong: import("@prisma/client/runtime/library").Decimal;
         ngayCongDieuChinh: import("@prisma/client/runtime/library").Decimal | null;
     }>;
 }
