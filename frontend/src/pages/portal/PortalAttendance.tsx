@@ -1,18 +1,35 @@
 // Chấm công - Employee Portal
-// Sprint 5: Xem lịch sử chấm công theo tháng
+// Sprint 5: Xem lịch sử chấm công theo tháng + Sản lượng realtime
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Package, Truck, TrendingUp } from 'lucide-react';
 import { employeePortalApi, formatTime } from '../../services/employeePortalApi';
+import api from '../../services/api';
 
 export default function PortalAttendance() {
   const now = new Date();
   const [thang, setThang] = useState(now.getMonth() + 1);
   const [nam, setNam] = useState(now.getFullYear());
 
+  // Chấm công
   const { data: chamCong, isLoading } = useQuery({
     queryKey: ['employee-portal', 'cham-cong', thang, nam],
     queryFn: () => employeePortalApi.getChamCong({ thang, nam }),
+  });
+
+  // Sản lượng tháng hiện tại (only for current month)
+  const isCurrentMonth = thang === now.getMonth() + 1 && nam === now.getFullYear();
+  const { data: sanLuong, isLoading: sanLuongLoading } = useQuery({
+    queryKey: ['employee-portal', 'san-luong', thang, nam],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/san-luong/my-stats', { params: { thang, nam } });
+        return res.data?.data || res.data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: isCurrentMonth, // Only load for current month
   });
 
   const prevMonth = () => {
@@ -105,6 +122,81 @@ export default function PortalAttendance() {
           <p className="text-xs text-red-600">K.Phép</p>
         </div>
       </div>
+
+      {/* Sản lượng realtime - Only for current month */}
+      {isCurrentMonth && (
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-4 shadow-md text-white">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-5 h-5" />
+            <h3 className="font-semibold">Sản lượng tháng này</h3>
+          </div>
+          
+          {sanLuongLoading ? (
+            <div className="h-16 bg-white/20 rounded-xl animate-pulse" />
+          ) : sanLuong ? (
+            <div className="grid grid-cols-2 gap-3">
+              {/* Chia hàng */}
+              {(sanLuong.chiaHang?.tongSanPham > 0 || sanLuong.chiaHang) && (
+                <div className="bg-white/20 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="w-4 h-4" />
+                    <span className="text-xs opacity-80">Chia hàng</span>
+                  </div>
+                  <p className="text-lg font-bold">
+                    {(sanLuong.chiaHang?.tongSanPham || 0).toLocaleString('vi-VN')}
+                    <span className="text-xs font-normal ml-1">SP</span>
+                  </p>
+                  {sanLuong.chiaHang?.sanPhamLoi > 0 && (
+                    <p className="text-xs opacity-80">
+                      Lỗi: {sanLuong.chiaHang.sanPhamLoi.toLocaleString('vi-VN')}
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {/* Giao hàng */}
+              {(sanLuong.giaoHang?.tongKhoiLuong > 0 || sanLuong.giaoHang) && (
+                <div className="bg-white/20 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Truck className="w-4 h-4" />
+                    <span className="text-xs opacity-80">Giao hàng</span>
+                  </div>
+                  <p className="text-lg font-bold">
+                    {(sanLuong.giaoHang?.tongKhoiLuong || 0).toLocaleString('vi-VN')}
+                    <span className="text-xs font-normal ml-1">kg</span>
+                  </p>
+                  {sanLuong.giaoHang?.soLuotGiao > 0 && (
+                    <p className="text-xs opacity-80">
+                      {sanLuong.giaoHang.soLuotGiao} lượt giao
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Điểm KPI nếu có */}
+              {sanLuong.diemKPI > 0 && (
+                <div className="bg-white/20 rounded-xl p-3 col-span-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Điểm KPI</span>
+                    <span className="text-xl font-bold">{sanLuong.diemKPI.toFixed(1)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Không có dữ liệu */}
+              {!sanLuong.chiaHang && !sanLuong.giaoHang && !sanLuong.diemKPI && (
+                <div className="col-span-2 text-center py-2 text-sm opacity-80">
+                  Chưa có dữ liệu sản lượng
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-2 text-sm opacity-80">
+              Chưa có dữ liệu sản lượng
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Attendance List */}
       {isLoading ? (

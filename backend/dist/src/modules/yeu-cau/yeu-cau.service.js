@@ -114,6 +114,52 @@ let YeuCauService = class YeuCauService {
             },
         };
     }
+    async layDanhSachDonPortal(nhanVienId, trangThaiFilter) {
+        const where = { nhanVienId };
+        if (trangThaiFilter) {
+            if (Array.isArray(trangThaiFilter)) {
+                where.trangThai = { in: trangThaiFilter };
+            }
+            else {
+                where.trangThai = trangThaiFilter;
+            }
+        }
+        const data = await this.prisma.donYeuCau.findMany({
+            where,
+            include: {
+                loaiYeuCau: {
+                    select: { maLoai: true, tenLoai: true, icon: true },
+                },
+            },
+            orderBy: { ngayTao: 'desc' },
+            take: 50,
+        });
+        return data.map((d) => ({
+            id: d.id,
+            loai: d.loaiYeuCau?.maLoai || 'UNKNOWN',
+            tenLoai: d.loaiYeuCau?.tenLoai,
+            ngay: d.ngayYeuCau?.toISOString().split('T')[0],
+            soGio: d.soGio ? Number(d.soGio) : null,
+            lyDo: d.lyDo,
+            trangThai: this.mapTrangThaiToPortal(d.trangThai),
+            ngayTao: d.ngayTao,
+        }));
+    }
+    mapTrangThaiToPortal(trangThai) {
+        switch (trangThai) {
+            case 'NHAP':
+            case 'CHO_DUYET_1':
+            case 'CHO_DUYET_2':
+                return 'CHO_DUYET';
+            case 'DA_DUYET':
+                return 'DA_DUYET';
+            case 'TU_CHOI_1':
+            case 'TU_CHOI_2':
+                return 'TU_CHOI';
+            default:
+                return trangThai;
+        }
+    }
     async layChiTietDon(id) {
         const don = await this.prisma.donYeuCau.findUnique({
             where: { id },

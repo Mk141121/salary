@@ -16,10 +16,18 @@ interface YeuCau {
 }
 
 const LOAI_YEU_CAU = [
-  { value: 'OT', label: 'Làm thêm giờ (OT)', icon: '⏰' },
-  { value: 'DI_TRE', label: 'Đi trễ', icon: '🕐' },
-  { value: 'VE_SOM', label: 'Về sớm', icon: '🏃' },
-  { value: 'CONG_TAC', label: 'Công tác', icon: '✈️' },
+  // Nghỉ phép
+  { value: 'NGHI_PHEP', label: 'Nghỉ phép năm', icon: '🏖️', nhom: 'NGHI_PHEP' },
+  { value: 'NGHI_KHONG_LUONG', label: 'Nghỉ không lương', icon: '📝', nhom: 'NGHI_PHEP' },
+  { value: 'NGHI_OM', label: 'Nghỉ ốm', icon: '🏥', nhom: 'NGHI_PHEP' },
+  { value: 'NGHI_VIEC_RIENG', label: 'Nghỉ việc riêng', icon: '👨‍👩‍👧', nhom: 'NGHI_PHEP' },
+  // Thời gian
+  { value: 'OT', label: 'Làm thêm giờ', icon: '⏰', nhom: 'THOI_GIAN' },
+  { value: 'TRE_GIO', label: 'Đi trễ', icon: '🕐', nhom: 'THOI_GIAN' },
+  { value: 'VE_SOM', label: 'Về sớm', icon: '🏃', nhom: 'THOI_GIAN' },
+  // Di chuyển
+  { value: 'CONG_TAC', label: 'Công tác', icon: '✈️', nhom: 'DI_CHUYEN' },
+  { value: 'WFH', label: 'Làm việc từ xa', icon: '🏠', nhom: 'DI_CHUYEN' },
 ];
 
 export default function PortalRequests() {
@@ -29,8 +37,9 @@ export default function PortalRequests() {
 
   // Form state
   const [formData, setFormData] = useState({
-    loai: 'OT',
+    loai: 'NGHI_PHEP',
     ngay: new Date().toISOString().split('T')[0],
+    soNgay: 1,
     soGio: 1,
     lyDo: '',
   });
@@ -58,8 +67,9 @@ export default function PortalRequests() {
       queryClient.invalidateQueries({ queryKey: ['employee-portal', 'yeu-cau'] });
       setShowForm(false);
       setFormData({
-        loai: 'OT',
+        loai: 'NGHI_PHEP',
         ngay: new Date().toISOString().split('T')[0],
+        soNgay: 1,
         soGio: 1,
         lyDo: '',
       });
@@ -194,27 +204,70 @@ export default function PortalRequests() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Loại yêu cầu */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Loại yêu cầu
+              {/* Loại yêu cầu - Grouped */}
+              <div className="max-h-[40vh] overflow-y-auto pr-1">
+                {/* Nghỉ phép */}
+                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                  🏖️ Nghỉ phép
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {LOAI_YEU_CAU.map((loai) => (
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {LOAI_YEU_CAU.filter((l) => l.nhom === 'NGHI_PHEP').map((loai) => (
                     <button
                       key={loai.value}
                       type="button"
                       onClick={() => setFormData({ ...formData, loai: loai.value })}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 transition-colors text-sm ${
                         formData.loai === loai.value
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                           : 'border-gray-200 dark:border-gray-600'
                       }`}
                     >
-                      <span className="text-xl">{loai.icon}</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {loai.label.replace(' (OT)', '')}
-                      </span>
+                      <span className="text-lg">{loai.icon}</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">{loai.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Thời gian */}
+                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                  ⏰ Thời gian
+                </label>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {LOAI_YEU_CAU.filter((l) => l.nhom === 'THOI_GIAN').map((loai) => (
+                    <button
+                      key={loai.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, loai: loai.value })}
+                      className={`flex items-center gap-1 px-3 py-2.5 rounded-xl border-2 transition-colors text-sm ${
+                        formData.loai === loai.value
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-600'
+                      }`}
+                    >
+                      <span className="text-lg">{loai.icon}</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">{loai.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Di chuyển */}
+                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                  ✈️ Di chuyển / Làm việc từ xa
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LOAI_YEU_CAU.filter((l) => l.nhom === 'DI_CHUYEN').map((loai) => (
+                    <button
+                      key={loai.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, loai: loai.value })}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 transition-colors text-sm ${
+                        formData.loai === loai.value
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-600'
+                      }`}
+                    >
+                      <span className="text-lg">{loai.icon}</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">{loai.label}</span>
                     </button>
                   ))}
                 </div>
@@ -223,7 +276,7 @@ export default function PortalRequests() {
               {/* Ngày */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Ngày
+                  Ngày bắt đầu
                 </label>
                 <input
                   type="date"
@@ -233,21 +286,47 @@ export default function PortalRequests() {
                 />
               </div>
 
-              {/* Số giờ */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Số giờ
-                </label>
-                <input
-                  type="number"
-                  min="0.5"
-                  max="12"
-                  step="0.5"
-                  value={formData.soGio}
-                  onChange={(e) => setFormData({ ...formData, soGio: parseFloat(e.target.value) })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
+              {/* Số ngày - cho loại nghỉ phép */}
+              {LOAI_YEU_CAU.find((l) => l.value === formData.loai)?.nhom === 'NGHI_PHEP' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Số ngày nghỉ
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min="0.5"
+                      max="30"
+                      step="0.5"
+                      value={formData.soNgay}
+                      onChange={(e) => setFormData({ ...formData, soNgay: parseFloat(e.target.value) })}
+                      className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <span className="text-sm text-gray-500">ngày</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Số giờ - cho loại thời gian */}
+              {LOAI_YEU_CAU.find((l) => l.value === formData.loai)?.nhom === 'THOI_GIAN' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Số giờ
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min="0.5"
+                      max="12"
+                      step="0.5"
+                      value={formData.soGio}
+                      onChange={(e) => setFormData({ ...formData, soGio: parseFloat(e.target.value) })}
+                      className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <span className="text-sm text-gray-500">giờ</span>
+                  </div>
+                </div>
+              )}
 
               {/* Lý do */}
               <div>

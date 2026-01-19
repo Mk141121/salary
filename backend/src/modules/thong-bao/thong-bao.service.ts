@@ -1,8 +1,11 @@
 // Service Thông báo - Sprint 6
 // Xử lý logic tạo, đọc, đánh dấu đã đọc thông báo
-import { Injectable, NotFoundException } from '@nestjs/common';
+// Tích hợp Email Notification
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoaiThongBao } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
 import {
   ThongBaoQueryDto,
   TaoThongBaoDto,
@@ -12,7 +15,112 @@ import {
 
 @Injectable()
 export class ThongBaoService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(ThongBaoService.name);
+  private transporter: nodemailer.Transporter;
+  private emailEnabled: boolean = false;
+
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {
+    this.initEmailTransporter();
+  }
+
+  /**
+   * Khởi tạo email transporter
+   */
+  private initEmailTransporter() {
+    const host = this.configService.get('SMTP_HOST');
+    const port = this.configService.get('SMTP_PORT', 587);
+    const user = this.configService.get('SMTP_USER');
+    const pass = this.configService.get('SMTP_PASS');
+
+    if (host && user && pass) {
+      this.transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+      });
+      this.emailEnabled = true;
+      this.logger.log(`Email notification enabled: ${host}:${port}`);
+    } else {
+      this.logger.warn('Email notification disabled - SMTP not configured');
+    }
+  }
+
+  /**
+   * Gửi email thông báo
+   */
+  private async sendEmailNotification(
+    toEmail: string,
+    subject: string,
+    content: string,
+  ): Promise<boolean> {
+    if (!this.emailEnabled || !toEmail) return false;
+
+    try {
+      const fromEmail = this.configService.get('SMTP_FROM', 'noreply@company.vn');
+      const companyName = this.configService.get('COMPANY_NAME', 'HRM Lite');
+      const baseUrl = this.configService.get('FRONTEND_URL', 'http://localhost');
+
+      const html = this.generateNotificationHtml(subject, content, baseUrl);
+
+      await this.transporter.sendMail({
+        from: `"${companyName}" <${fromEmail}>`,
+        to: toEmail,
+        subject: `[${companyName}] ${subject}`,
+        html,
+      });
+
+      this.logger.log(`Email sent to ${toEmail}: ${subject}`);
+      return true;
+    } catch (error: any) {
+      this.logger.error(`Failed to send email to ${toEmail}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Generate HTML template for notification email
+   */
+  private generateNotificationHtml(title: string, content: string, baseUrl: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; margin: 0; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+    .header h1 { font-size: 24px; margin: 0; }
+    .content { padding: 30px; }
+    .content p { color: #333; font-size: 16px; line-height: 1.6; }
+    .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px; }
+    .footer { text-align: center; padding: 20px; color: #888; font-size: 13px; border-top: 1px solid #e0e0e0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>HRM Lite</h1>
+    </div>
+    <div class="content">
+      <h2>${title}</h2>
+      <p>${content}</p>
+      <a href="${baseUrl}" class="button">Xem chi tiết</a>
+    </div>
+    <div class="footer">
+      <p>Email này được gửi tự động. Vui lòng không trả lời.</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+  }
 
   /**
    * Lấy danh sách thông báo của user
@@ -173,7 +281,7 @@ export class ThongBaoService {
     loaiYeuCau: string,
     donYeuCauId: number,
   ) {
-    await this.taoThongBao({
+    const thongBao = await this.taoThongBao({
       nguoiNhanId: nguoiDuyetId,
       loaiThongBao: LoaiThongBao.YEU_CAU_MOI,
       tieuDe: `Yêu cầu ${loaiYeuCau} mới`,
@@ -181,6 +289,18 @@ export class ThongBaoService {
       link: `/yeu-cau/duyet/${donYeuCauId}`,
       duLieuThem: { donYeuCauId },
     });
+
+    // Gửi email cho người duyệt - NguoiDung đã có email trực tiếp
+    const nguoiDuyet = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiDuyetId },
+    });
+    if (nguoiDuyet?.email) {
+      await this.sendEmailNotification(
+        nguoiDuyet.email,
+        `Yêu cầu ${loaiYeuCau} mới cần duyệt`,
+        `<strong>${nhanVienTen}</strong> đã gửi yêu cầu <strong>${loaiYeuCau}</strong> cần bạn duyệt. Vui lòng đăng nhập hệ thống để xem chi tiết.`,
+      );
+    }
   }
 
   /**
@@ -191,7 +311,7 @@ export class ThongBaoService {
     loaiYeuCau: string,
     donYeuCauId: number,
   ) {
-    await this.taoThongBao({
+    const thongBao = await this.taoThongBao({
       nguoiNhanId,
       loaiThongBao: LoaiThongBao.YEU_CAU_DA_DUYET,
       tieuDe: `Yêu cầu ${loaiYeuCau} đã được duyệt`,
@@ -199,6 +319,18 @@ export class ThongBaoService {
       link: `/portal/yeu-cau`,
       duLieuThem: { donYeuCauId },
     });
+
+    // Gửi email cho nhân viên - NguoiDung đã có email và hoTen trực tiếp
+    const nguoiDung = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiNhanId },
+    });
+    if (nguoiDung?.email) {
+      await this.sendEmailNotification(
+        nguoiDung.email,
+        `Yêu cầu ${loaiYeuCau} đã được duyệt`,
+        `Xin chào <strong>${nguoiDung.hoTen}</strong>,<br><br>Yêu cầu <strong>${loaiYeuCau}</strong> của bạn đã được <span style="color: #28a745; font-weight: bold;">DUYỆT</span>.<br><br>Vui lòng đăng nhập hệ thống để xem chi tiết.`,
+      );
+    }
   }
 
   /**
@@ -210,7 +342,7 @@ export class ThongBaoService {
     donYeuCauId: number,
     lyDo: string,
   ) {
-    await this.taoThongBao({
+    const thongBao = await this.taoThongBao({
       nguoiNhanId,
       loaiThongBao: LoaiThongBao.YEU_CAU_TU_CHOI,
       tieuDe: `Yêu cầu ${loaiYeuCau} bị từ chối`,
@@ -218,6 +350,18 @@ export class ThongBaoService {
       link: `/portal/yeu-cau`,
       duLieuThem: { donYeuCauId, lyDo },
     });
+
+    // Gửi email cho nhân viên
+    const nguoiDung = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiNhanId },
+    });
+    if (nguoiDung?.email) {
+      await this.sendEmailNotification(
+        nguoiDung.email,
+        `Yêu cầu ${loaiYeuCau} bị từ chối`,
+        `Xin chào <strong>${nguoiDung.hoTen}</strong>,<br><br>Yêu cầu <strong>${loaiYeuCau}</strong> của bạn đã bị <span style="color: #dc3545; font-weight: bold;">TỪ CHỐI</span>.<br><br><strong>Lý do:</strong> ${lyDo || 'Không có lý do'}<br><br>Bạn có thể chỉnh sửa và gửi lại đơn.`,
+      );
+    }
   }
 
   /**
@@ -228,7 +372,7 @@ export class ThongBaoService {
     loaiNghi: string,
     donNghiPhepId: number,
   ) {
-    await this.taoThongBao({
+    const thongBao = await this.taoThongBao({
       nguoiNhanId,
       loaiThongBao: LoaiThongBao.NGHI_PHEP_DA_DUYET,
       tieuDe: `Đơn ${loaiNghi} đã được duyệt`,
@@ -236,6 +380,48 @@ export class ThongBaoService {
       link: `/portal/yeu-cau`,
       duLieuThem: { donNghiPhepId },
     });
+
+    // Gửi email cho nhân viên
+    const nguoiDung = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiNhanId },
+    });
+    if (nguoiDung?.email) {
+      await this.sendEmailNotification(
+        nguoiDung.email,
+        `Đơn ${loaiNghi} đã được duyệt`,
+        `Xin chào <strong>${nguoiDung.hoTen}</strong>,<br><br>Đơn xin <strong>${loaiNghi}</strong> của bạn đã được <span style="color: #28a745; font-weight: bold;">DUYỆT</span>.<br><br>Vui lòng đăng nhập hệ thống để xem chi tiết.`,
+      );
+    }
+  }
+
+  /**
+   * Gửi thông báo nhắc nhở duyệt đơn (auto-escalation)
+   */
+  async guiThongBaoNhacNhoDuyet(
+    nguoiDuyetId: number,
+    soDonQuaHan: number,
+    soNgayQuaHan: number,
+  ) {
+    const thongBao = await this.taoThongBao({
+      nguoiNhanId: nguoiDuyetId,
+      loaiThongBao: LoaiThongBao.NHAC_NHO,
+      tieuDe: `Nhắc nhở: ${soDonQuaHan} đơn chờ duyệt`,
+      noiDung: `Bạn có ${soDonQuaHan} đơn yêu cầu chờ duyệt đã quá ${soNgayQuaHan} ngày. Vui lòng xử lý sớm.`,
+      link: `/yeu-cau/inbox`,
+      duLieuThem: { soDonQuaHan, soNgayQuaHan },
+    });
+
+    // Gửi email nhắc nhở
+    const nguoiDuyet = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiDuyetId },
+    });
+    if (nguoiDuyet?.email) {
+      await this.sendEmailNotification(
+        nguoiDuyet.email,
+        `⚠️ Nhắc nhở: ${soDonQuaHan} đơn chờ duyệt`,
+        `Xin chào <strong>${nguoiDuyet.hoTen}</strong>,<br><br>Bạn có <strong>${soDonQuaHan}</strong> đơn yêu cầu đang chờ duyệt đã quá <strong>${soNgayQuaHan} ngày</strong>.<br><br>Vui lòng đăng nhập hệ thống để xử lý sớm nhất có thể.`,
+      );
+    }
   }
 
   /**

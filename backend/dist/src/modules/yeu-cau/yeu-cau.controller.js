@@ -51,11 +51,18 @@ let YeuCauController = class YeuCauController {
         const nhanVienId = req.user?.nhanVienId;
         if (!nhanVienId)
             return { data: [] };
-        const filter = { nhanVienId };
-        if (trangThai)
-            filter.trangThai = trangThai;
-        const result = await this.yeuCauService.layDanhSachDon(filter);
-        return { data: result.data || [] };
+        let mappedTrangThai;
+        if (trangThai === 'CHO_DUYET') {
+            mappedTrangThai = ['CHO_DUYET_1', 'CHO_DUYET_2', 'NHAP'];
+        }
+        else if (trangThai === 'DA_DUYET') {
+            mappedTrangThai = trangThai;
+        }
+        else if (trangThai === 'TU_CHOI') {
+            mappedTrangThai = ['TU_CHOI_1', 'TU_CHOI_2'];
+        }
+        const result = await this.yeuCauService.layDanhSachDonPortal(nhanVienId, mappedTrangThai);
+        return { data: result || [] };
     }
     async layChiTietDon(id) {
         return this.yeuCauService.layChiTietDon(id);

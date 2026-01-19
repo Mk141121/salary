@@ -23,6 +23,12 @@ let SanLuongController = class SanLuongController {
     constructor(sanLuongService) {
         this.sanLuongService = sanLuongService;
     }
+    async laySanLuongCuaToi(thang, nam, req) {
+        const nhanVienId = req.user?.nhanVienId;
+        if (!nhanVienId)
+            return { data: null };
+        return this.sanLuongService.laySanLuongNhanVien(nhanVienId, thang || new Date().getMonth() + 1, nam || new Date().getFullYear());
+    }
     async previewChiaHang(rows, thang, nam) {
         return this.sanLuongService.previewChiaHang(rows, thang, nam);
     }
@@ -65,6 +71,15 @@ let SanLuongController = class SanLuongController {
     }
 };
 exports.SanLuongController = SanLuongController;
+__decorate([
+    (0, common_1.Get)('my-stats'),
+    __param(0, (0, common_1.Query)('thang')),
+    __param(1, (0, common_1.Query)('nam')),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Object]),
+    __metadata("design:returntype", Promise)
+], SanLuongController.prototype, "laySanLuongCuaToi", null);
 __decorate([
     (0, common_1.Post)('chia-hang/preview'),
     (0, vai_tro_decorator_1.VaiTro)('ADMIN', 'HR', 'IMPORT_CHIA_HANG'),

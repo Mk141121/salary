@@ -103,6 +103,7 @@ export class JwtAuthGuard implements CanActivate {
         tenDangNhap: phien.nguoiDung.tenDangNhap,
         hoTen: phien.nguoiDung.hoTen,
         email: phien.nguoiDung.email,
+        nhanVienId: phien.nguoiDung.nhanVienId, // Thêm nhanVienId cho Employee Portal
         vaiTros,
         quyens,
       };

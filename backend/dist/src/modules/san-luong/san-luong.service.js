@@ -16,6 +16,58 @@ let SanLuongService = class SanLuongService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async laySanLuongNhanVien(nhanVienId, thang, nam) {
+        const tuNgay = new Date(nam, thang - 1, 1);
+        const denNgay = new Date(nam, thang, 0);
+        const chiaHang = await this.prisma.sanLuongChiaHang.aggregate({
+            where: {
+                nhanVienId,
+                ngay: { gte: tuNgay, lte: denNgay },
+            },
+            _sum: {
+                soLuongSpDat: true,
+                soLuongSpLoi: true,
+            },
+            _count: true,
+        });
+        const giaoHang = await this.prisma.giaoHang.aggregate({
+            where: {
+                nhanVienId,
+                ngay: { gte: tuNgay, lte: denNgay },
+            },
+            _sum: {
+                khoiLuongThanhCong: true,
+            },
+            _count: true,
+        });
+        let diemKPI = 0;
+        try {
+            const kpi = await this.prisma.danhGiaKPINhanVien.findFirst({
+                where: {
+                    nhanVienId,
+                    kyDanhGia: { thang, nam },
+                },
+                select: { diemTongKet: true },
+            });
+            diemKPI = kpi?.diemTongKet ? Number(kpi.diemTongKet) : 0;
+        }
+        catch {
+        }
+        return {
+            data: {
+                chiaHang: chiaHang._count > 0 ? {
+                    tongSanPham: chiaHang._sum.soLuongSpDat || 0,
+                    sanPhamLoi: chiaHang._sum.soLuongSpLoi || 0,
+                    soNgayLam: chiaHang._count,
+                } : null,
+                giaoHang: giaoHang._count > 0 ? {
+                    tongKhoiLuong: Number(giaoHang._sum.khoiLuongThanhCong) || 0,
+                    soLuotGiao: giaoHang._count,
+                } : null,
+                diemKPI,
+            },
+        };
+    }
     async previewChiaHang(rows, thang, nam) {
         await this.kiemTraKyLuongChotChua(thang, nam, 'CH');
         const nhanViens = await this.prisma.nhanVien.findMany({

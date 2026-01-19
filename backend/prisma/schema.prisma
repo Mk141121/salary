@@ -2398,6 +2398,7 @@ enum LoaiThongBao {
   NGHI_PHEP_TU_CHOI    // Đơn nghỉ bị từ chối
   LICH_PHAN_CA         // Lịch phân ca mới được công bố
   PHIEU_LUONG          // Phiếu lương đã sẵn sàng
+  NHAC_NHO             // Nhắc nhở duyệt đơn
   HE_THONG             // Thông báo hệ thống
   
   @@map("loai_thong_bao")

@@ -19,6 +19,71 @@ import {
 export class SanLuongService {
   constructor(private prisma: PrismaService) {}
 
+  // =============== EMPLOYEE PORTAL ===============
+
+  /**
+   * Lấy sản lượng của nhân viên theo tháng
+   */
+  async laySanLuongNhanVien(nhanVienId: number, thang: number, nam: number) {
+    const tuNgay = new Date(nam, thang - 1, 1);
+    const denNgay = new Date(nam, thang, 0); // Ngày cuối tháng
+
+    // Lấy sản lượng chia hàng
+    const chiaHang = await this.prisma.sanLuongChiaHang.aggregate({
+      where: {
+        nhanVienId,
+        ngay: { gte: tuNgay, lte: denNgay },
+      },
+      _sum: {
+        soLuongSpDat: true,
+        soLuongSpLoi: true,
+      },
+      _count: true,
+    });
+
+    // Lấy sản lượng giao hàng
+    const giaoHang = await this.prisma.giaoHang.aggregate({
+      where: {
+        nhanVienId,
+        ngay: { gte: tuNgay, lte: denNgay },
+      },
+      _sum: {
+        khoiLuongThanhCong: true,
+      },
+      _count: true,
+    });
+
+    // Lấy điểm KPI (nếu có)
+    let diemKPI = 0;
+    try {
+      const kpi = await this.prisma.danhGiaKPINhanVien.findFirst({
+        where: {
+          nhanVienId,
+          kyDanhGia: { thang, nam },
+        },
+        select: { diemTongKet: true },
+      });
+      diemKPI = kpi?.diemTongKet ? Number(kpi.diemTongKet) : 0;
+    } catch {
+      // Ignore KPI errors
+    }
+
+    return {
+      data: {
+        chiaHang: chiaHang._count > 0 ? {
+          tongSanPham: chiaHang._sum.soLuongSpDat || 0,
+          sanPhamLoi: chiaHang._sum.soLuongSpLoi || 0,
+          soNgayLam: chiaHang._count,
+        } : null,
+        giaoHang: giaoHang._count > 0 ? {
+          tongKhoiLuong: Number(giaoHang._sum.khoiLuongThanhCong) || 0,
+          soLuotGiao: giaoHang._count,
+        } : null,
+        diemKPI,
+      },
+    };
+  }
+
   // =============== CHIA HÀNG ===============
 
   /**

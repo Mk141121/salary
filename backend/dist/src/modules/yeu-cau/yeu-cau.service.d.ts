@@ -163,6 +163,17 @@ export declare class YeuCauService {
             totalPages: number;
         };
     }>;
+    layDanhSachDonPortal(nhanVienId: number, trangThaiFilter?: string[] | string): Promise<{
+        id: number;
+        loai: string;
+        tenLoai: string;
+        ngay: string;
+        soGio: number | null;
+        lyDo: string;
+        trangThai: string;
+        ngayTao: Date;
+    }[]>;
+    private mapTrangThaiToPortal;
     layChiTietDon(id: number): Promise<{
         phongBan: {
             id: number;
@@ -491,6 +502,7 @@ export declare class YeuCauService {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -498,7 +510,6 @@ export declare class YeuCauService {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     })[]>;
@@ -510,6 +521,7 @@ export declare class YeuCauService {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -517,7 +529,6 @@ export declare class YeuCauService {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     } | {
@@ -532,6 +543,7 @@ export declare class YeuCauService {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -539,7 +551,6 @@ export declare class YeuCauService {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     }>;
@@ -551,6 +562,7 @@ export declare class YeuCauService {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -558,7 +570,6 @@ export declare class YeuCauService {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     }>;

@@ -3,6 +3,22 @@ import { ChiaHangRowDto, GiaoHangRowDto, ConfirmChiaHangDto, ConfirmGiaoHangDto,
 export declare class SanLuongController {
     private readonly sanLuongService;
     constructor(sanLuongService: SanLuongService);
+    laySanLuongCuaToi(thang: number, nam: number, req: any): Promise<{
+        data: {
+            chiaHang: {
+                tongSanPham: number;
+                sanPhamLoi: number;
+                soNgayLam: number;
+            } | null;
+            giaoHang: {
+                tongKhoiLuong: number;
+                soLuotGiao: number;
+            } | null;
+            diemKPI: number;
+        };
+    } | {
+        data: null;
+    }>;
     previewChiaHang(rows: ChiaHangRowDto[], thang: number, nam: number): Promise<import("./san-luong.dto").PreviewChiaHangResponse>;
     confirmChiaHang(dto: ConfirmChiaHangDto, req: any): Promise<{
         success: boolean;

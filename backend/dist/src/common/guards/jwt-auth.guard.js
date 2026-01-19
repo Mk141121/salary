@@ -87,6 +87,7 @@ let JwtAuthGuard = class JwtAuthGuard {
                 tenDangNhap: phien.nguoiDung.tenDangNhap,
                 hoTen: phien.nguoiDung.hoTen,
                 email: phien.nguoiDung.email,
+                nhanVienId: phien.nguoiDung.nhanVienId,
                 vaiTros,
                 quyens,
             };

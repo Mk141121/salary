@@ -46,6 +46,7 @@ const anti_fraud_module_1 = require("./modules/anti-fraud/anti-fraud.module");
 const timesheet_module_1 = require("./modules/timesheet/timesheet.module");
 const payroll_sync_module_1 = require("./modules/payroll-sync/payroll-sync.module");
 const reports_module_1 = require("./modules/reports/reports.module");
+const approval_dashboard_module_1 = require("./modules/approval-dashboard/approval-dashboard.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -106,6 +107,7 @@ exports.AppModule = AppModule = __decorate([
             timesheet_module_1.TimesheetModule,
             payroll_sync_module_1.PayrollSyncModule,
             reports_module_1.ReportsModule,
+            approval_dashboard_module_1.ApprovalDashboardModule,
         ],
         controllers: [health_controller_1.HealthController],
         providers: [

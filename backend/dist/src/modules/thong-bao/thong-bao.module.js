@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ThongBaoModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const thong_bao_controller_1 = require("./thong-bao.controller");
 const thong_bao_service_1 = require("./thong-bao.service");
 const prisma_module_1 = require("../../prisma/prisma.module");
@@ -17,7 +18,7 @@ exports.ThongBaoModule = ThongBaoModule;
 exports.ThongBaoModule = ThongBaoModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
+        imports: [prisma_module_1.PrismaModule, config_1.ConfigModule],
         controllers: [thong_bao_controller_1.ThongBaoController],
         providers: [thong_bao_service_1.ThongBaoService],
         exports: [thong_bao_service_1.ThongBaoService],

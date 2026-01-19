@@ -31,6 +31,23 @@ import { VaiTro } from '../../common/decorators/vai-tro.decorator';
 export class SanLuongController {
   constructor(private readonly sanLuongService: SanLuongService) {}
 
+  // =============== EMPLOYEE PORTAL ===============
+
+  /**
+   * GET /api/san-luong/my-stats
+   * [Employee Portal] Lấy sản lượng của nhân viên hiện tại
+   */
+  @Get('my-stats')
+  async laySanLuongCuaToi(
+    @Query('thang') thang: number,
+    @Query('nam') nam: number,
+    @Req() req: any,
+  ) {
+    const nhanVienId = req.user?.nhanVienId;
+    if (!nhanVienId) return { data: null };
+    return this.sanLuongService.laySanLuongNhanVien(nhanVienId, thang || new Date().getMonth() + 1, nam || new Date().getFullYear());
+  }
+
   // =============== CHIA HÀNG ===============
 
   /**

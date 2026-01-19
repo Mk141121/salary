@@ -38,6 +38,7 @@ import { AntiFraudModule } from './modules/anti-fraud/anti-fraud.module';
 import { TimesheetModule } from './modules/timesheet/timesheet.module';
 import { PayrollSyncModule } from './modules/payroll-sync/payroll-sync.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { ApprovalDashboardModule } from './modules/approval-dashboard/approval-dashboard.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -104,6 +105,8 @@ import { HealthController } from './health.controller';
     PayrollSyncModule,
     // Sprint 11 & 12: Reports & Dashboard
     ReportsModule,
+    // Sprint 13: Approval Dashboard & Auto-Escalation
+    ApprovalDashboardModule,
 
   ],
   controllers: [HealthController],

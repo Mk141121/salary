@@ -223,60 +223,16 @@ export declare class YeuCauController {
         };
     }>;
     layYeuCauCuaToi(trangThai: string, req: any): Promise<{
-        data: ({
-            phongBan: {
-                id: number;
-                maPhongBan: string;
-                tenPhongBan: string;
-            };
-            nhanVien: {
-                id: number;
-                maNhanVien: string;
-                hoTen: string;
-            };
-            nguoiDuyet1: {
-                id: number;
-                hoTen: string;
-            } | null;
-            nguoiDuyet2: {
-                id: number;
-                hoTen: string;
-            } | null;
-            loaiYeuCau: {
-                id: number;
-                maLoai: string;
-                tenLoai: string;
-                mauHienThi: string | null;
-                icon: string | null;
-            };
-        } & {
+        data: {
             id: number;
-            trangThai: import(".prisma/client").$Enums.TrangThaiDonYeuCau;
-            taoBoi: number | null;
-            ngayTao: Date;
-            ngayCapNhat: Date;
-            phongBanId: number;
-            nhanVienId: number;
+            loai: string;
+            tenLoai: string;
+            ngay: string;
+            soGio: number | null;
             lyDo: string;
-            lyDoTuChoi: string | null;
-            maDon: string;
-            tepDinhKemUrl: string | null;
-            loaiYeuCauId: number;
-            ngayYeuCau: Date;
-            gioBatDau: string | null;
-            gioKetThuc: string | null;
-            diaDiem: string | null;
-            lyDoOverride: string | null;
-            nguoiDuyet1Id: number | null;
-            nguoiDuyet2Id: number | null;
-            soGio: import("@prisma/client/runtime/library").Decimal | null;
-            ngayDuyet1: Date | null;
-            ghiChuDuyet1: string | null;
-            ngayDuyet2: Date | null;
-            ghiChuDuyet2: string | null;
-            isOverride: boolean;
-            nguoiOverrideId: number | null;
-        })[];
+            trangThai: string;
+            ngayTao: Date;
+        }[];
     }>;
     layChiTietDon(id: number): Promise<{
         phongBan: {
@@ -767,6 +723,7 @@ export declare class YeuCauController {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -774,7 +731,6 @@ export declare class YeuCauController {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     })[]>;
@@ -786,6 +742,7 @@ export declare class YeuCauController {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -793,7 +750,6 @@ export declare class YeuCauController {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     }>;
@@ -805,6 +761,7 @@ export declare class YeuCauController {
         ngayCapNhat: Date;
         phongBanId: number | null;
         isActive: boolean;
+        soNgayQuaHan: number | null;
         loaiYeuCauId: number;
         soCap: number;
         nguoiDuyet1: string;
@@ -812,7 +769,6 @@ export declare class YeuCauController {
         nguoiDuyet2: string | null;
         nguoiDuyetCuThe2Id: number | null;
         tuDongDuyetNeuQuaHan: boolean;
-        soNgayQuaHan: number | null;
         yeuCauLyDoTuChoi: boolean;
         yeuCauLyDoOverride: boolean;
     }>;

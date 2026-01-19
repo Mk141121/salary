@@ -3,6 +3,20 @@ import { ChiaHangRowDto, GiaoHangRowDto, PreviewChiaHangResponse, PreviewGiaoHan
 export declare class SanLuongService {
     private prisma;
     constructor(prisma: PrismaService);
+    laySanLuongNhanVien(nhanVienId: number, thang: number, nam: number): Promise<{
+        data: {
+            chiaHang: {
+                tongSanPham: number;
+                sanPhamLoi: number;
+                soNgayLam: number;
+            } | null;
+            giaoHang: {
+                tongKhoiLuong: number;
+                soLuotGiao: number;
+            } | null;
+            diemKPI: number;
+        };
+    }>;
     previewChiaHang(rows: ChiaHangRowDto[], thang: number, nam: number): Promise<PreviewChiaHangResponse>;
     confirmChiaHang(rows: ChiaHangRowDto[], tenFile: string, fileHash: string | undefined, nguoiImportId: number): Promise<{
         success: boolean;

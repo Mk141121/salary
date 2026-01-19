@@ -119,10 +119,20 @@ export class YeuCauController {
   async layYeuCauCuaToi(@Query('trangThai') trangThai: string, @Request() req: any) {
     const nhanVienId = req.user?.nhanVienId;
     if (!nhanVienId) return { data: [] };
-    const filter: LocDonYeuCauDto = { nhanVienId };
-    if (trangThai) filter.trangThai = trangThai as any;
-    const result = await this.yeuCauService.layDanhSachDon(filter);
-    return { data: result.data || [] };
+    
+    // Map frontend filter to backend filter
+    let mappedTrangThai: string[] | string | undefined;
+    if (trangThai === 'CHO_DUYET') {
+      // CHO_DUYET includes both CHO_DUYET_1 and CHO_DUYET_2
+      mappedTrangThai = ['CHO_DUYET_1', 'CHO_DUYET_2', 'NHAP'];
+    } else if (trangThai === 'DA_DUYET') {
+      mappedTrangThai = trangThai;
+    } else if (trangThai === 'TU_CHOI') {
+      mappedTrangThai = ['TU_CHOI_1', 'TU_CHOI_2'];
+    }
+    
+    const result = await this.yeuCauService.layDanhSachDonPortal(nhanVienId, mappedTrangThai);
+    return { data: result || [] };
   }
 
   /**
