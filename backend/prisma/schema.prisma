@@ -165,6 +165,10 @@ model NhanVien {
   soDienThoai  String?           @map("so_dien_thoai")
   phongBanId   Int               @map("phong_ban_id")
   chucVu       String?           @map("chuc_vu")
+  // Loại nhân viên: THU_VIEC, CHINH_THUC, HOC_VIEC, THUC_TAP, CONG_TAC_VIEN
+  loaiNhanVien LoaiNhanVien      @default(CHINH_THUC) @map("loai_nhan_vien")
+  // Có đóng BHXH hay không - ảnh hưởng đến khấu trừ bảng lương
+  dongBHXH     Boolean           @default(true) @map("dong_bhxh")
   // Deprecated: luongCoBan sẽ được lấy từ HopDong, giữ lại để migration
   luongCoBan   Decimal           @default(0) @map("luong_co_ban") @db.Decimal(15, 0)
   ngayVaoLam   DateTime          @default(now()) @map("ngay_vao_lam")
@@ -201,8 +205,22 @@ model NhanVien {
   chiTietNghiPheps    ChiTietNghiPhepNgay[]
   // Module yêu cầu (Sprint 4)
   donYeuCaus          DonYeuCau[]
+  // Module sản lượng
+  sanLuongChiaHangs   SanLuongChiaHang[]
+  giaoHangs           GiaoHang[]
 
   @@map("nhan_vien")
+}
+
+enum LoaiNhanVien {
+  THU_VIEC       // Thử việc
+  CHINH_THUC     // Chính thức
+  HOC_VIEC       // Học việc
+  THUC_TAP       // Thực tập
+  CONG_TAC_VIEN  // Cộng tác viên
+  THOI_VU        // Thời vụ
+
+  @@map("loai_nhan_vien")
 }
 
 enum GioiTinh {
@@ -415,6 +433,7 @@ enum NguonChiTiet {
   RULE // Từ Rule Engine tính tự động
   PHAT_SINH // Phát sinh trong kỳ (thưởng/phạt)
   DIEU_CHINH // Từ phiếu điều chỉnh
+  UNG_LUONG // Từ bảng ứng lương đã chốt
 
   @@map("nguon_chi_tiet")
 }
@@ -1611,6 +1630,7 @@ model SanLuongChiaHang {
   capNhatLuc   DateTime    @updatedAt @map("cap_nhat_luc")
 
   // Quan hệ
+  nhanVien     NhanVien?     @relation(fields: [nhanVienId], references: [id])
   lichSuImport LichSuImport? @relation(fields: [importId], references: [id])
 
   @@unique([ngay, nhanVienId])
@@ -1638,6 +1658,7 @@ model GiaoHang {
   capNhatLuc         DateTime    @updatedAt @map("cap_nhat_luc")
 
   // Quan hệ
+  nhanVien     NhanVien?     @relation(fields: [nhanVienId], references: [id])
   lichSuImport LichSuImport? @relation(fields: [importId], references: [id])
 
   @@unique([ngay, nhanVienId])

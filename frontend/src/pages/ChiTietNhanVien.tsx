@@ -21,7 +21,7 @@ import {
   Save,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { nhanVienApi, phongBanApi, phuCapNhanVienApi, khoanLuongApi, PhuCapNhanVien, KhoanLuong } from '../services/api'
+import { nhanVienApi, phongBanApi, phuCapNhanVienApi, khoanLuongApi, PhuCapNhanVien, KhoanLuong, LoaiNhanVien, LOAI_NHAN_VIEN_MAP } from '../services/api'
 import { formatTien, formatNgay } from '../utils'
 import TabHopDong from '../components/TabHopDong'
 import TabNganHang from '../components/TabNganHang'
@@ -55,6 +55,8 @@ export default function ChiTietNhanVien() {
     diaChi: '',
     ngayVaoLam: '',
     luongCoBan: 0,
+    loaiNhanVien: 'CHINH_THUC' as LoaiNhanVien,
+    dongBHXH: true,
   })
 
   // Form state
@@ -182,6 +184,8 @@ export default function ChiTietNhanVien() {
         diaChi: (nhanVien as any).diaChi || '',
         ngayVaoLam: (nhanVien as any).ngayVaoLam ? new Date((nhanVien as any).ngayVaoLam).toISOString().split('T')[0] : '',
         luongCoBan: nhanVien.luongCoBan || 0,
+        loaiNhanVien: (nhanVien as any).loaiNhanVien || 'CHINH_THUC',
+        dongBHXH: (nhanVien as any).dongBHXH !== false,
       })
     }
   }, [nhanVien])
@@ -265,6 +269,8 @@ export default function ChiTietNhanVien() {
       diaChi: formNhanVien.diaChi?.trim() || null,
       ngayVaoLam: formNhanVien.ngayVaoLam || null,
       luongCoBan: formNhanVien.luongCoBan || 0,
+      loaiNhanVien: formNhanVien.loaiNhanVien,
+      dongBHXH: formNhanVien.dongBHXH,
     } as any)
   }
 
@@ -281,6 +287,8 @@ export default function ChiTietNhanVien() {
         diaChi: (nhanVien as any).diaChi || '',
         ngayVaoLam: (nhanVien as any).ngayVaoLam ? new Date((nhanVien as any).ngayVaoLam).toISOString().split('T')[0] : '',
         luongCoBan: nhanVien.luongCoBan || 0,
+        loaiNhanVien: (nhanVien as any).loaiNhanVien || 'CHINH_THUC',
+        dongBHXH: (nhanVien as any).dongBHXH !== false,
       })
     }
     setIsEditing(false)
@@ -499,6 +507,20 @@ export default function ChiTietNhanVien() {
                   <p className="font-medium text-primary-600">{formatTien(nhanVien.luongCoBan)}</p>
                 </div>
                 <div>
+                  <label className="block text-sm text-gray-500">Loại nhân viên</label>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${LOAI_NHAN_VIEN_MAP[((nhanVien as any).loaiNhanVien || 'CHINH_THUC') as LoaiNhanVien]?.color || 'bg-gray-100'}`}>
+                    {LOAI_NHAN_VIEN_MAP[((nhanVien as any).loaiNhanVien || 'CHINH_THUC') as LoaiNhanVien]?.label || 'Chính thức'}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500">Đóng BHXH</label>
+                  {(nhanVien as any).dongBHXH !== false ? (
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Có đóng</span>
+                  ) : (
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Không đóng</span>
+                  )}
+                </div>
+                <div>
                   <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
                   <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
                 </div>
@@ -614,6 +636,46 @@ export default function ChiTietNhanVien() {
                     min={0}
                     step={100000}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Loại nhân viên</label>
+                  <select
+                    value={formNhanVien.loaiNhanVien}
+                    onChange={(e) => setFormNhanVien({ ...formNhanVien, loaiNhanVien: e.target.value as LoaiNhanVien })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value="CHINH_THUC">Chính thức</option>
+                    <option value="THU_VIEC">Thử việc</option>
+                    <option value="HOC_VIEC">Học việc</option>
+                    <option value="THUC_TAP">Thực tập</option>
+                    <option value="CONG_TAC_VIEN">Cộng tác viên</option>
+                    <option value="THOI_VU">Thời vụ</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Đóng BHXH</label>
+                  <div className="flex items-center gap-4 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="editDongBHXH"
+                        checked={formNhanVien.dongBHXH === true}
+                        onChange={() => setFormNhanVien({ ...formNhanVien, dongBHXH: true })}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <span>Có đóng</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="editDongBHXH"
+                        checked={formNhanVien.dongBHXH === false}
+                        onChange={() => setFormNhanVien({ ...formNhanVien, dongBHXH: false })}
+                        className="w-4 h-4 text-red-600"
+                      />
+                      <span>Không đóng</span>
+                    </label>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>

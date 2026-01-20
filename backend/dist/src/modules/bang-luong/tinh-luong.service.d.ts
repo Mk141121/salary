@@ -1,5 +1,16 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { ChamCongService } from '../cham-cong/cham-cong.service';
+export interface SanLuongNhanVien {
+    chiaHang?: {
+        tongSpDat: number;
+        tongSpLoi: number;
+    };
+    giaoHang?: {
+        tongKhoiLuongThanhCong: number;
+        tongSoLanTreGio: number;
+        tongSoLanKhongLayPhieu: number;
+    };
+}
 export interface ChiTietLuongNhanVien {
     nhanVienId: number;
     maNhanVien: string;
@@ -7,6 +18,7 @@ export interface ChiTietLuongNhanVien {
     chucVu: string | null;
     phongBan: string;
     ngayCongThucTe: number;
+    sanLuong?: SanLuongNhanVien;
     cacKhoanLuong: {
         khoanLuongId: number;
         maKhoan: string;
@@ -29,6 +41,8 @@ export interface BangLuongChiTiet {
         tenPhongBan: string;
     };
     trangThai: string;
+    coSanLuong: boolean;
+    loaiSanLuong?: 'CHIA_HANG' | 'GIAO_HANG' | 'CA_HAI';
     danhSachKhoanLuong: {
         id: number;
         maKhoan: string;

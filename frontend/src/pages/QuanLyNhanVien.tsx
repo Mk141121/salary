@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Edit2, Trash2, Search, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { nhanVienApi, phongBanApi, NhanVien, TrangThaiNhanVien } from '../services/api'
+import { nhanVienApi, phongBanApi, NhanVien, TrangThaiNhanVien, LoaiNhanVien, LOAI_NHAN_VIEN_MAP } from '../services/api'
 import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 // Map trạng thái sang tiếng Việt
@@ -19,6 +19,7 @@ export default function QuanLyNhanVien() {
   const [showModal, setShowModal] = useState(false)
   const [filterPhongBan, setFilterPhongBan] = useState<number | undefined>()
   const [filterTrangThai, setFilterTrangThai] = useState<TrangThaiNhanVien | ''>('')
+  const [filterLoaiNhanVien, setFilterLoaiNhanVien] = useState<LoaiNhanVien | ''>('')
   const [tuKhoa, setTuKhoa] = useState('')
 
   const [formData, setFormData] = useState({
@@ -33,6 +34,8 @@ export default function QuanLyNhanVien() {
     ngaySinh: '',
     diaChi: '',
     trangThai: 'DANG_LAM' as TrangThaiNhanVien,
+    loaiNhanVien: 'CHINH_THUC' as LoaiNhanVien,
+    dongBHXH: true,
   })
 
   const { data: nhanViensData, isLoading } = useQuery({
@@ -45,7 +48,12 @@ export default function QuanLyNhanVien() {
   })
 
   // Handle paginated response format { data: [], meta: {} }
-  const nhanViens = Array.isArray(nhanViensData) ? nhanViensData : nhanViensData?.data || []
+  const nhanViensRaw = Array.isArray(nhanViensData) ? nhanViensData : nhanViensData?.data || []
+  
+  // Filter thêm theo loại nhân viên (client-side)
+  const nhanViens = filterLoaiNhanVien 
+    ? nhanViensRaw.filter((nv: NhanVien) => nv.loaiNhanVien === filterLoaiNhanVien)
+    : nhanViensRaw
 
   const { data: phongBans } = useQuery({
     queryKey: ['phong-ban'],
@@ -102,6 +110,8 @@ export default function QuanLyNhanVien() {
       ngaySinh: '',
       diaChi: '',
       trangThai: 'DANG_LAM',
+      loaiNhanVien: 'CHINH_THUC' as LoaiNhanVien,
+      dongBHXH: true,
     })
   }
 
@@ -193,6 +203,21 @@ export default function QuanLyNhanVien() {
               <option value="TAM_NGHI">Tạm nghỉ</option>
             </select>
           </div>
+          <div>
+            <select
+              value={filterLoaiNhanVien}
+              onChange={(e) => setFilterLoaiNhanVien(e.target.value as LoaiNhanVien | '')}
+              className="border rounded-lg px-3 py-2"
+            >
+              <option value="">Tất cả loại NV</option>
+              <option value="CHINH_THUC">Chính thức</option>
+              <option value="THU_VIEC">Thử việc</option>
+              <option value="HOC_VIEC">Học việc</option>
+              <option value="THUC_TAP">Thực tập</option>
+              <option value="CONG_TAC_VIEN">Cộng tác viên</option>
+              <option value="THOI_VU">Thời vụ</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -209,8 +234,8 @@ export default function QuanLyNhanVien() {
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Họ tên</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phòng ban</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Chức vụ</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Email</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Ngày vào làm</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Loại NV</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">BHXH</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Trạng thái</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Thao tác</th>
                 </tr>
@@ -222,8 +247,18 @@ export default function QuanLyNhanVien() {
                     <td className="py-3 px-4">{nv.hoTen}</td>
                     <td className="py-3 px-4">{nv.phongBan?.tenPhongBan}</td>
                     <td className="py-3 px-4">{nv.chucVu || '-'}</td>
-                    <td className="py-3 px-4">{nv.email || '-'}</td>
-                    <td className="py-3 px-4 text-center">{(nv as any).ngayVaoLam ? new Date((nv as any).ngayVaoLam).toLocaleDateString('vi-VN') : '-'}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${LOAI_NHAN_VIEN_MAP[nv.loaiNhanVien || 'CHINH_THUC']?.color || 'bg-gray-100'}`}>
+                        {LOAI_NHAN_VIEN_MAP[nv.loaiNhanVien || 'CHINH_THUC']?.label || 'Chính thức'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {nv.dongBHXH !== false ? (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Có</span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Không</span>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${TRANG_THAI_MAP[nv.trangThai]?.color || 'bg-gray-100'}`}>
                         {TRANG_THAI_MAP[nv.trangThai]?.label || nv.trangThai}
@@ -388,6 +423,49 @@ export default function QuanLyNhanVien() {
                   onChange={(val) => setFormData({ ...formData, ngayVaoLam: val })}
                   className="w-full border rounded-lg px-3 py-2"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Loại nhân viên</label>
+                  <select
+                    value={formData.loaiNhanVien}
+                    onChange={(e) => setFormData({ ...formData, loaiNhanVien: e.target.value as LoaiNhanVien })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value="CHINH_THUC">Chính thức</option>
+                    <option value="THU_VIEC">Thử việc</option>
+                    <option value="HOC_VIEC">Học việc</option>
+                    <option value="THUC_TAP">Thực tập</option>
+                    <option value="CONG_TAC_VIEN">Cộng tác viên</option>
+                    <option value="THOI_VU">Thời vụ</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Đóng BHXH</label>
+                  <div className="flex items-center gap-4 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="dongBHXH"
+                        checked={formData.dongBHXH === true}
+                        onChange={() => setFormData({ ...formData, dongBHXH: true })}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <span>Có đóng</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="dongBHXH"
+                        checked={formData.dongBHXH === false}
+                        onChange={() => setFormData({ ...formData, dongBHXH: false })}
+                        className="w-4 h-4 text-red-600"
+                      />
+                      <span>Không đóng</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 

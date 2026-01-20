@@ -46,6 +46,14 @@ export declare class SanLuongController {
         khoaSua: boolean;
         capNhatLuc: Date;
     })[]>;
+    thongKeChiaHang(thang: number, nam: number): Promise<{
+        thang: number;
+        nam: number;
+        tongSpDat: number;
+        tongSpLoi: number;
+        tyLeDat: number;
+        soNhanVien: number;
+    }>;
     adminSuaChiaHang(id: number, dto: AdminSuaChiaHangDto, req: any): Promise<{
         id: number;
         taoBoi: number | null;
@@ -89,6 +97,14 @@ export declare class SanLuongController {
         khoaSua: boolean;
         capNhatLuc: Date;
     })[]>;
+    thongKeGiaoHang(thang: number, nam: number): Promise<{
+        thang: number;
+        nam: number;
+        tongKhoiLuong: number;
+        tongTreGio: number;
+        tongKhongLayPhieu: number;
+        soNhanVien: number;
+    }>;
     adminSuaGiaoHang(id: number, dto: AdminSuaGiaoHangDto, req: any): Promise<{
         id: number;
         taoBoi: number | null;

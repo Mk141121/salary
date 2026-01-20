@@ -28,6 +28,7 @@ import {
   CheckCircle,
   CalendarRange,
   ListTodo,
+  Search,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
@@ -76,6 +77,7 @@ const menuItems: MenuItem[] = [
     label: 'Sản lượng', 
     icon: Package,
     children: [
+      { path: '/san-luong', label: 'Tra cứu sản lượng', icon: Search },
       { path: '/import-chia-hang', label: 'Import Chia hàng', icon: Package },
       { path: '/import-giao-hang', label: 'Import Giao hàng', icon: Truck },
       { path: '/lich-su-import', label: 'Lịch sử Import', icon: History },

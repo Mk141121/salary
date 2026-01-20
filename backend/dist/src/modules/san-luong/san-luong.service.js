@@ -200,6 +200,39 @@ let SanLuongService = class SanLuongService {
             orderBy: [{ ngay: 'desc' }, { nhanVienId: 'asc' }],
         });
     }
+    async thongKeChiaHang(thang, nam) {
+        const tuNgay = new Date(nam, thang - 1, 1);
+        const denNgay = new Date(nam, thang, 0);
+        const result = await this.prisma.sanLuongChiaHang.aggregate({
+            where: {
+                ngay: { gte: tuNgay, lte: denNgay },
+            },
+            _sum: {
+                soLuongSpDat: true,
+                soLuongSpLoi: true,
+            },
+            _count: {
+                nhanVienId: true,
+            },
+        });
+        const soNhanVien = await this.prisma.sanLuongChiaHang.groupBy({
+            by: ['nhanVienId'],
+            where: {
+                ngay: { gte: tuNgay, lte: denNgay },
+            },
+        });
+        const tongSpDat = result._sum.soLuongSpDat || 0;
+        const tongSpLoi = result._sum.soLuongSpLoi || 0;
+        const tyLeDat = tongSpDat > 0 ? ((tongSpDat - tongSpLoi) / tongSpDat) * 100 : 0;
+        return {
+            thang,
+            nam,
+            tongSpDat,
+            tongSpLoi,
+            tyLeDat,
+            soNhanVien: soNhanVien.length,
+        };
+    }
     async adminSuaChiaHang(id, dto, nguoiSuaId) {
         const record = await this.prisma.sanLuongChiaHang.findUnique({ where: { id } });
         if (!record) {
@@ -374,6 +407,34 @@ let SanLuongService = class SanLuongService {
             },
             orderBy: [{ ngay: 'desc' }, { nhanVienId: 'asc' }],
         });
+    }
+    async thongKeGiaoHang(thang, nam) {
+        const tuNgay = new Date(nam, thang - 1, 1);
+        const denNgay = new Date(nam, thang, 0);
+        const result = await this.prisma.giaoHang.aggregate({
+            where: {
+                ngay: { gte: tuNgay, lte: denNgay },
+            },
+            _sum: {
+                khoiLuongThanhCong: true,
+                soLanTreGio: true,
+                soLanKhongLayPhieu: true,
+            },
+        });
+        const soNhanVien = await this.prisma.giaoHang.groupBy({
+            by: ['nhanVienId'],
+            where: {
+                ngay: { gte: tuNgay, lte: denNgay },
+            },
+        });
+        return {
+            thang,
+            nam,
+            tongKhoiLuong: Number(result._sum.khoiLuongThanhCong || 0),
+            tongTreGio: result._sum.soLanTreGio || 0,
+            tongKhongLayPhieu: result._sum.soLanKhongLayPhieu || 0,
+            soNhanVien: soNhanVien.length,
+        };
     }
     async adminSuaGiaoHang(id, dto, nguoiSuaId) {
         const record = await this.prisma.giaoHang.findUnique({ where: { id } });

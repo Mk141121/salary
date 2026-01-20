@@ -7,6 +7,7 @@ import {
   tinhPagination,
   taoPaginatedResult,
 } from '../../common/dto/pagination.dto';
+import { LoaiNhanVien } from '@prisma/client';
 
 @Injectable()
 export class NhanVienService {
@@ -141,6 +142,11 @@ export class NhanVienService {
     const gioiTinh = dto.gioiTinh || null;
     const ngaySinh = dto.ngaySinh ? new Date(dto.ngaySinh) : null;
     const diaChi = dto.diaChi?.trim() || null;
+    
+    // Xử lý loại nhân viên - cast sang enum
+    const loaiNhanVien = dto.loaiNhanVien 
+      ? dto.loaiNhanVien as LoaiNhanVien 
+      : LoaiNhanVien.CHINH_THUC;
 
     return this.prisma.nhanVien.create({
       data: {
@@ -152,6 +158,8 @@ export class NhanVienService {
         ngaySinh,
         diaChi,
         ngayVaoLam: dto.ngayVaoLam ? new Date(dto.ngayVaoLam) : new Date(),
+        loaiNhanVien,
+        dongBHXH: dto.dongBHXH ?? true,
       },
       include: {
         phongBan: true,
@@ -183,6 +191,13 @@ export class NhanVienService {
     }
     if (dto.diaChi !== undefined) {
       updateData.diaChi = dto.diaChi?.trim() || null;
+    }
+    // Xử lý loại nhân viên và đóng BHXH
+    if (dto.loaiNhanVien !== undefined) {
+      updateData.loaiNhanVien = dto.loaiNhanVien as LoaiNhanVien;
+    }
+    if (dto.dongBHXH !== undefined) {
+      updateData.dongBHXH = dto.dongBHXH;
     }
 
     return this.prisma.nhanVien.update({

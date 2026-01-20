@@ -6,11 +6,12 @@ import {
   IsEmail,
   IsEnum,
   IsDateString,
+  IsBoolean,
   MinLength,
   ValidateIf,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { TrangThaiNhanVien, GioiTinh } from '@prisma/client';
+import { TrangThaiNhanVien, GioiTinh, LoaiNhanVien } from '@prisma/client';
 
 export class TaoNhanVienDto {
   @ApiPropertyOptional({ description: 'Mã nhân viên (tự động tạo nếu bỏ trống)', example: 'NV001' })
@@ -70,6 +71,20 @@ export class TaoNhanVienDto {
   @IsOptional()
   @IsString()
   diaChi?: string;
+
+  @ApiPropertyOptional({ 
+    description: 'Loại nhân viên', 
+    enum: ['THU_VIEC', 'CHINH_THUC', 'HOC_VIEC', 'THUC_TAP', 'CONG_TAC_VIEN', 'THOI_VU'],
+    example: 'CHINH_THUC'
+  })
+  @IsOptional()
+  @IsString()
+  loaiNhanVien?: string;
+
+  @ApiPropertyOptional({ description: 'Có đóng BHXH không', example: true })
+  @IsOptional()
+  @IsBoolean()
+  dongBHXH?: boolean;
 }
 
 export class CapNhatNhanVienDto extends PartialType(TaoNhanVienDto) {

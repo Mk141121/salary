@@ -88,6 +88,18 @@ export class SanLuongController {
   }
 
   /**
+   * Thống kê sản lượng chia hàng theo tháng
+   */
+  @Get('chia-hang/thong-ke')
+  @VaiTro('ADMIN', 'HR', 'IMPORT_CHIA_HANG', 'PAYROLL_OPERATOR')
+  async thongKeChiaHang(
+    @Query('thang') thang: number,
+    @Query('nam') nam: number,
+  ) {
+    return this.sanLuongService.thongKeChiaHang(thang, nam);
+  }
+
+  /**
    * Admin sửa sản lượng chia hàng
    */
   @Put('admin/chia-hang/:id')
@@ -138,6 +150,18 @@ export class SanLuongController {
   @VaiTro('ADMIN', 'HR', 'IMPORT_GIAO_HANG', 'PAYROLL_OPERATOR')
   async layDanhSachGiaoHang(@Query() query: QuerySanLuongDto) {
     return this.sanLuongService.layDanhSachGiaoHang(query);
+  }
+
+  /**
+   * Thống kê giao hàng theo tháng
+   */
+  @Get('giao-hang/thong-ke')
+  @VaiTro('ADMIN', 'HR', 'IMPORT_GIAO_HANG', 'PAYROLL_OPERATOR')
+  async thongKeGiaoHang(
+    @Query('thang') thang: number,
+    @Query('nam') nam: number,
+  ) {
+    return this.sanLuongService.thongKeGiaoHang(thang, nam);
   }
 
   /**

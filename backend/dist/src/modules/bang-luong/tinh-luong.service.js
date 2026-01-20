@@ -97,8 +97,32 @@ let TinhLuongService = class TinhLuongService {
                 chamCongMap.set(nv.id, ngayCongLyThuyet);
             }
         }
+        const snapshotChiaHang = await this.prisma.snapshotSanLuongChiaHang.findMany({
+            where: { bangLuongId },
+        });
+        const chiaHangMap = new Map(snapshotChiaHang.map(s => [s.nhanVienId, {
+                tongSpDat: s.tongSpDat,
+                tongSpLoi: s.tongSpLoi,
+            }]));
+        const snapshotGiaoHang = await this.prisma.snapshotGiaoHang.findMany({
+            where: { bangLuongId },
+        });
+        const giaoHangMap = new Map(snapshotGiaoHang.map(s => [s.nhanVienId, {
+                tongKhoiLuongThanhCong: Number(s.tongKhoiLuongThanhCong),
+                tongSoLanTreGio: s.tongSoLanTreGio,
+                tongSoLanKhongLayPhieu: s.tongSoLanKhongLayPhieu,
+            }]));
         for (const nv of nhanViens) {
             const ngayCongThucTe = chamCongMap.get(nv.id) || ngayCongLyThuyet;
+            const sanLuong = {};
+            const chiaHang = chiaHangMap.get(nv.id);
+            const giaoHang = giaoHangMap.get(nv.id);
+            if (chiaHang) {
+                sanLuong.chiaHang = chiaHang;
+            }
+            if (giaoHang) {
+                sanLuong.giaoHang = giaoHang;
+            }
             chiTietTheoNhanVien.set(nv.id, {
                 nhanVienId: nv.id,
                 maNhanVien: nv.maNhanVien,
@@ -106,6 +130,7 @@ let TinhLuongService = class TinhLuongService {
                 chucVu: nv.chucVu,
                 phongBan: nv.phongBan.tenPhongBan,
                 ngayCongThucTe,
+                sanLuong: Object.keys(sanLuong).length > 0 ? sanLuong : undefined,
                 cacKhoanLuong: [],
                 tongThuNhap: 0,
                 tongKhauTru: 0,
@@ -140,6 +165,18 @@ let TinhLuongService = class TinhLuongService {
             tongCongThuNhap += nv.tongThuNhap;
             tongCongKhauTru += nv.tongKhauTru;
         }
+        const coChiaHang = snapshotChiaHang.length > 0;
+        const coGiaoHang = snapshotGiaoHang.length > 0;
+        let loaiSanLuong;
+        if (coChiaHang && coGiaoHang) {
+            loaiSanLuong = 'CA_HAI';
+        }
+        else if (coChiaHang) {
+            loaiSanLuong = 'CHIA_HANG';
+        }
+        else if (coGiaoHang) {
+            loaiSanLuong = 'GIAO_HANG';
+        }
         return {
             bangLuongId: bangLuong.id,
             thang: bangLuong.thang,
@@ -151,6 +188,8 @@ let TinhLuongService = class TinhLuongService {
                 tenPhongBan: bangLuong.phongBan.tenPhongBan,
             },
             trangThai: bangLuong.trangThai,
+            coSanLuong: coChiaHang || coGiaoHang,
+            loaiSanLuong,
             danhSachKhoanLuong: danhSachKhoanLuong.map((kl) => ({
                 id: kl.id,
                 maKhoan: kl.maKhoan,

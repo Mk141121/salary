@@ -237,11 +237,18 @@ export class SanLuongService {
   async layDanhSachChiaHang(query: QuerySanLuongDto) {
     const where: any = {};
     
-    if (query.tuNgay) {
-      where.ngay = { ...where.ngay, gte: new Date(query.tuNgay) };
-    }
-    if (query.denNgay) {
-      where.ngay = { ...where.ngay, lte: new Date(query.denNgay) };
+    // Nếu có thang/nam, tính tuNgay/denNgay từ đó
+    if (query.thang && query.nam) {
+      const tuNgay = new Date(query.nam, query.thang - 1, 1);
+      const denNgay = new Date(query.nam, query.thang, 0, 23, 59, 59);
+      where.ngay = { gte: tuNgay, lte: denNgay };
+    } else {
+      if (query.tuNgay) {
+        where.ngay = { ...where.ngay, gte: new Date(query.tuNgay) };
+      }
+      if (query.denNgay) {
+        where.ngay = { ...where.ngay, lte: new Date(query.denNgay) };
+      }
     }
     if (query.nhanVienId) {
       where.nhanVienId = query.nhanVienId;
@@ -250,12 +257,56 @@ export class SanLuongService {
     return this.prisma.sanLuongChiaHang.findMany({
       where,
       include: {
+        nhanVien: {
+          select: { id: true, maNhanVien: true, hoTen: true },
+        },
         lichSuImport: {
           select: { id: true, tenFile: true, importLuc: true },
         },
       },
       orderBy: [{ ngay: 'desc' }, { nhanVienId: 'asc' }],
     });
+  }
+
+  /**
+   * Thống kê sản lượng chia hàng theo tháng
+   */
+  async thongKeChiaHang(thang: number, nam: number) {
+    const tuNgay = new Date(nam, thang - 1, 1);
+    const denNgay = new Date(nam, thang, 0);
+
+    const result = await this.prisma.sanLuongChiaHang.aggregate({
+      where: {
+        ngay: { gte: tuNgay, lte: denNgay },
+      },
+      _sum: {
+        soLuongSpDat: true,
+        soLuongSpLoi: true,
+      },
+      _count: {
+        nhanVienId: true,
+      },
+    });
+
+    const soNhanVien = await this.prisma.sanLuongChiaHang.groupBy({
+      by: ['nhanVienId'],
+      where: {
+        ngay: { gte: tuNgay, lte: denNgay },
+      },
+    });
+
+    const tongSpDat = result._sum.soLuongSpDat || 0;
+    const tongSpLoi = result._sum.soLuongSpLoi || 0;
+    const tyLeDat = tongSpDat > 0 ? ((tongSpDat - tongSpLoi) / tongSpDat) * 100 : 0;
+
+    return {
+      thang,
+      nam,
+      tongSpDat,
+      tongSpLoi,
+      tyLeDat,
+      soNhanVien: soNhanVien.length,
+    };
   }
 
   /**
@@ -456,11 +507,18 @@ export class SanLuongService {
   async layDanhSachGiaoHang(query: QuerySanLuongDto) {
     const where: any = {};
     
-    if (query.tuNgay) {
-      where.ngay = { ...where.ngay, gte: new Date(query.tuNgay) };
-    }
-    if (query.denNgay) {
-      where.ngay = { ...where.ngay, lte: new Date(query.denNgay) };
+    // Nếu có thang/nam, tính tuNgay/denNgay từ đó
+    if (query.thang && query.nam) {
+      const tuNgay = new Date(query.nam, query.thang - 1, 1);
+      const denNgay = new Date(query.nam, query.thang, 0, 23, 59, 59);
+      where.ngay = { gte: tuNgay, lte: denNgay };
+    } else {
+      if (query.tuNgay) {
+        where.ngay = { ...where.ngay, gte: new Date(query.tuNgay) };
+      }
+      if (query.denNgay) {
+        where.ngay = { ...where.ngay, lte: new Date(query.denNgay) };
+      }
     }
     if (query.nhanVienId) {
       where.nhanVienId = query.nhanVienId;
@@ -469,12 +527,50 @@ export class SanLuongService {
     return this.prisma.giaoHang.findMany({
       where,
       include: {
+        nhanVien: {
+          select: { id: true, maNhanVien: true, hoTen: true },
+        },
         lichSuImport: {
           select: { id: true, tenFile: true, importLuc: true },
         },
       },
       orderBy: [{ ngay: 'desc' }, { nhanVienId: 'asc' }],
     });
+  }
+
+  /**
+   * Thống kê giao hàng theo tháng
+   */
+  async thongKeGiaoHang(thang: number, nam: number) {
+    const tuNgay = new Date(nam, thang - 1, 1);
+    const denNgay = new Date(nam, thang, 0);
+
+    const result = await this.prisma.giaoHang.aggregate({
+      where: {
+        ngay: { gte: tuNgay, lte: denNgay },
+      },
+      _sum: {
+        khoiLuongThanhCong: true,
+        soLanTreGio: true,
+        soLanKhongLayPhieu: true,
+      },
+    });
+
+    const soNhanVien = await this.prisma.giaoHang.groupBy({
+      by: ['nhanVienId'],
+      where: {
+        ngay: { gte: tuNgay, lte: denNgay },
+      },
+    });
+
+    return {
+      thang,
+      nam,
+      tongKhoiLuong: Number(result._sum.khoiLuongThanhCong || 0),
+      tongTreGio: result._sum.soLanTreGio || 0,
+      tongKhongLayPhieu: result._sum.soLanKhongLayPhieu || 0,
+      soNhanVien: soNhanVien.length,
+    };
   }
 
   /**

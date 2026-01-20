@@ -337,9 +337,15 @@ export class ImportExcelService {
 
   /**
    * Export bảng lương ra Excel
+   * @param bangLuongId ID bảng lương
+   * @param columnConfig Cấu hình cột (tùy chọn) - chỉ export các cột được chỉ định theo thứ tự
    */
-  async exportExcel(bangLuongId: number): Promise<Buffer> {
-    const bangLuong = await this.tinhLuongService.layBangLuongChiTiet(bangLuongId);
+  async exportExcel(
+    bangLuongId: number,
+    columnConfig?: { id: string; label: string }[],
+  ): Promise<Buffer> {
+    const bangLuong =
+      await this.tinhLuongService.layBangLuongChiTiet(bangLuongId);
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Hệ thống Tính Lương';
@@ -347,19 +353,176 @@ export class ImportExcelService {
 
     const worksheet = workbook.addWorksheet('Bảng lương');
 
-    // Tạo header
-    const headers = [
-      'STT',
-      'Mã NV',
-      'Họ tên',
-      'Chức vụ',
-      'Phòng ban',
-      ...bangLuong.danhSachKhoanLuong.map((kl) => kl.tenKhoan),
-      'Tổng thu nhập',
-      'Khấu trừ',
-      'Thực lĩnh',
-    ];
+    // Mapping column ID to data getter
+    const columnGetters: Record<
+      string,
+      {
+        header: string;
+        getValue: (nv: (typeof bangLuong.danhSachNhanVien)[0], stt: number) => string | number;
+        getTotal?: () => string | number;
+        width?: number;
+        isNumber?: boolean;
+      }
+    > = {
+      stt: {
+        header: 'STT',
+        getValue: (_, stt) => stt,
+        getTotal: () => '',
+        width: 5,
+      },
+      maNV: {
+        header: 'Mã NV',
+        getValue: (nv) => nv.maNhanVien,
+        getTotal: () => '',
+        width: 10,
+      },
+      hoTen: {
+        header: 'Họ tên',
+        getValue: (nv) => nv.hoTen,
+        getTotal: () => 'TỔNG CỘNG',
+        width: 25,
+      },
+      chucVu: {
+        header: 'Chức vụ',
+        getValue: (nv) => nv.chucVu || '',
+        getTotal: () => '',
+        width: 15,
+      },
+      ngayCong: {
+        header: 'Ngày công',
+        getValue: (nv) => nv.ngayCongThucTe,
+        getTotal: () => '',
+        width: 12,
+        isNumber: true,
+      },
+      ncDieuChinh: {
+        header: 'NC Điều chỉnh',
+        getValue: () => '',
+        getTotal: () => '',
+        width: 12,
+      },
+      spDat: {
+        header: 'SP đạt',
+        getValue: (nv) => nv.sanLuong?.chiaHang?.tongSpDat || 0,
+        getTotal: () =>
+          bangLuong.danhSachNhanVien.reduce(
+            (sum, nv) => sum + (nv.sanLuong?.chiaHang?.tongSpDat || 0),
+            0,
+          ),
+        width: 12,
+        isNumber: true,
+      },
+      spLoi: {
+        header: 'SP lỗi',
+        getValue: (nv) => nv.sanLuong?.chiaHang?.tongSpLoi || 0,
+        getTotal: () =>
+          bangLuong.danhSachNhanVien.reduce(
+            (sum, nv) => sum + (nv.sanLuong?.chiaHang?.tongSpLoi || 0),
+            0,
+          ),
+        width: 12,
+        isNumber: true,
+      },
+      klGiao: {
+        header: 'KL giao (kg)',
+        getValue: (nv) => nv.sanLuong?.giaoHang?.tongKhoiLuongThanhCong || 0,
+        getTotal: () =>
+          bangLuong.danhSachNhanVien.reduce(
+            (sum, nv) =>
+              sum + (nv.sanLuong?.giaoHang?.tongKhoiLuongThanhCong || 0),
+            0,
+          ),
+        width: 12,
+        isNumber: true,
+      },
+      treGio: {
+        header: 'Trễ giờ',
+        getValue: (nv) => nv.sanLuong?.giaoHang?.tongSoLanTreGio || 0,
+        getTotal: () =>
+          bangLuong.danhSachNhanVien.reduce(
+            (sum, nv) => sum + (nv.sanLuong?.giaoHang?.tongSoLanTreGio || 0),
+            0,
+          ),
+        width: 10,
+        isNumber: true,
+      },
+      tongThuNhap: {
+        header: 'Tổng thu nhập',
+        getValue: (nv) => nv.tongThuNhap,
+        getTotal: () => bangLuong.tongCong.tongThuNhap,
+        width: 15,
+        isNumber: true,
+      },
+      khauTru: {
+        header: 'Khấu trừ',
+        getValue: (nv) => nv.tongKhauTru,
+        getTotal: () => bangLuong.tongCong.tongKhauTru,
+        width: 12,
+        isNumber: true,
+      },
+      thucLinh: {
+        header: 'Thực lĩnh',
+        getValue: (nv) => nv.thucLinh,
+        getTotal: () => bangLuong.tongCong.thucLinh,
+        width: 15,
+        isNumber: true,
+      },
+      phieuLuong: {
+        header: 'Phiếu lương',
+        getValue: () => '',
+        getTotal: () => '',
+        width: 12,
+      },
+    };
 
+    // Thêm các khoản lương động
+    for (const kl of bangLuong.danhSachKhoanLuong) {
+      columnGetters[`kl_${kl.id}`] = {
+        header: kl.tenKhoan,
+        getValue: (nv) => {
+          const khoan = nv.cacKhoanLuong.find((k) => k.khoanLuongId === kl.id);
+          return khoan?.soTien || 0;
+        },
+        getTotal: () =>
+          bangLuong.danhSachNhanVien.reduce((sum, nv) => {
+            const khoan = nv.cacKhoanLuong.find((k) => k.khoanLuongId === kl.id);
+            return sum + (khoan?.soTien || 0);
+          }, 0),
+        width: 15,
+        isNumber: true,
+      };
+    }
+
+    // Xác định danh sách cột cần export
+    let columnsToExport: { id: string; header: string }[];
+
+    if (columnConfig && columnConfig.length > 0) {
+      // Sử dụng column config từ frontend
+      columnsToExport = columnConfig
+        .filter((col) => columnGetters[col.id])
+        .map((col) => ({
+          id: col.id,
+          header: columnGetters[col.id].header,
+        }));
+    } else {
+      // Mặc định: tất cả cột cơ bản + khoản lương + tổng
+      columnsToExport = [
+        { id: 'stt', header: 'STT' },
+        { id: 'maNV', header: 'Mã NV' },
+        { id: 'hoTen', header: 'Họ tên' },
+        { id: 'chucVu', header: 'Chức vụ' },
+        ...bangLuong.danhSachKhoanLuong.map((kl) => ({
+          id: `kl_${kl.id}`,
+          header: kl.tenKhoan,
+        })),
+        { id: 'tongThuNhap', header: 'Tổng thu nhập' },
+        { id: 'khauTru', header: 'Khấu trừ' },
+        { id: 'thucLinh', header: 'Thực lĩnh' },
+      ];
+    }
+
+    // Tạo header
+    const headers = columnsToExport.map((col) => col.header);
     worksheet.addRow(headers);
 
     // Style header
@@ -374,52 +537,32 @@ export class ImportExcelService {
     // Thêm dữ liệu
     let stt = 1;
     for (const nv of bangLuong.danhSachNhanVien) {
-      const rowData: (string | number)[] = [
-        stt++,
-        nv.maNhanVien,
-        nv.hoTen,
-        nv.chucVu || '',
-        nv.phongBan,
-      ];
-
-      // Thêm các khoản lương theo thứ tự
-      for (const kl of bangLuong.danhSachKhoanLuong) {
-        const khoan = nv.cacKhoanLuong.find((k) => k.khoanLuongId === kl.id);
-        rowData.push(khoan?.soTien || 0);
-      }
-
-      rowData.push(nv.tongThuNhap, nv.tongKhauTru, nv.thucLinh);
-
+      const rowData = columnsToExport.map((col) => {
+        const getter = columnGetters[col.id];
+        return getter ? getter.getValue(nv, stt) : '';
+      });
+      stt++;
       worksheet.addRow(rowData);
     }
 
     // Thêm dòng tổng cộng
-    const tongRow = worksheet.addRow([
-      '',
-      '',
-      'TỔNG CỘNG',
-      '',
-      '',
-      ...Array(bangLuong.danhSachKhoanLuong.length).fill(''),
-      bangLuong.tongCong.tongThuNhap,
-      bangLuong.tongCong.tongKhauTru,
-      bangLuong.tongCong.thucLinh,
-    ]);
+    const totalRowData = columnsToExport.map((col) => {
+      const getter = columnGetters[col.id];
+      return getter?.getTotal ? getter.getTotal() : '';
+    });
+    const tongRow = worksheet.addRow(totalRowData);
     tongRow.font = { bold: true };
 
-    // Format số
-    const soCol = 6 + bangLuong.danhSachKhoanLuong.length + 3;
-    for (let col = 6; col <= soCol; col++) {
-      worksheet.getColumn(col).numFmt = '#,##0';
-      worksheet.getColumn(col).width = 15;
-    }
-
-    // Width các cột khác
-    worksheet.getColumn(1).width = 5;
-    worksheet.getColumn(2).width = 10;
-    worksheet.getColumn(3).width = 25;
-    worksheet.getColumn(4).width = 15;
-    worksheet.getColumn(5).width = 20;
+    // Format số và width
+    columnsToExport.forEach((col, index) => {
+      const getter = columnGetters[col.id];
+      if (getter) {
+        worksheet.getColumn(index + 1).width = getter.width || 12;
+        if (getter.isNumber) {
+          worksheet.getColumn(index + 1).numFmt = '#,##0';
+        }
+      }
+    });
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);

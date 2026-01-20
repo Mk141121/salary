@@ -5,6 +5,18 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ChamCongService } from '../cham-cong/cham-cong.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
+export interface SanLuongNhanVien {
+  chiaHang?: {
+    tongSpDat: number;
+    tongSpLoi: number;
+  };
+  giaoHang?: {
+    tongKhoiLuongThanhCong: number;
+    tongSoLanTreGio: number;
+    tongSoLanKhongLayPhieu: number;
+  };
+}
+
 export interface ChiTietLuongNhanVien {
   nhanVienId: number;
   maNhanVien: string;
@@ -12,6 +24,7 @@ export interface ChiTietLuongNhanVien {
   chucVu: string | null;
   phongBan: string;
   ngayCongThucTe: number; // Số ngày làm thực tế
+  sanLuong?: SanLuongNhanVien; // Thông tin sản lượng
   cacKhoanLuong: {
     khoanLuongId: number;
     maKhoan: string;
@@ -35,6 +48,8 @@ export interface BangLuongChiTiet {
     tenPhongBan: string;
   };
   trangThai: string;
+  coSanLuong: boolean; // Flag cho biết bảng lương có dữ liệu sản lượng không
+  loaiSanLuong?: 'CHIA_HANG' | 'GIAO_HANG' | 'CA_HAI'; // Loại sản lượng
   danhSachKhoanLuong: {
     id: number;
     maKhoan: string;
@@ -169,9 +184,40 @@ export class TinhLuongService {
       }
     }
 
+    // Lấy snapshot sản lượng chia hàng
+    const snapshotChiaHang = await this.prisma.snapshotSanLuongChiaHang.findMany({
+      where: { bangLuongId },
+    });
+    const chiaHangMap = new Map(snapshotChiaHang.map(s => [s.nhanVienId, {
+      tongSpDat: s.tongSpDat,
+      tongSpLoi: s.tongSpLoi,
+    }]));
+
+    // Lấy snapshot giao hàng
+    const snapshotGiaoHang = await this.prisma.snapshotGiaoHang.findMany({
+      where: { bangLuongId },
+    });
+    const giaoHangMap = new Map(snapshotGiaoHang.map(s => [s.nhanVienId, {
+      tongKhoiLuongThanhCong: Number(s.tongKhoiLuongThanhCong),
+      tongSoLanTreGio: s.tongSoLanTreGio,
+      tongSoLanKhongLayPhieu: s.tongSoLanKhongLayPhieu,
+    }]));
+
     // Khởi tạo cho mỗi nhân viên
     for (const nv of nhanViens) {
       const ngayCongThucTe = chamCongMap.get(nv.id) || ngayCongLyThuyet;
+      
+      // Gắn thông tin sản lượng nếu có
+      const sanLuong: SanLuongNhanVien = {};
+      const chiaHang = chiaHangMap.get(nv.id);
+      const giaoHang = giaoHangMap.get(nv.id);
+      if (chiaHang) {
+        sanLuong.chiaHang = chiaHang;
+      }
+      if (giaoHang) {
+        sanLuong.giaoHang = giaoHang;
+      }
+      
       chiTietTheoNhanVien.set(nv.id, {
         nhanVienId: nv.id,
         maNhanVien: nv.maNhanVien,
@@ -179,6 +225,7 @@ export class TinhLuongService {
         chucVu: nv.chucVu,
         phongBan: nv.phongBan.tenPhongBan,
         ngayCongThucTe,
+        sanLuong: Object.keys(sanLuong).length > 0 ? sanLuong : undefined,
         cacKhoanLuong: [],
         tongThuNhap: 0,
         tongKhauTru: 0,
@@ -219,6 +266,18 @@ export class TinhLuongService {
       tongCongKhauTru += nv.tongKhauTru;
     }
 
+    // Xác định có sản lượng không và loại sản lượng
+    const coChiaHang = snapshotChiaHang.length > 0;
+    const coGiaoHang = snapshotGiaoHang.length > 0;
+    let loaiSanLuong: 'CHIA_HANG' | 'GIAO_HANG' | 'CA_HAI' | undefined;
+    if (coChiaHang && coGiaoHang) {
+      loaiSanLuong = 'CA_HAI';
+    } else if (coChiaHang) {
+      loaiSanLuong = 'CHIA_HANG';
+    } else if (coGiaoHang) {
+      loaiSanLuong = 'GIAO_HANG';
+    }
+
     return {
       bangLuongId: bangLuong.id,
       thang: bangLuong.thang,
@@ -230,6 +289,8 @@ export class TinhLuongService {
         tenPhongBan: bangLuong.phongBan.tenPhongBan,
       },
       trangThai: bangLuong.trangThai,
+      coSanLuong: coChiaHang || coGiaoHang,
+      loaiSanLuong,
       danhSachKhoanLuong: danhSachKhoanLuong.map((kl) => ({
         id: kl.id,
         maKhoan: kl.maKhoan,

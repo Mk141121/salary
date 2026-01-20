@@ -64,7 +64,7 @@ export class HopDongService {
 
     // Kiểm tra overlap
     const tuNgay = new Date(dto.tuNgay);
-    const denNgay = dto.denNgay ? new Date(dto.denNgay) : null;
+    const denNgay = dto.denNgay && dto.denNgay.trim() !== '' ? new Date(dto.denNgay) : null;
 
     const overlap = await this.kiemTraOverlap(nhanVienId, tuNgay, denNgay);
     if (overlap) {
@@ -117,7 +117,7 @@ export class HopDongService {
       data: {
         loaiHopDong: dto.loaiHopDong,
         tuNgay: dto.tuNgay ? new Date(dto.tuNgay) : undefined,
-        denNgay: dto.denNgay ? new Date(dto.denNgay) : undefined,
+        denNgay: dto.denNgay && dto.denNgay.trim() !== '' ? new Date(dto.denNgay) : null,
         luongCoBan: dto.luongCoBan,
         luongDongBH: dto.luongDongBH,
         heSoLuong: dto.heSoLuong,

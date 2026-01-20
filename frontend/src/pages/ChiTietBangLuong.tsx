@@ -1,5 +1,5 @@
 // Chi tiết bảng lương - Giao diện giống Excel
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -22,6 +22,7 @@ import { bangLuongApi, importExcelApi, phieuLuongApi, ngayCongApi, BangLuongChiT
 import { formatTien, parseTien, downloadFile } from '../utils'
 import PhieuLuongModal from '../components/PhieuLuongModal'
 import NgayCongModal from '../components/NgayCongModal'
+import { useColumnConfig, createBangLuongColumns } from '../hooks/useColumnConfig'
 
 export default function ChiTietBangLuong() {
   const { id } = useParams<{ id: string }>()
@@ -246,10 +247,12 @@ export default function ChiTietBangLuong() {
     capNhatMutation.mutate(danhSach)
   }
 
-  // Export Excel
+  // Export Excel - sử dụng column config để xuất đúng định dạng
   const handleExport = async () => {
     try {
-      const response = await importExcelApi.export(Number(id))
+      // Lấy danh sách cột visible để gửi lên server
+      const exportColumns = getExportColumns()
+      const response = await importExcelApi.export(Number(id), exportColumns)
       downloadFile(response.data, `bang-luong-${id}.xlsx`)
       toast.success('Xuất file thành công!')
     } catch {
@@ -309,6 +312,28 @@ export default function ChiTietBangLuong() {
 
   // BUG-002 P0: Warning khi có unsaved changes
   const hasUnsavedChanges = pendingChanges.size > 0
+
+  // Tạo column definitions dựa trên dữ liệu bảng lương
+  const defaultColumns = useMemo(() => {
+    if (!bangLuong) return []
+    return createBangLuongColumns(
+      bangLuong.danhSachKhoanLuong,
+      bangLuong.coSanLuong || false,
+      bangLuong.loaiSanLuong
+    )
+  }, [bangLuong])
+
+  // Hook quản lý column config - GLOBAL cho tất cả bảng lương
+  // Sử dụng key cố định để cấu hình áp dụng cho mọi bảng lương
+  const {
+    visibleColumns,
+    getExportColumns,
+  } = useColumnConfig('global_bang_luong', defaultColumns)
+
+  // Kiểm tra xem một cột có visible không
+  const isColumnVisible = useCallback((colId: string) => {
+    return visibleColumns.some(c => c.id === colId)
+  }, [visibleColumns])
 
   // Block navigation khi có unsaved changes (useBlocker không hoạt động với BrowserRouter)
   // TODO: Migrate sang createBrowserRouter để sử dụng useBlocker
@@ -468,21 +493,36 @@ export default function ChiTietBangLuong() {
           <table className="excel-table w-full">
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 bg-gray-200">STT</th>
-                <th className="sticky left-10 z-20 bg-gray-200 min-w-[80px]">Mã NV</th>
-                <th className="sticky left-[120px] z-20 bg-gray-200 min-w-[180px]">Họ tên</th>
-                <th className="min-w-[120px]">Chức vụ</th>
-                <th className="min-w-[80px] text-center bg-orange-100">Ngày công</th>
-                <th className="min-w-[100px] text-center bg-orange-100">NC Điều chỉnh</th>
+                {isColumnVisible('stt') && <th className="sticky left-0 z-20 bg-gray-200">STT</th>}
+                {isColumnVisible('maNV') && <th className="sticky left-10 z-20 bg-gray-200 min-w-[80px]">Mã NV</th>}
+                {isColumnVisible('hoTen') && <th className="sticky left-[120px] z-20 bg-gray-200 min-w-[180px]">Họ tên</th>}
+                {isColumnVisible('chucVu') && <th className="min-w-[120px]">Chức vụ</th>}
+                {isColumnVisible('ngayCong') && <th className="min-w-[80px] text-center bg-orange-100">Ngày công</th>}
+                {isColumnVisible('ncDieuChinh') && <th className="min-w-[100px] text-center bg-orange-100">NC Điều chỉnh</th>}
+                {/* Cột sản lượng - hiển thị nếu có dữ liệu */}
+                {bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'CHIA_HANG' || bangLuong.loaiSanLuong === 'CA_HAI') && (
+                  <>
+                    {isColumnVisible('spDat') && <th className="min-w-[90px] text-right bg-cyan-100">SP đạt</th>}
+                    {isColumnVisible('spLoi') && <th className="min-w-[80px] text-right bg-cyan-100">SP lỗi</th>}
+                  </>
+                )}
+                {bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'GIAO_HANG' || bangLuong.loaiSanLuong === 'CA_HAI') && (
+                  <>
+                    {isColumnVisible('klGiao') && <th className="min-w-[100px] text-right bg-teal-100">KL giao (kg)</th>}
+                    {isColumnVisible('treGio') && <th className="min-w-[80px] text-right bg-teal-100">Trễ giờ</th>}
+                  </>
+                )}
                 {bangLuong.danhSachKhoanLuong.map((kl) => (
-                  <th key={kl.id} className="min-w-[120px] text-right">
-                    {kl.tenKhoan}
-                  </th>
+                  isColumnVisible(`kl_${kl.id}`) && (
+                    <th key={kl.id} className="min-w-[120px] text-right">
+                      {kl.tenKhoan}
+                    </th>
+                  )
                 ))}
-                <th className="min-w-[130px] text-right bg-blue-100">Tổng thu nhập</th>
-                <th className="min-w-[100px] text-right bg-red-100">Khấu trừ</th>
-                <th className="min-w-[130px] text-right bg-green-100">Thực lĩnh</th>
-                <th className="min-w-[80px] text-center bg-purple-100">Phiếu lương</th>
+                {isColumnVisible('tongThuNhap') && <th className="min-w-[130px] text-right bg-blue-100">Tổng thu nhập</th>}
+                {isColumnVisible('khauTru') && <th className="min-w-[100px] text-right bg-red-100">Khấu trừ</th>}
+                {isColumnVisible('thucLinh') && <th className="min-w-[130px] text-right bg-green-100">Thực lĩnh</th>}
+                {isColumnVisible('phieuLuong') && <th className="min-w-[80px] text-center bg-purple-100">Phiếu lương</th>}
               </tr>
             </thead>
             <tbody>
@@ -497,11 +537,11 @@ export default function ChiTietBangLuong() {
                 
                 return (
                   <tr key={nv.nhanVienId}>
-                    <td className="sticky left-0 bg-white">{index + 1}</td>
-                    <td className="sticky left-10 bg-white font-medium">{nv.maNhanVien}</td>
-                    <td className="sticky left-[120px] bg-white">{nv.hoTen}</td>
-                    <td>{nv.chucVu || '-'}</td>
-                    <td className="text-center bg-orange-50 relative group">
+                    {isColumnVisible('stt') && <td className="sticky left-0 bg-white">{index + 1}</td>}
+                    {isColumnVisible('maNV') && <td className="sticky left-10 bg-white font-medium">{nv.maNhanVien}</td>}
+                    {isColumnVisible('hoTen') && <td className="sticky left-[120px] bg-white">{nv.hoTen}</td>}
+                    {isColumnVisible('chucVu') && <td>{nv.chucVu || '-'}</td>}
+                    {isColumnVisible('ngayCong') && <td className="text-center bg-orange-50 relative group">
                       <div className="flex items-center justify-center gap-1">
                         <span className={`font-medium ${ngayCong?.ngayCongDieuChinh ? 'text-orange-600' : ''}`}>
                           {ngayCongThucTe.toFixed(1)}/{bangLuong.ngayCongLyThuyet}
@@ -531,8 +571,8 @@ export default function ChiTietBangLuong() {
                           )}
                         </div>
                       )}
-                    </td>
-                    <td 
+                    </td>}
+                    {isColumnVisible('ncDieuChinh') && <td 
                       className={`text-center bg-orange-50 ${isEditable ? 'cursor-pointer hover:bg-orange-100' : ''}`}
                       onClick={() => isEditable && handleOpenNgayCongModal(nv.nhanVienId)}
                       title={isEditable ? 'Click để điều chỉnh ngày công' : ''}
@@ -546,8 +586,31 @@ export default function ChiTietBangLuong() {
                           {isEditable ? 'Nhập' : '-'}
                         </span>
                       )}
-                    </td>
+                    </td>}
+                    {/* Cột sản lượng chia hàng */}
+                    {bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'CHIA_HANG' || bangLuong.loaiSanLuong === 'CA_HAI') && (
+                      <>
+                        {isColumnVisible('spDat') && <td className="text-right bg-cyan-50 font-medium">
+                          {nv.sanLuong?.chiaHang?.tongSpDat?.toLocaleString('vi-VN') || '-'}
+                        </td>}
+                        {isColumnVisible('spLoi') && <td className="text-right bg-cyan-50 text-red-600">
+                          {nv.sanLuong?.chiaHang?.tongSpLoi?.toLocaleString('vi-VN') || '-'}
+                        </td>}
+                      </>
+                    )}
+                    {/* Cột sản lượng giao hàng */}
+                    {bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'GIAO_HANG' || bangLuong.loaiSanLuong === 'CA_HAI') && (
+                      <>
+                        {isColumnVisible('klGiao') && <td className="text-right bg-teal-50 font-medium">
+                          {nv.sanLuong?.giaoHang?.tongKhoiLuongThanhCong?.toLocaleString('vi-VN') || '-'}
+                        </td>}
+                        {isColumnVisible('treGio') && <td className="text-right bg-teal-50 text-orange-600">
+                          {nv.sanLuong?.giaoHang?.tongSoLanTreGio || '-'}
+                        </td>}
+                      </>
+                    )}
                     {bangLuong.danhSachKhoanLuong.map((kl) => {
+                      if (!isColumnVisible(`kl_${kl.id}`)) return null
                       const khoan = nv.cacKhoanLuong.find((k) => k.khoanLuongId === kl.id)
                       const originalValue = khoan?.soTien || 0
                       const displayValue = getCellValue(nv.nhanVienId, kl.id, originalValue)
@@ -580,16 +643,16 @@ export default function ChiTietBangLuong() {
                         </td>
                       )
                     })}
-                    <td className="number font-semibold bg-blue-50">
+                    {isColumnVisible('tongThuNhap') && <td className="number font-semibold bg-blue-50">
                       {formatTien(totals.tongThuNhap)}
-                    </td>
-                    <td className="number text-red-600 bg-red-50">
+                    </td>}
+                    {isColumnVisible('khauTru') && <td className="number text-red-600 bg-red-50">
                       {formatTien(totals.tongKhauTru)}
-                    </td>
-                    <td className="number font-bold text-green-600 bg-green-50">
+                    </td>}
+                    {isColumnVisible('thucLinh') && <td className="number font-bold text-green-600 bg-green-50">
                       {formatTien(totals.thucLinh)}
-                    </td>
-                    <td className="text-center bg-purple-50">
+                    </td>}
+                    {isColumnVisible('phieuLuong') && <td className="text-center bg-purple-50">
                       <button
                         onClick={() => setSelectedNhanVien({ id: nv.nhanVienId, hoTen: nv.hoTen })}
                         className="p-1.5 hover:bg-purple-200 rounded-lg text-purple-600 transition-colors"
@@ -597,19 +660,42 @@ export default function ChiTietBangLuong() {
                       >
                         <FileText size={18} />
                       </button>
-                    </td>
+                    </td>}
                   </tr>
                 )
               })}
             </tbody>
             <tfoot>
               <tr className="total-row">
-                <td colSpan={4} className="text-right font-bold">
+                <td colSpan={visibleColumns.filter(c => ['stt', 'maNV', 'hoTen', 'chucVu'].includes(c.id)).length || 4} className="text-right font-bold">
                   TỔNG CỘNG
                 </td>
-                <td className="bg-orange-100"></td>
-                <td className="bg-orange-100"></td>
+                {isColumnVisible('ngayCong') && <td className="bg-orange-100"></td>}
+                {isColumnVisible('ncDieuChinh') && <td className="bg-orange-100"></td>}
+                {/* Tổng sản lượng chia hàng */}
+                {bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'CHIA_HANG' || bangLuong.loaiSanLuong === 'CA_HAI') && (
+                  <>
+                    {isColumnVisible('spDat') && <td className="number font-bold bg-cyan-100">
+                      {bangLuong.danhSachNhanVien.reduce((sum, nv) => sum + (nv.sanLuong?.chiaHang?.tongSpDat || 0), 0).toLocaleString('vi-VN')}
+                    </td>}
+                    {isColumnVisible('spLoi') && <td className="number font-bold text-red-600 bg-cyan-100">
+                      {bangLuong.danhSachNhanVien.reduce((sum, nv) => sum + (nv.sanLuong?.chiaHang?.tongSpLoi || 0), 0).toLocaleString('vi-VN')}
+                    </td>}
+                  </>
+                )}
+                {/* Tổng sản lượng giao hàng */}
+                {bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'GIAO_HANG' || bangLuong.loaiSanLuong === 'CA_HAI') && (
+                  <>
+                    {isColumnVisible('klGiao') && <td className="number font-bold bg-teal-100">
+                      {bangLuong.danhSachNhanVien.reduce((sum, nv) => sum + (nv.sanLuong?.giaoHang?.tongKhoiLuongThanhCong || 0), 0).toLocaleString('vi-VN')}
+                    </td>}
+                    {isColumnVisible('treGio') && <td className="number font-bold text-orange-600 bg-teal-100">
+                      {bangLuong.danhSachNhanVien.reduce((sum, nv) => sum + (nv.sanLuong?.giaoHang?.tongSoLanTreGio || 0), 0)}
+                    </td>}
+                  </>
+                )}
                 {bangLuong.danhSachKhoanLuong.map((kl) => {
+                  if (!isColumnVisible(`kl_${kl.id}`)) return null
                   const total = bangLuong.danhSachNhanVien.reduce((sum, nv) => {
                     const khoan = nv.cacKhoanLuong.find((k) => k.khoanLuongId === kl.id)
                     return sum + getCellValue(nv.nhanVienId, kl.id, khoan?.soTien || 0)
@@ -620,31 +706,31 @@ export default function ChiTietBangLuong() {
                     </td>
                   )
                 })}
-                <td className="number font-bold bg-blue-100">
+                {isColumnVisible('tongThuNhap') && <td className="number font-bold bg-blue-100">
                   {formatTien(
                     bangLuong.danhSachNhanVien.reduce(
                       (sum, nv) => sum + calculateTotals(nv).tongThuNhap,
                       0
                     )
                   )}
-                </td>
-                <td className="number font-bold text-red-600 bg-red-100">
+                </td>}
+                {isColumnVisible('khauTru') && <td className="number font-bold text-red-600 bg-red-100">
                   {formatTien(
                     bangLuong.danhSachNhanVien.reduce(
                       (sum, nv) => sum + calculateTotals(nv).tongKhauTru,
                       0
                     )
                   )}
-                </td>
-                <td className="number font-bold text-green-600 bg-green-100">
+                </td>}
+                {isColumnVisible('thucLinh') && <td className="number font-bold text-green-600 bg-green-100">
                   {formatTien(
                     bangLuong.danhSachNhanVien.reduce(
                       (sum, nv) => sum + calculateTotals(nv).thucLinh,
                       0
                     )
                   )}
-                </td>
-                <td className="bg-purple-100"></td>
+                </td>}
+                {isColumnVisible('phieuLuong') && <td className="bg-purple-100"></td>}
               </tr>
             </tfoot>
           </table>

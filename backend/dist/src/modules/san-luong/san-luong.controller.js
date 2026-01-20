@@ -39,6 +39,9 @@ let SanLuongController = class SanLuongController {
     async layDanhSachChiaHang(query) {
         return this.sanLuongService.layDanhSachChiaHang(query);
     }
+    async thongKeChiaHang(thang, nam) {
+        return this.sanLuongService.thongKeChiaHang(thang, nam);
+    }
     async adminSuaChiaHang(id, dto, req) {
         const nguoiSuaId = req.user?.id || 1;
         return this.sanLuongService.adminSuaChiaHang(id, dto, nguoiSuaId);
@@ -52,6 +55,9 @@ let SanLuongController = class SanLuongController {
     }
     async layDanhSachGiaoHang(query) {
         return this.sanLuongService.layDanhSachGiaoHang(query);
+    }
+    async thongKeGiaoHang(thang, nam) {
+        return this.sanLuongService.thongKeGiaoHang(thang, nam);
     }
     async adminSuaGiaoHang(id, dto, req) {
         const nguoiSuaId = req.user?.id || 1;
@@ -108,6 +114,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SanLuongController.prototype, "layDanhSachChiaHang", null);
 __decorate([
+    (0, common_1.Get)('chia-hang/thong-ke'),
+    (0, vai_tro_decorator_1.VaiTro)('ADMIN', 'HR', 'IMPORT_CHIA_HANG', 'PAYROLL_OPERATOR'),
+    __param(0, (0, common_1.Query)('thang')),
+    __param(1, (0, common_1.Query)('nam')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], SanLuongController.prototype, "thongKeChiaHang", null);
+__decorate([
     (0, common_1.Put)('admin/chia-hang/:id'),
     (0, vai_tro_decorator_1.VaiTro)('ADMIN'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -144,6 +159,15 @@ __decorate([
     __metadata("design:paramtypes", [san_luong_dto_1.QuerySanLuongDto]),
     __metadata("design:returntype", Promise)
 ], SanLuongController.prototype, "layDanhSachGiaoHang", null);
+__decorate([
+    (0, common_1.Get)('giao-hang/thong-ke'),
+    (0, vai_tro_decorator_1.VaiTro)('ADMIN', 'HR', 'IMPORT_GIAO_HANG', 'PAYROLL_OPERATOR'),
+    __param(0, (0, common_1.Query)('thang')),
+    __param(1, (0, common_1.Query)('nam')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], SanLuongController.prototype, "thongKeGiaoHang", null);
 __decorate([
     (0, common_1.Put)('admin/giao-hang/:id'),
     (0, vai_tro_decorator_1.VaiTro)('ADMIN'),

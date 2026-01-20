@@ -361,30 +361,53 @@ td.number,
    UX Improvements - Form Controls
    =========================================== */
 
-/* Native Select Styling */
-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.75rem center;
-  background-repeat: no-repeat;
-  background-size: 1.25em 1.25em;
-  padding-right: 2.5rem;
+/* Native Select Styling - Override Tailwind padding-right */
+select,
+select.px-1, select.px-2, select.px-3, select.px-4, select.px-5, select.px-6 {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 0.5rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1rem 1rem !important;
+  padding-right: 2rem !important;
+  min-width: 80px;
   cursor: pointer;
+}
+
+/* Fix for input type="number" - hide spinner arrows */
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
 }
 
 select:focus {
   outline: none;
 }
 
+/* Select styling - use explicit colors for better browser compatibility */
+select {
+  color: #0f172a !important; /* --text-primary fallback */
+  background-color: #ffffff !important; /* white background */
+}
+
 /* Select option styling (limited browser support) */
 select option {
   padding: 0.5rem 1rem;
-  background-color: var(--panel-solid);
-  color: var(--text-primary);
+  background-color: #ffffff; /* explicit white */
+  color: #0f172a; /* explicit dark text */
 }
 
 select option:checked {
-  background-color: var(--accent-light);
+  background-color: rgba(16, 185, 129, 0.1); /* --accent-light equivalent */
+  color: #0f172a;
 }
 
 /* Checkbox Styling */

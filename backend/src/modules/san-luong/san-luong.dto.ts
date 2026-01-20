@@ -193,6 +193,16 @@ export class QuerySanLuongDto {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
+  thang?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  nam?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
   nhanVienId?: number;
 
   @IsOptional()

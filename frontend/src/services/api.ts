@@ -150,6 +150,16 @@ export const phongBanApi = {
 
 // ==================== NHÂN VIÊN ====================
 export type TrangThaiNhanVien = 'DANG_LAM' | 'NGHI_VIEC' | 'TAM_NGHI'
+export type LoaiNhanVien = 'THU_VIEC' | 'CHINH_THUC' | 'HOC_VIEC' | 'THUC_TAP' | 'CONG_TAC_VIEN' | 'THOI_VU'
+
+export const LOAI_NHAN_VIEN_MAP: Record<LoaiNhanVien, { label: string; color: string }> = {
+  THU_VIEC: { label: 'Thử việc', color: 'bg-yellow-100 text-yellow-700' },
+  CHINH_THUC: { label: 'Chính thức', color: 'bg-green-100 text-green-700' },
+  HOC_VIEC: { label: 'Học việc', color: 'bg-blue-100 text-blue-700' },
+  THUC_TAP: { label: 'Thực tập', color: 'bg-purple-100 text-purple-700' },
+  CONG_TAC_VIEN: { label: 'Cộng tác viên', color: 'bg-indigo-100 text-indigo-700' },
+  THOI_VU: { label: 'Thời vụ', color: 'bg-orange-100 text-orange-700' },
+}
 
 export interface NhanVien {
   id: number
@@ -161,6 +171,8 @@ export interface NhanVien {
   chucVu?: string
   luongCoBan: number
   trangThai: TrangThaiNhanVien
+  loaiNhanVien?: LoaiNhanVien
+  dongBHXH?: boolean
   phongBan?: {
     id: number
     maPhongBan: string
@@ -232,6 +244,19 @@ export interface BangLuong {
   soNhanVien?: number
 }
 
+// Sản lượng nhân viên trong bảng lương
+export interface SanLuongNhanVien {
+  chiaHang?: {
+    tongSpDat: number
+    tongSpLoi: number
+  }
+  giaoHang?: {
+    tongKhoiLuongThanhCong: number
+    tongSoLanTreGio: number
+    tongSoLanKhongLayPhieu: number
+  }
+}
+
 export interface ChiTietLuongNhanVien {
   nhanVienId: number
   maNhanVien: string
@@ -239,6 +264,7 @@ export interface ChiTietLuongNhanVien {
   chucVu: string | null
   phongBan: string
   ngayCongThucTe: number // Số ngày làm thực tế
+  sanLuong?: SanLuongNhanVien // Thông tin sản lượng
   cacKhoanLuong: {
     khoanLuongId: number
     maKhoan: string
@@ -263,6 +289,8 @@ export interface BangLuongChiTiet {
     tenPhongBan: string
   }
   trangThai: string
+  coSanLuong?: boolean // Có dữ liệu sản lượng không
+  loaiSanLuong?: 'CHIA_HANG' | 'GIAO_HANG' | 'CA_HAI' // Loại sản lượng
   danhSachKhoanLuong: {
     id: number
     maKhoan: string
@@ -390,8 +418,13 @@ export const importExcelApi = {
     }).then((res) => res.data)
   },
   
-  export: (bangLuongId: number) =>
-    api.get(`/import-excel/export/${bangLuongId}`, { responseType: 'blob' }),
+  export: (bangLuongId: number, columnConfig?: { id: string; label: string }[]) => {
+    const params = columnConfig ? { columns: JSON.stringify(columnConfig) } : {}
+    return api.get(`/import-excel/export/${bangLuongId}`, { 
+      responseType: 'blob',
+      params,
+    })
+  },
 }
 
 // ==================== PHỤ CẤP NHÂN VIÊN ====================

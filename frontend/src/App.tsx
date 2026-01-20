@@ -27,11 +27,15 @@ import XemRuleTrace from './pages/XemRuleTrace'
 import ImportChiaHang from './pages/ImportChiaHang'
 import ImportGiaoHang from './pages/ImportGiaoHang'
 import LichSuImport from './pages/LichSuImport'
+import TraCuuSanLuong from './pages/TraCuuSanLuong'
 // Ứng lương & Sổ lương pages
 import DanhSachBangUngLuong from './pages/DanhSachBangUngLuong'
 import ChiTietBangUngLuong from './pages/ChiTietBangUngLuong'
 import SoLuongNhanVien from './pages/SoLuongNhanVien'
 import SoLuongPhongBan from './pages/SoLuongPhongBan'
+// Cấu hình cột pages
+import CauHinhCotBangLuong from './pages/CauHinhCotBangLuong'
+import CauHinhCotUngLuong from './pages/CauHinhCotUngLuong'
 // Nghỉ phép pages
 import DanhMucLoaiNghi from './pages/DanhMucLoaiNghi'
 import DonNghiCuaToi from './pages/DonNghiCuaToi'
@@ -97,6 +101,7 @@ function App() {
         <Route path="kpi/cau-hinh-thuong" element={<RequireAuth><CauHinhThuongKPI /></RequireAuth>} />
         
         {/* San Luong routes */}
+        <Route path="san-luong" element={<RequireAuth><TraCuuSanLuong /></RequireAuth>} />
         <Route path="import-chia-hang" element={<RequireAuth><ImportChiaHang /></RequireAuth>} />
         <Route path="import-giao-hang" element={<RequireAuth><ImportGiaoHang /></RequireAuth>} />
         <Route path="lich-su-import" element={<RequireAuth><LichSuImport /></RequireAuth>} />
@@ -104,6 +109,10 @@ function App() {
         {/* Ứng lương routes */}
         <Route path="ung-luong" element={<RequireAuth><DanhSachBangUngLuong /></RequireAuth>} />
         <Route path="ung-luong/:id" element={<RequireAuth><ChiTietBangUngLuong /></RequireAuth>} />
+        
+        {/* Cấu hình cột routes */}
+        <Route path="cau-hinh/bang-luong" element={<RequireAuth><CauHinhCotBangLuong /></RequireAuth>} />
+        <Route path="cau-hinh/ung-luong" element={<RequireAuth><CauHinhCotUngLuong /></RequireAuth>} />
         
         {/* Sổ lương routes */}
         <Route path="so-luong/nhan-vien" element={<RequireAuth><SoLuongNhanVien /></RequireAuth>} />

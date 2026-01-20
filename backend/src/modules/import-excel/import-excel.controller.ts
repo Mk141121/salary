@@ -5,6 +5,7 @@ import {
   Post,
   Body,
   Param,
+  Query,
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
@@ -116,9 +117,23 @@ export class ImportExcelController {
   @ApiResponse({ status: 200, description: 'Export thành công' })
   async exportExcel(
     @Param('bangLuongId', ParseIntPipe) bangLuongId: number,
+    @Query('columns') columnsJson: string,
     @Res() res: Response,
   ) {
-    const buffer = await this.importExcelService.exportExcel(bangLuongId);
+    // Parse column config nếu có
+    let columnConfig: { id: string; label: string }[] | undefined;
+    if (columnsJson) {
+      try {
+        columnConfig = JSON.parse(columnsJson);
+      } catch (e) {
+        // Ignore parse error, use default columns
+      }
+    }
+
+    const buffer = await this.importExcelService.exportExcel(
+      bangLuongId,
+      columnConfig,
+    );
 
     res.setHeader(
       'Content-Type',

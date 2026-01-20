@@ -473,6 +473,48 @@ export class BangLuongService {
       }
     }
 
+    // 5. Thêm khấu trừ ứng lương từ bảng ứng lương đã chốt trong tháng
+    const khoanKhauTruUngLuong = khoanLuongMap.get('KHAU_TRU_UNG_LUONG');
+    if (khoanKhauTruUngLuong) {
+      const thangNamStr = `${nam}-${thang.toString().padStart(2, '0')}`;
+      
+      // Lấy tất cả chi tiết ứng lương đã chốt trong tháng cho phòng ban này
+      const ungLuongDaChot = await this.prisma.chiTietBangUngLuong.findMany({
+        where: {
+          bangUngLuong: {
+            thangNam: thangNamStr,
+            phongBanId: phongBanId,
+            trangThai: { in: ['DA_CHOT', 'DA_KHOA'] },
+          },
+          nhanVienId: { in: nhanViens.map(nv => nv.id) },
+        },
+        include: {
+          bangUngLuong: true,
+        },
+      });
+
+      // Gộp tổng ứng lương theo nhân viên
+      const tongUngTheoNV = new Map<number, number>();
+      for (const ct of ungLuongDaChot) {
+        const soTienUng = Number(ct.soTienUngDuyet) || 0;
+        const current = tongUngTheoNV.get(ct.nhanVienId) || 0;
+        tongUngTheoNV.set(ct.nhanVienId, current + soTienUng);
+      }
+
+      // Thêm vào chi tiết bảng lương
+      for (const [nhanVienId, tongUng] of tongUngTheoNV) {
+        if (tongUng > 0) {
+          chiTietData.push({
+            bangLuongId,
+            nhanVienId,
+            khoanLuongId: khoanKhauTruUngLuong.id,
+            soTien: tongUng,
+            nguon: NguonChiTiet.UNG_LUONG,
+          });
+        }
+      }
+    }
+
     if (chiTietData.length > 0) {
       await this.prisma.chiTietBangLuong.createMany({
         data: chiTietData,

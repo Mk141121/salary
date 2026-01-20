@@ -494,8 +494,25 @@ export class BHXHThueService {
         luongDongBHXH = Number(nhanVien.luongCoBan);
       }
 
-      // Tính BHXH
-      const bhxh = await this.tinhBHXH(luongDongBHXH, bangLuong.nam);
+      // Kiểm tra nhân viên có đóng BHXH không - nếu không thì set BHXH = 0
+      let bhxh: KetQuaTinhBHXH;
+      if (nhanVien.dongBHXH === false) {
+        // Nhân viên không đóng BHXH - set tất cả = 0
+        bhxh = {
+          luongDongBHXH: 0,
+          bhxhNV: 0,
+          bhytNV: 0,
+          bhtnNV: 0,
+          tongBHNV: 0,
+          bhxhDN: 0,
+          bhytDN: 0,
+          bhtnDN: 0,
+          tongBHDN: 0,
+        };
+      } else {
+        // Tính BHXH bình thường
+        bhxh = await this.tinhBHXH(luongDongBHXH, bangLuong.nam);
+      }
 
       // Đếm người phụ thuộc
       const soPhuThuoc = await this.demNguoiPhuThuocHopLe(

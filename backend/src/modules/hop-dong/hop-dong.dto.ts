@@ -5,6 +5,7 @@ import {
   IsString,
   IsDateString,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -29,7 +30,8 @@ export class TaoHopDongDto {
   tuNgay: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'Ngày kết thúc không hợp lệ' })
+  @ValidateIf((o) => o.denNgay !== '' && o.denNgay !== null)
+  @IsDateString({}, { message: 'Ngày kết thúc không hợp lệ - để trống nếu vô thời hạn' })
   denNgay?: string;
 
   @IsNumber({}, { message: 'Lương cơ bản phải là số' })
@@ -64,7 +66,8 @@ export class CapNhatHopDongDto {
   tuNgay?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'Ngày kết thúc không hợp lệ' })
+  @ValidateIf((o) => o.denNgay !== '' && o.denNgay !== null)
+  @IsDateString({}, { message: 'Ngày kết thúc không hợp lệ - để trống nếu vô thời hạn' })
   denNgay?: string;
 
   @IsOptional()

@@ -69,7 +69,7 @@ export const Modal = ({
       {/* Backdrop */}
       <div
         className={cn(
-          'absolute inset-0 bg-black/60 backdrop-blur-md',
+          'absolute inset-0 bg-black/50',
           'animate-in fade-in duration-200'
         )}
         onClick={closeOnOverlay ? onClose : undefined}
@@ -80,7 +80,7 @@ export const Modal = ({
         className={cn(
           'relative w-full',
           sizeClasses[size],
-          'bg-[var(--panel)]/95 backdrop-blur-xl',
+          'bg-white',
           'border border-[var(--border)]',
           'rounded-2xl shadow-2xl shadow-black/40',
           'animate-in fade-in zoom-in-95 duration-200',

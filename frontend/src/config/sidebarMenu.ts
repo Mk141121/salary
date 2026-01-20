@@ -35,6 +35,7 @@ import {
   ClipboardCheck,
   Send,
   Smartphone,
+  Search,
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -99,6 +100,14 @@ export const sidebarMenuGroups: MenuGroup[] = [
         requiredPermissions: ['BANG_LUONG_VIEW'],
         tags: ['payroll', 'salary sheet', 'bảng tính'],
       },
+      {
+        id: 'cau-hinh-cot-bang-luong',
+        label: 'Cấu hình cột',
+        icon: Settings,
+        path: '/cau-hinh/bang-luong',
+        requiredPermissions: ['BANG_LUONG_VIEW'],
+        tags: ['column', 'config', 'cấu hình', 'cột'],
+      },
     ],
   },
 
@@ -116,6 +125,14 @@ export const sidebarMenuGroups: MenuGroup[] = [
         path: '/ung-luong',
         requiredPermissions: ['UNG_LUONG_VIEW'],
         tags: ['advance', 'tạm ứng'],
+      },
+      {
+        id: 'cau-hinh-cot-ung-luong',
+        label: 'Cấu hình cột',
+        icon: Settings,
+        path: '/cau-hinh/ung-luong',
+        requiredPermissions: ['UNG_LUONG_VIEW'],
+        tags: ['column', 'config', 'cấu hình', 'cột'],
       },
     ],
   },
@@ -344,6 +361,13 @@ export const sidebarMenuGroups: MenuGroup[] = [
         requiredPermissions: ['SAN_LUONG_VIEW'],
         tags: ['output', 'production'],
         children: [
+          {
+            id: 'tra-cuu-san-luong',
+            label: 'Tra cứu sản lượng',
+            icon: Search,
+            path: '/san-luong',
+            tags: ['tra cứu', 'search', 'xem'],
+          },
           {
             id: 'import-chia-hang',
             label: 'Chia hàng',
