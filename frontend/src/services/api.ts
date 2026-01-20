@@ -368,6 +368,15 @@ export interface PhieuLuongData {
   tongThuNhap: number
   tongKhauTru: number
   thucLinh: number
+  // Thông tin công ty
+  congTy?: {
+    tenCongTy: string
+    diaChi?: string
+    dienThoai?: string
+    email?: string
+    maSoThue?: string
+    logo?: string
+  }
 }
 
 export const phieuLuongApi = {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -10,6 +10,7 @@ import {
   confirmGiaoHang,
   calculateFileHash,
 } from '../services/sanLuongApi';
+import { nhanVienApi, phongBanApi, PhongBan, NhanVien } from '../services/api';
 
 const ImportGiaoHang: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,51 +20,104 @@ const ImportGiaoHang: React.FC = () => {
   const [confirming, setConfirming] = useState(false);
   const [thang, setThang] = useState(new Date().getMonth() + 1);
   const [nam, setNam] = useState(new Date().getFullYear());
+  const [phongBanGiaoHang, setPhongBanGiaoHang] = useState<PhongBan | null>(null);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
+
+  // Tự động tìm phòng ban Giao Hàng khi mount
+  useEffect(() => {
+    phongBanApi.layTatCa().then((data) => {
+      const pbGiaoHang = data.find((pb: PhongBan) => 
+        (pb.trangThai === 'ACTIVE' || pb.trangThai === 'HOAT_DONG') && 
+        (pb.tenPhongBan.toLowerCase().includes('giao hàng') || 
+         pb.tenPhongBan.toLowerCase().includes('giao hang') ||
+         pb.loaiPhongBan === 'GIAO_HANG')
+      );
+      if (pbGiaoHang) {
+        setPhongBanGiaoHang(pbGiaoHang);
+      }
+    });
+  }, []);
 
   // Tải template Excel mẫu
-  const handleDownloadTemplate = () => {
-    // Dữ liệu mẫu
-    const sampleData = [
-      { 'Mã NV': 'NV001', 'Ngày': '01/01/2026', 'Khối lượng': 50, 'Đơn giá': 5000, 'Phạt trễ': 0, 'Phạt KL phiếu': 0 },
-      { 'Mã NV': 'NV001', 'Ngày': '02/01/2026', 'Khối lượng': 45, 'Đơn giá': 5000, 'Phạt trễ': 10000, 'Phạt KL phiếu': 0 },
-      { 'Mã NV': 'NV002', 'Ngày': '01/01/2026', 'Khối lượng': 60, 'Đơn giá': 5500, 'Phạt trễ': 0, 'Phạt KL phiếu': 5000 },
-      { 'Mã NV': 'NV002', 'Ngày': '02/01/2026', 'Khối lượng': 55, 'Đơn giá': 5500, 'Phạt trễ': 0, 'Phạt KL phiếu': 0 },
-    ];
+  const handleDownloadTemplate = async () => {
+    if (!phongBanGiaoHang) {
+      toast.error('Không tìm thấy bộ phận Giao Hàng trong hệ thống');
+      return;
+    }
 
-    // Tạo workbook
-    const ws = XLSX.utils.json_to_sheet(sampleData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 10 }, // Mã NV
-      { wch: 12 }, // Ngày
-      { wch: 12 }, // Khối lượng
-      { wch: 12 }, // Đơn giá
-      { wch: 12 }, // Phạt trễ
-      { wch: 15 }, // Phạt KL phiếu
-    ];
+    setDownloadingTemplate(true);
+    try {
+      // Lấy danh sách nhân viên bộ phận Giao Hàng
+      const result = await nhanVienApi.layTatCa({ phongBanId: phongBanGiaoHang.id, trangThai: 'DANG_LAM' });
+      const nhanViens: NhanVien[] = Array.isArray(result) ? result : result.data || [];
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Giao Hàng');
+      if (nhanViens.length === 0) {
+        toast.error('Phòng ban này không có nhân viên đang làm việc');
+        return;
+      }
 
-    // Thêm sheet hướng dẫn
-    const guideData = [
-      { 'Cột': 'Mã NV', 'Mô tả': 'Mã nhân viên (bắt buộc)', 'Ví dụ': 'NV001' },
-      { 'Cột': 'Ngày', 'Mô tả': 'Ngày làm việc (dd/MM/yyyy)', 'Ví dụ': '01/01/2026' },
-      { 'Cột': 'Khối lượng', 'Mô tả': 'Khối lượng giao hàng (kg)', 'Ví dụ': '50' },
-      { 'Cột': 'Đơn giá', 'Mô tả': 'Đơn giá theo kg (VNĐ)', 'Ví dụ': '5000' },
-      { 'Cột': 'Phạt trễ', 'Mô tả': 'Tiền phạt giao trễ (VNĐ)', 'Ví dụ': '10000' },
-      { 'Cột': 'Phạt KL phiếu', 'Mô tả': 'Phạt không lấy phiếu (VNĐ)', 'Ví dụ': '5000' },
-      { 'Cột': '', 'Mô tả': '', 'Ví dụ': '' },
-      { 'Cột': 'Công thức', 'Mô tả': 'Tiền = Khối lượng × Đơn giá - Phạt trễ - Phạt KL phiếu', 'Ví dụ': '' },
-    ];
-    const wsGuide = XLSX.utils.json_to_sheet(guideData);
-    wsGuide['!cols'] = [{ wch: 15 }, { wch: 50 }, { wch: 15 }];
-    XLSX.utils.book_append_sheet(wb, wsGuide, 'Hướng dẫn');
+      // Tạo dữ liệu với danh sách nhân viên
+      const sampleData: { 'Mã NV': string; 'Tên NV': string; 'Ngày': string; 'Khối lượng': number | string; 'Đơn giá': number | string; 'Phạt trễ': number | string; 'Phạt KL phiếu': number | string }[] = [];
 
-    // Download
-    XLSX.writeFile(wb, `Template_GiaoHang_${thang}_${nam}.xlsx`);
-    toast.success('Đã tải template mẫu');
+      // Tạo 1 dòng mẫu cho mỗi nhân viên
+      nhanViens.forEach((nv) => {
+        sampleData.push({
+          'Mã NV': nv.maNhanVien,
+          'Tên NV': nv.hoTen,
+          'Ngày': `01/${String(thang).padStart(2, '0')}/${nam}`,
+          'Khối lượng': '',
+          'Đơn giá': '',
+          'Phạt trễ': 0,
+          'Phạt KL phiếu': 0,
+        });
+      });
+
+      // Tạo workbook
+      const ws = XLSX.utils.json_to_sheet(sampleData);
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 12 }, // Mã NV
+        { wch: 25 }, // Tên NV
+        { wch: 12 }, // Ngày
+        { wch: 12 }, // Khối lượng
+        { wch: 12 }, // Đơn giá
+        { wch: 12 }, // Phạt trễ
+        { wch: 15 }, // Phạt KL phiếu
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Giao Hàng');
+
+      // Thêm sheet hướng dẫn
+      const guideData = [
+        { 'Cột': 'Mã NV', 'Mô tả': 'Mã nhân viên (bắt buộc)', 'Ví dụ': 'NV001' },
+        { 'Cột': 'Tên NV', 'Mô tả': 'Tên nhân viên (chỉ để tham khảo)', 'Ví dụ': 'Nguyễn Văn A' },
+        { 'Cột': 'Ngày', 'Mô tả': 'Ngày làm việc (dd/MM/yyyy)', 'Ví dụ': '01/01/2026' },
+        { 'Cột': 'Khối lượng', 'Mô tả': 'Khối lượng giao hàng (kg)', 'Ví dụ': '50' },
+        { 'Cột': 'Đơn giá', 'Mô tả': 'Đơn giá theo kg (VNĐ)', 'Ví dụ': '5000' },
+        { 'Cột': 'Phạt trễ', 'Mô tả': 'Tiền phạt giao trễ (VNĐ)', 'Ví dụ': '10000' },
+        { 'Cột': 'Phạt KL phiếu', 'Mô tả': 'Phạt không lấy phiếu (VNĐ)', 'Ví dụ': '5000' },
+        { 'Cột': '', 'Mô tả': '', 'Ví dụ': '' },
+        { 'Cột': 'Lưu ý', 'Mô tả': 'Có thể thêm nhiều dòng cho các ngày khác nhau', 'Ví dụ': '' },
+        { 'Cột': 'Công thức', 'Mô tả': 'Tiền = Khối lượng × Đơn giá - Phạt trễ - Phạt KL phiếu', 'Ví dụ': '' },
+      ];
+      const wsGuide = XLSX.utils.json_to_sheet(guideData);
+      wsGuide['!cols'] = [{ wch: 15 }, { wch: 50 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, wsGuide, 'Hướng dẫn');
+
+      // Lấy tên phòng ban
+      const pbName = phongBanGiaoHang.tenPhongBan.replace(/[\/:*?"<>|]/g, '');
+
+      // Download
+      XLSX.writeFile(wb, `Template_GiaoHang_${pbName}_T${thang}_${nam}.xlsx`);
+      toast.success(`Đã tải template với ${nhanViens.length} nhân viên`);
+    } catch (error) {
+      console.error(error);
+      toast.error('Lỗi khi tải template');
+    } finally {
+      setDownloadingTemplate(false);
+    }
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -158,15 +212,6 @@ const ImportGiaoHang: React.FC = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Import Sản Lượng Giao Hàng</h1>
         <div className="flex gap-2">
-          <button
-            onClick={handleDownloadTemplate}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Tải Template Mẫu
-          </button>
           {(file || rows.length > 0) && (
             <button
               onClick={handleReset}
@@ -178,8 +223,14 @@ const ImportGiaoHang: React.FC = () => {
         </div>
       </div>
 
-      {/* Chọn tháng/năm */}
-      <div className="bg-white p-4 rounded-lg shadow flex gap-4 items-center">
+      {/* Chọn tháng/năm và tải template */}
+      <div className="bg-white p-4 rounded-lg shadow flex flex-wrap gap-4 items-end">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Bộ phận:</span>
+          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+            {phongBanGiaoHang?.tenPhongBan || 'Đang tải...'}
+          </span>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Tháng</label>
           <select
@@ -208,6 +259,28 @@ const ImportGiaoHang: React.FC = () => {
             ))}
           </select>
         </div>
+        <button
+          onClick={handleDownloadTemplate}
+          disabled={downloadingTemplate || !phongBanGiaoHang}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {downloadingTemplate ? (
+            <>
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Đang tải...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Tải Template
+            </>
+          )}
+        </button>
       </div>
 
       {/* Upload zone */}

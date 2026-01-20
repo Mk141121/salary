@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -10,6 +10,7 @@ import {
   confirmChiaHang,
   calculateFileHash,
 } from '../services/sanLuongApi';
+import { nhanVienApi, phongBanApi, PhongBan, NhanVien } from '../services/api';
 
 const ImportChiaHang: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,50 +20,102 @@ const ImportChiaHang: React.FC = () => {
   const [confirming, setConfirming] = useState(false);
   const [thang, setThang] = useState(new Date().getMonth() + 1);
   const [nam, setNam] = useState(new Date().getFullYear());
+  const [phongBanChiaHang, setPhongBanChiaHang] = useState<PhongBan | null>(null);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
+
+  // Tự động tìm phòng ban Chia Hàng khi mount
+  useEffect(() => {
+    phongBanApi.layTatCa().then((data) => {
+      const pbChiaHang = data.find((pb: PhongBan) => 
+        (pb.trangThai === 'ACTIVE' || pb.trangThai === 'HOAT_DONG') && 
+        (pb.tenPhongBan.toLowerCase().includes('chia hàng') || 
+         pb.tenPhongBan.toLowerCase().includes('chia hang') ||
+         pb.loaiPhongBan === 'CHIA_HANG')
+      );
+      if (pbChiaHang) {
+        setPhongBanChiaHang(pbChiaHang);
+      }
+    });
+  }, []);
 
   // Tải template Excel mẫu
-  const handleDownloadTemplate = () => {
-    // Dữ liệu mẫu
-    const sampleData = [
-      { 'Mã NV': 'NV001', 'Ngày': '01/01/2026', 'SP Đạt': 100, 'SP Lỗi': 2, 'Tổng SP': 102 },
-      { 'Mã NV': 'NV001', 'Ngày': '02/01/2026', 'SP Đạt': 95, 'SP Lỗi': 1, 'Tổng SP': 96 },
-      { 'Mã NV': 'NV002', 'Ngày': '01/01/2026', 'SP Đạt': 120, 'SP Lỗi': 3, 'Tổng SP': 123 },
-      { 'Mã NV': 'NV002', 'Ngày': '02/01/2026', 'SP Đạt': 110, 'SP Lỗi': 0, 'Tổng SP': 110 },
-    ];
+  const handleDownloadTemplate = async () => {
+    if (!phongBanChiaHang) {
+      toast.error('Không tìm thấy bộ phận Chia Hàng trong hệ thống');
+      return;
+    }
 
-    // Tạo workbook
-    const ws = XLSX.utils.json_to_sheet(sampleData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 10 }, // Mã NV
-      { wch: 12 }, // Ngày
-      { wch: 10 }, // SP Đạt
-      { wch: 10 }, // SP Lỗi
-      { wch: 10 }, // Tổng SP
-    ];
+    setDownloadingTemplate(true);
+    try {
+      // Lấy danh sách nhân viên bộ phận Chia Hàng
+      const result = await nhanVienApi.layTatCa({ phongBanId: phongBanChiaHang.id, trangThai: 'DANG_LAM' });
+      const nhanViens: NhanVien[] = Array.isArray(result) ? result : result.data || [];
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Chia Hàng');
+      if (nhanViens.length === 0) {
+        toast.error('Phòng ban này không có nhân viên đang làm việc');
+        return;
+      }
 
-    // Thêm sheet hướng dẫn
-    const guideData = [
-      { 'Cột': 'Mã NV', 'Mô tả': 'Mã nhân viên (bắt buộc)', 'Ví dụ': 'NV001' },
-      { 'Cột': 'Ngày', 'Mô tả': 'Ngày làm việc (dd/MM/yyyy)', 'Ví dụ': '01/01/2026' },
-      { 'Cột': 'SP Đạt', 'Mô tả': 'Số sản phẩm đạt chuẩn', 'Ví dụ': '100' },
-      { 'Cột': 'SP Lỗi', 'Mô tả': 'Số sản phẩm lỗi', 'Ví dụ': '2' },
-      { 'Cột': 'Tổng SP', 'Mô tả': 'Tổng sản phẩm', 'Ví dụ': '102' },
-      { 'Cột': '', 'Mô tả': '', 'Ví dụ': '' },
-      { 'Cột': 'Công thức', 'Mô tả': 'Quy đổi SP = SP Đạt - (SP Lỗi × 5)', 'Ví dụ': '' },
-      { 'Cột': '', 'Mô tả': 'Tiền sản lượng = Quy đổi SP × 320đ', 'Ví dụ': '' },
-    ];
-    const wsGuide = XLSX.utils.json_to_sheet(guideData);
-    wsGuide['!cols'] = [{ wch: 12 }, { wch: 40 }, { wch: 15 }];
-    XLSX.utils.book_append_sheet(wb, wsGuide, 'Hướng dẫn');
+      // Tạo dữ liệu với danh sách nhân viên
+      const sampleData: { 'Mã NV': string; 'Tên NV': string; 'Ngày': string; 'SP Đạt': number | string; 'SP Lỗi': number | string; 'Tổng SP': number | string }[] = [];
 
-    // Download
-    XLSX.writeFile(wb, `Template_ChiaHang_${thang}_${nam}.xlsx`);
-    toast.success('Đã tải template mẫu');
+      // Tạo 1 dòng mẫu cho mỗi nhân viên (ngày đầu tháng)
+      nhanViens.forEach((nv) => {
+        sampleData.push({
+          'Mã NV': nv.maNhanVien,
+          'Tên NV': nv.hoTen,
+          'Ngày': `01/${String(thang).padStart(2, '0')}/${nam}`,
+          'SP Đạt': '',
+          'SP Lỗi': '',
+          'Tổng SP': '',
+        });
+      });
+
+      // Tạo workbook
+      const ws = XLSX.utils.json_to_sheet(sampleData);
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 12 }, // Mã NV
+        { wch: 25 }, // Tên NV
+        { wch: 12 }, // Ngày
+        { wch: 10 }, // SP Đạt
+        { wch: 10 }, // SP Lỗi
+        { wch: 10 }, // Tổng SP
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Chia Hàng');
+
+      // Thêm sheet hướng dẫn
+      const guideData = [
+        { 'Cột': 'Mã NV', 'Mô tả': 'Mã nhân viên (bắt buộc)', 'Ví dụ': 'NV001' },
+        { 'Cột': 'Tên NV', 'Mô tả': 'Tên nhân viên (chỉ để tham khảo)', 'Ví dụ': 'Nguyễn Văn A' },
+        { 'Cột': 'Ngày', 'Mô tả': 'Ngày làm việc (dd/MM/yyyy)', 'Ví dụ': '01/01/2026' },
+        { 'Cột': 'SP Đạt', 'Mô tả': 'Số sản phẩm đạt chuẩn', 'Ví dụ': '100' },
+        { 'Cột': 'SP Lỗi', 'Mô tả': 'Số sản phẩm lỗi', 'Ví dụ': '2' },
+        { 'Cột': 'Tổng SP', 'Mô tả': 'Tổng sản phẩm', 'Ví dụ': '102' },
+        { 'Cột': '', 'Mô tả': '', 'Ví dụ': '' },
+        { 'Cột': 'Lưu ý', 'Mô tả': 'Có thể thêm nhiều dòng cho các ngày khác nhau', 'Ví dụ': '' },
+        { 'Cột': 'Công thức', 'Mô tả': 'Quy đổi SP = SP Đạt - (SP Lỗi × 5)', 'Ví dụ': '' },
+        { 'Cột': '', 'Mô tả': 'Tiền sản lượng = Quy đổi SP × 320đ', 'Ví dụ': '' },
+      ];
+      const wsGuide = XLSX.utils.json_to_sheet(guideData);
+      wsGuide['!cols'] = [{ wch: 12 }, { wch: 45 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, wsGuide, 'Hướng dẫn');
+
+      // Lấy tên phòng ban
+      const pbName = phongBanChiaHang.tenPhongBan.replace(/[\/:*?"<>|]/g, '');
+
+      // Download
+      XLSX.writeFile(wb, `Template_ChiaHang_${pbName}_T${thang}_${nam}.xlsx`);
+      toast.success(`Đã tải template với ${nhanViens.length} nhân viên`);
+    } catch (error) {
+      console.error(error);
+      toast.error('Lỗi khi tải template');
+    } finally {
+      setDownloadingTemplate(false);
+    }
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -153,15 +206,6 @@ const ImportChiaHang: React.FC = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Import Sản Lượng Chia Hàng</h1>
         <div className="flex gap-2">
-          <button
-            onClick={handleDownloadTemplate}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Tải Template Mẫu
-          </button>
           {(file || rows.length > 0) && (
             <button
               onClick={handleReset}
@@ -173,8 +217,14 @@ const ImportChiaHang: React.FC = () => {
         </div>
       </div>
 
-      {/* Chọn tháng/năm */}
-      <div className="bg-white p-4 rounded-lg shadow flex gap-4 items-center">
+      {/* Chọn tháng/năm và tải template */}
+      <div className="bg-white p-4 rounded-lg shadow flex flex-wrap gap-4 items-end">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Bộ phận:</span>
+          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+            {phongBanChiaHang?.tenPhongBan || 'Đang tải...'}
+          </span>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Tháng</label>
           <select
@@ -203,6 +253,28 @@ const ImportChiaHang: React.FC = () => {
             ))}
           </select>
         </div>
+        <button
+          onClick={handleDownloadTemplate}
+          disabled={downloadingTemplate || !phongBanChiaHang}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {downloadingTemplate ? (
+            <>
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Đang tải...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Tải Template
+            </>
+          )}
+        </button>
       </div>
 
       {/* Upload zone */}

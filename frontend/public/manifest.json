@@ -1,7 +1,7 @@
 {
-  "name": "HRM Lite - Employee Portal",
-  "short_name": "HRM Lite",
-  "description": "Cổng nhân viên - Quản lý chấm công, lịch làm, yêu cầu",
+  "name": "HRM - Quản lý NS & Tính lương",
+  "short_name": "HRM",
+  "description": "Hệ thống quản lý nhân sự và tính lương",
   "start_url": "/portal",
   "display": "standalone",
   "background_color": "#ffffff",

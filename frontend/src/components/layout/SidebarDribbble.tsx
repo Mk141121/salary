@@ -308,8 +308,8 @@ export default function SidebarDribbble({ isOpen, isCollapsed, onToggleCollapse 
         </div>
         {!isCollapsed && (
           <div>
-            <h1 className="text-white font-bold text-lg tracking-tight">Payroll</h1>
-            <p className="text-sidebar-muted text-xs">Hệ thống lương</p>
+            <h1 className="text-white font-bold text-lg tracking-tight">HRM</h1>
+            <p className="text-sidebar-muted text-xs">Quản lý NS & Tính lương</p>
           </div>
         )}
       </div>

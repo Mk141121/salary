@@ -21,6 +21,15 @@ export interface PhieuLuongData {
   tongThuNhap: number;
   tongKhauTru: number;
   thucLinh: number;
+  // Thông tin công ty
+  congTy?: {
+    tenCongTy: string;
+    diaChi?: string;
+    dienThoai?: string;
+    email?: string;
+    maSoThue?: string;
+    logo?: string;
+  };
 }
 
 @Injectable()
@@ -106,8 +115,11 @@ export class EmailService {
     </div>
     
     <div class="company-info">
-      <h2>CÔNG TY TNHH ABC</h2>
-      <p>123 Đường ABC, Quận 1, TP.HCM</p>
+      ${data.congTy?.logo ? `<img src="${data.congTy.logo}" alt="Logo" style="height: 40px; margin-bottom: 8px;" />` : ''}
+      <h2>${data.congTy?.tenCongTy || 'CÔNG TY'}</h2>
+      ${data.congTy?.diaChi ? `<p>${data.congTy.diaChi}</p>` : ''}
+      ${data.congTy?.dienThoai || data.congTy?.email ? `<p style="font-size: 12px; margin-top: 4px;">${data.congTy?.dienThoai ? `ĐT: ${data.congTy.dienThoai}` : ''}${data.congTy?.dienThoai && data.congTy?.email ? ' | ' : ''}${data.congTy?.email ? `Email: ${data.congTy.email}` : ''}</p>` : ''}
+      ${data.congTy?.maSoThue ? `<p style="font-size: 12px;">MST: ${data.congTy.maSoThue}</p>` : ''}
     </div>
     
     <div class="employee-info">

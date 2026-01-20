@@ -28,6 +28,7 @@ import ImportChiaHang from './pages/ImportChiaHang'
 import ImportGiaoHang from './pages/ImportGiaoHang'
 import LichSuImport from './pages/LichSuImport'
 import TraCuuSanLuong from './pages/TraCuuSanLuong'
+import DonGiaSanLuong from './pages/DonGiaSanLuong'
 // Ứng lương & Sổ lương pages
 import DanhSachBangUngLuong from './pages/DanhSachBangUngLuong'
 import ChiTietBangUngLuong from './pages/ChiTietBangUngLuong'
@@ -102,6 +103,7 @@ function App() {
         
         {/* San Luong routes */}
         <Route path="san-luong" element={<RequireAuth><TraCuuSanLuong /></RequireAuth>} />
+        <Route path="san-luong/don-gia" element={<RequireAuth><DonGiaSanLuong /></RequireAuth>} />
         <Route path="import-chia-hang" element={<RequireAuth><ImportChiaHang /></RequireAuth>} />
         <Route path="import-giao-hang" element={<RequireAuth><ImportGiaoHang /></RequireAuth>} />
         <Route path="lich-su-import" element={<RequireAuth><LichSuImport /></RequireAuth>} />

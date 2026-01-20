@@ -105,6 +105,9 @@ export class PhieuLuongService {
       }
     }
 
+    // Lấy thông tin công ty
+    const thongTinCongTy = await this.prisma.thongTinCongTy.findFirst();
+
     return {
       hoTen: nhanVien.hoTen,
       maNhanVien: nhanVien.maNhanVien,
@@ -119,6 +122,15 @@ export class PhieuLuongService {
       tongThuNhap,
       tongKhauTru,
       thucLinh: tongThuNhap - tongKhauTru,
+      // Thông tin công ty
+      congTy: thongTinCongTy ? {
+        tenCongTy: thongTinCongTy.tenCongTy,
+        diaChi: thongTinCongTy.diaChi || undefined,
+        dienThoai: thongTinCongTy.dienThoai || undefined,
+        email: thongTinCongTy.email || undefined,
+        maSoThue: thongTinCongTy.maSoThue || undefined,
+        logo: thongTinCongTy.logo || undefined,
+      } : undefined,
     };
   }
 

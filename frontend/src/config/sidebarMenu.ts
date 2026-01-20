@@ -27,8 +27,6 @@ import {
   UserPlus,
   FolderTree,
   Clock,
-  FileDown,
-  Boxes,
   LucideIcon,
   Calendar,
   Sun,
@@ -59,12 +57,12 @@ export interface MenuGroup {
 }
 
 // Danh sách menu theo nhóm luồng vận hành
-// Thứ tự: Trang Chủ → Kỳ lương → Ứng lương → Sổ lương → Tính lương → Dữ liệu đầu vào → Thiết lập hệ thống → Quản trị
+// Thứ tự: Trang chủ → Chấm công → Kỳ lương → Ứng lương → Sổ lương → Cơ cấu lương → Sản lượng → Dữ liệu → Thiết lập
 export const sidebarMenuGroups: MenuGroup[] = [
-  // (1) Tổng quan
+  // (1) Trang chủ - Không có title group
   {
-    id: 'tong-quan',
-    title: 'Tổng quan',
+    id: 'trang-chu',
+    title: '',
     collapsible: false,
     items: [
       {
@@ -85,151 +83,15 @@ export const sidebarMenuGroups: MenuGroup[] = [
     ],
   },
 
-  // (2) Kỳ lương - Màu xanh dương (primary workflow)
+  // (2) Chấm công - Màu teal
   {
-    id: 'ky-luong',
-    title: 'Kỳ lương',
+    id: 'cham-cong',
+    title: 'Chấm công',
     collapsible: true,
-    color: 'blue',
+    color: 'teal',
     items: [
       {
-        id: 'bang-luong',
-        label: 'Bảng lương',
-        icon: FileSpreadsheet,
-        path: '/bang-luong',
-        requiredPermissions: ['BANG_LUONG_VIEW'],
-        tags: ['payroll', 'salary sheet', 'bảng tính'],
-      },
-      {
-        id: 'cau-hinh-cot-bang-luong',
-        label: 'Cấu hình cột',
-        icon: Settings,
-        path: '/cau-hinh/bang-luong',
-        requiredPermissions: ['BANG_LUONG_VIEW'],
-        tags: ['column', 'config', 'cấu hình', 'cột'],
-      },
-    ],
-  },
-
-  // (3) Ứng lương - Màu tím
-  {
-    id: 'ung-luong',
-    title: 'Ứng lương',
-    collapsible: true,
-    color: 'purple',
-    items: [
-      {
-        id: 'bang-ung-luong',
-        label: 'Bảng ứng lương',
-        icon: Wallet,
-        path: '/ung-luong',
-        requiredPermissions: ['UNG_LUONG_VIEW'],
-        tags: ['advance', 'tạm ứng'],
-      },
-      {
-        id: 'cau-hinh-cot-ung-luong',
-        label: 'Cấu hình cột',
-        icon: Settings,
-        path: '/cau-hinh/ung-luong',
-        requiredPermissions: ['UNG_LUONG_VIEW'],
-        tags: ['column', 'config', 'cấu hình', 'cột'],
-      },
-    ],
-  },
-
-  // (4) Báo cáo & Sổ lương - Màu xanh lá
-  {
-    id: 'bao-cao',
-    title: 'Báo cáo & Sổ lương',
-    collapsible: true,
-    color: 'green',
-    items: [
-      {
-        id: 'so-luong-nhan-vien',
-        label: 'Sổ lương nhân viên',
-        icon: BookOpen,
-        path: '/so-luong/nhan-vien',
-        requiredPermissions: ['SO_LUONG_VIEW'],
-        tags: ['employee salary book', 'sổ lương'],
-      },
-      {
-        id: 'so-luong-phong-ban',
-        label: 'Sổ lương phòng ban',
-        icon: BarChart3,
-        path: '/so-luong/phong-ban',
-        requiredPermissions: ['SO_LUONG_VIEW'],
-        tags: ['department salary', 'báo cáo phòng ban'],
-      },
-    ],
-  },
-
-  // (5) Tính lương - Màu cam
-  {
-    id: 'tinh-luong',
-    title: 'Tính lương',
-    collapsible: true,
-    color: 'orange',
-    items: [
-      {
-        id: 'khoan-luong',
-        label: 'Khoản lương',
-        icon: Receipt,
-        path: '/khoan-luong',
-        requiredPermissions: ['KHOAN_LUONG_VIEW'],
-        tags: ['salary component', 'thành phần lương'],
-      },
-      {
-        id: 'quy-che',
-        label: 'Quy chế lương',
-        icon: Scale,
-        path: '/quy-che',
-        requiredPermissions: ['QUY_CHE_VIEW'],
-        tags: ['rule', 'engine', 'công thức', 'quy tắc'],
-      },
-      {
-        id: 'su-kien',
-        label: 'Sự kiện thưởng/phạt',
-        icon: Zap,
-        path: '/su-kien',
-        requiredPermissions: ['SU_KIEN_VIEW'],
-        tags: ['bonus', 'penalty', 'thưởng', 'phạt'],
-      },
-    ],
-  },
-
-  // (6) Dữ liệu đầu vào - Màu slate (neutral)
-  {
-    id: 'du-lieu-dau-vao',
-    title: 'Dữ liệu đầu vào',
-    collapsible: true,
-    color: 'slate',
-    items: [
-      {
-        id: 'nhan-vien',
-        label: 'Nhân viên',
-        icon: UserPlus,
-        path: '/nhan-vien',
-        requiredPermissions: ['NHAN_VIEN_VIEW'],
-        tags: ['employee', 'staff', 'nhân sự'],
-      },
-      {
-        id: 'phong-ban',
-        label: 'Phòng ban',
-        icon: FolderTree,
-        path: '/phong-ban',
-        requiredPermissions: ['PHONG_BAN_VIEW'],
-        tags: ['department', 'tổ chức'],
-      },
-      {
-        id: 'nhom-nhan-vien',
-        label: 'Nhóm nhân viên',
-        icon: Briefcase,
-        path: '/nhom-nhan-vien',
-        requiredPermissions: ['NHOM_NV_VIEW'],
-        tags: ['group', 'team'],
-      },
-      {
-        id: 'cham-cong',
+        id: 'cham-cong-menu',
         label: 'Chấm công',
         icon: Clock,
         path: '/cham-cong',
@@ -237,12 +99,19 @@ export const sidebarMenuGroups: MenuGroup[] = [
         tags: ['attendance', 'timesheet', 'giờ làm'],
       },
       {
+        id: 'bang-cong-thang',
+        label: 'Bảng công tháng',
+        icon: CalendarRange,
+        path: '/timesheet',
+        requiredPermissions: ['CHAM_CONG_VIEW'],
+        tags: ['timesheet', 'monthly', 'bảng công'],
+      },
+      {
         id: 'xep-ca',
         label: 'Xếp ca',
         icon: Calendar,
         requiredPermissions: ['PHAN_CA_VIEW'],
         tags: ['scheduling', 'shift', 'ca làm việc'],
-        badge: 'Mới',
         children: [
           {
             id: 'danh-muc-ca',
@@ -305,7 +174,6 @@ export const sidebarMenuGroups: MenuGroup[] = [
         icon: ClipboardCheck,
         requiredPermissions: ['YEU_CAU_VIEW'],
         tags: ['request', 'OT', 'trễ giờ', 'về sớm', 'công tác'],
-        badge: 'Mới',
         children: [
           {
             id: 'don-yeu-cau-cua-toi',
@@ -323,6 +191,202 @@ export const sidebarMenuGroups: MenuGroup[] = [
             tags: ['approve', 'duyệt'],
           },
         ],
+      },
+    ],
+  },
+
+  // (3) Kỳ lương - Màu xanh dương (primary workflow)
+  {
+    id: 'ky-luong',
+    title: 'Kỳ lương',
+    collapsible: true,
+    color: 'blue',
+    items: [
+      {
+        id: 'bang-luong',
+        label: 'Bảng lương',
+        icon: FileSpreadsheet,
+        path: '/bang-luong',
+        requiredPermissions: ['BANG_LUONG_VIEW'],
+        tags: ['payroll', 'salary sheet', 'bảng tính'],
+      },
+      {
+        id: 'cau-hinh-cot-bang-luong',
+        label: 'Cấu hình cột',
+        icon: Settings,
+        path: '/cau-hinh/bang-luong',
+        requiredPermissions: ['BANG_LUONG_VIEW'],
+        tags: ['column', 'config', 'cấu hình', 'cột'],
+      },
+    ],
+  },
+
+  // (4) Ứng lương - Màu tím
+  {
+    id: 'ung-luong',
+    title: 'Ứng lương',
+    collapsible: true,
+    color: 'purple',
+    items: [
+      {
+        id: 'bang-ung-luong',
+        label: 'Bảng ứng lương',
+        icon: Wallet,
+        path: '/ung-luong',
+        requiredPermissions: ['UNG_LUONG_VIEW'],
+        tags: ['advance', 'tạm ứng'],
+      },
+      {
+        id: 'cau-hinh-cot-ung-luong',
+        label: 'Cấu hình cột',
+        icon: Settings,
+        path: '/cau-hinh/ung-luong',
+        requiredPermissions: ['UNG_LUONG_VIEW'],
+        tags: ['column', 'config', 'cấu hình', 'cột'],
+      },
+    ],
+  },
+
+  // (5) Sổ lương - Màu xanh lá
+  {
+    id: 'so-luong',
+    title: 'Sổ lương',
+    collapsible: true,
+    color: 'green',
+    items: [
+      {
+        id: 'so-luong-nhan-vien',
+        label: 'Sổ lương nhân viên',
+        icon: BookOpen,
+        path: '/so-luong/nhan-vien',
+        requiredPermissions: ['SO_LUONG_VIEW'],
+        tags: ['employee salary book', 'sổ lương'],
+      },
+      {
+        id: 'so-luong-phong-ban',
+        label: 'Sổ lương phòng ban',
+        icon: BarChart3,
+        path: '/so-luong/phong-ban',
+        requiredPermissions: ['SO_LUONG_VIEW'],
+        tags: ['department salary', 'báo cáo phòng ban'],
+      },
+    ],
+  },
+
+  // (6) Cơ cấu lương - Màu cam
+  {
+    id: 'co-cau-luong',
+    title: 'Cơ cấu lương',
+    collapsible: true,
+    color: 'orange',
+    items: [
+      {
+        id: 'khoan-luong',
+        label: 'Khoản lương',
+        icon: Receipt,
+        path: '/khoan-luong',
+        requiredPermissions: ['KHOAN_LUONG_VIEW'],
+        tags: ['salary component', 'thành phần lương'],
+      },
+      {
+        id: 'quy-che',
+        label: 'Quy chế lương',
+        icon: Scale,
+        path: '/quy-che',
+        requiredPermissions: ['QUY_CHE_VIEW'],
+        tags: ['rule', 'engine', 'công thức', 'quy tắc'],
+      },
+      {
+        id: 'su-kien',
+        label: 'Sự kiện thưởng/phạt',
+        icon: Zap,
+        path: '/su-kien',
+        requiredPermissions: ['SU_KIEN_VIEW'],
+        tags: ['bonus', 'penalty', 'thưởng', 'phạt'],
+      },
+    ],
+  },
+
+  // (7) Sản lượng - Màu emerald (menu riêng)
+  {
+    id: 'san-luong',
+    title: 'Sản lượng',
+    collapsible: true,
+    color: 'emerald',
+    items: [
+      {
+        id: 'tra-cuu-san-luong',
+        label: 'Tra cứu sản lượng',
+        icon: Search,
+        path: '/san-luong',
+        requiredPermissions: ['SAN_LUONG_VIEW'],
+        tags: ['tra cứu', 'search', 'xem'],
+      },
+      {
+        id: 'import-chia-hang',
+        label: 'Chia hàng',
+        icon: Package,
+        path: '/import-chia-hang',
+        requiredPermissions: ['SAN_LUONG_VIEW'],
+        tags: ['sorting', 'phân loại'],
+      },
+      {
+        id: 'import-giao-hang',
+        label: 'Giao hàng',
+        icon: Truck,
+        path: '/import-giao-hang',
+        requiredPermissions: ['SAN_LUONG_VIEW'],
+        tags: ['delivery', 'vận chuyển'],
+      },
+      {
+        id: 'lich-su-import',
+        label: 'Lịch sử Import',
+        icon: History,
+        path: '/lich-su-import',
+        requiredPermissions: ['SAN_LUONG_VIEW'],
+        tags: ['history', 'lịch sử'],
+      },
+      {
+        id: 'don-gia-san-luong',
+        label: 'Đơn giá sản lượng',
+        icon: DollarSign,
+        path: '/san-luong/don-gia',
+        requiredPermissions: ['SAN_LUONG_VIEW'],
+        tags: ['đơn giá', 'pricing', 'cấu hình'],
+      },
+    ],
+  },
+
+  // (8) Dữ liệu - Màu slate (neutral)
+  {
+    id: 'du-lieu',
+    title: 'Dữ liệu',
+    collapsible: true,
+    color: 'slate',
+    items: [
+      {
+        id: 'nhan-vien',
+        label: 'Nhân viên',
+        icon: UserPlus,
+        path: '/nhan-vien',
+        requiredPermissions: ['NHAN_VIEN_VIEW'],
+        tags: ['employee', 'staff', 'nhân sự'],
+      },
+      {
+        id: 'phong-ban',
+        label: 'Phòng ban',
+        icon: FolderTree,
+        path: '/phong-ban',
+        requiredPermissions: ['PHONG_BAN_VIEW'],
+        tags: ['department', 'tổ chức'],
+      },
+      {
+        id: 'nhom-nhan-vien',
+        label: 'Nhóm nhân viên',
+        icon: Briefcase,
+        path: '/nhom-nhan-vien',
+        requiredPermissions: ['NHOM_NV_VIEW'],
+        tags: ['group', 'team'],
       },
       {
         id: 'kpi',
@@ -354,55 +418,10 @@ export const sidebarMenuGroups: MenuGroup[] = [
           },
         ],
       },
-      {
-        id: 'san-luong',
-        label: 'Sản lượng',
-        icon: Boxes,
-        requiredPermissions: ['SAN_LUONG_VIEW'],
-        tags: ['output', 'production'],
-        children: [
-          {
-            id: 'tra-cuu-san-luong',
-            label: 'Tra cứu sản lượng',
-            icon: Search,
-            path: '/san-luong',
-            tags: ['tra cứu', 'search', 'xem'],
-          },
-          {
-            id: 'import-chia-hang',
-            label: 'Chia hàng',
-            icon: Package,
-            path: '/import-chia-hang',
-            tags: ['sorting', 'phân loại'],
-          },
-          {
-            id: 'import-giao-hang',
-            label: 'Giao hàng',
-            icon: Truck,
-            path: '/import-giao-hang',
-            tags: ['delivery', 'vận chuyển'],
-          },
-          {
-            id: 'lich-su-import',
-            label: 'Lịch sử Import',
-            icon: History,
-            path: '/lich-su-import',
-            tags: ['history', 'lịch sử'],
-          },
-        ],
-      },
-      {
-        id: 'import-excel',
-        label: 'Import Excel',
-        icon: FileDown,
-        path: '/import-excel',
-        requiredPermissions: ['IMPORT_EXCEL'],
-        tags: ['import', 'upload', 'excel'],
-      },
     ],
   },
 
-  // (7) Thiết lập hệ thống - Màu cyan
+  // (9) Thiết lập hệ thống - Màu cyan
   {
     id: 'thiet-lap',
     title: 'Thiết lập hệ thống',
@@ -417,16 +436,6 @@ export const sidebarMenuGroups: MenuGroup[] = [
         requiredPermissions: ['ADMIN'],
         tags: ['settings', 'configuration', 'cấu hình'],
       },
-    ],
-  },
-
-  // (8) Quản trị - Màu đỏ (admin only)
-  {
-    id: 'quan-tri',
-    title: 'Quản trị',
-    collapsible: true,
-    color: 'red',
-    items: [
       {
         id: 'nguoi-dung',
         label: 'Người dùng',
@@ -499,6 +508,10 @@ export function getGroupColorClasses(color?: string): {
       return { text: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-l-cyan-500', hover: 'hover:bg-cyan-50', iconBg: 'bg-cyan-100' }
     case 'red':
       return { text: 'text-red-600', bg: 'bg-red-50', border: 'border-l-red-500', hover: 'hover:bg-red-50', iconBg: 'bg-red-100' }
+    case 'teal':
+      return { text: 'text-teal-600', bg: 'bg-teal-50', border: 'border-l-teal-500', hover: 'hover:bg-teal-50', iconBg: 'bg-teal-100' }
+    case 'emerald':
+      return { text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-l-emerald-500', hover: 'hover:bg-emerald-50', iconBg: 'bg-emerald-100' }
     case 'slate':
     default:
       return { text: 'text-slate-600', bg: 'bg-slate-50', border: 'border-l-slate-400', hover: 'hover:bg-slate-50', iconBg: 'bg-slate-100' }

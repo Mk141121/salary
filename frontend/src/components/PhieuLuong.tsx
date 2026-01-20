@@ -36,8 +36,29 @@ export const PhieuLuong = forwardRef<HTMLDivElement, PhieuLuongProps>(
 
         {/* Company Info */}
         <div className="text-center py-4 px-6 border-b-2 border-dashed border-gray-200 bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-800">CÔNG TY TNHH ABC</h2>
-          <p className="text-sm text-gray-600">123 Đường ABC, Quận 1, TP.HCM</p>
+          {data.congTy?.logo && (
+            <img 
+              src={data.congTy.logo} 
+              alt="Logo công ty" 
+              className="h-12 mx-auto mb-2 object-contain"
+            />
+          )}
+          <h2 className="text-xl font-bold text-gray-800">
+            {data.congTy?.tenCongTy || 'CÔNG TY'}
+          </h2>
+          {data.congTy?.diaChi && (
+            <p className="text-sm text-gray-600">{data.congTy.diaChi}</p>
+          )}
+          {(data.congTy?.dienThoai || data.congTy?.email) && (
+            <p className="text-xs text-gray-500 mt-1">
+              {data.congTy?.dienThoai && `ĐT: ${data.congTy.dienThoai}`}
+              {data.congTy?.dienThoai && data.congTy?.email && ' | '}
+              {data.congTy?.email && `Email: ${data.congTy.email}`}
+            </p>
+          )}
+          {data.congTy?.maSoThue && (
+            <p className="text-xs text-gray-500">MST: {data.congTy.maSoThue}</p>
+          )}
         </div>
 
         {/* Employee Info */}
