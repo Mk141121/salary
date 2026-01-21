@@ -1,4 +1,5 @@
 // Trang chủ - Dashboard Premium Style
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
@@ -11,12 +12,18 @@ import {
   ArrowUpRight,
   ChevronRight,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react'
 import { phongBanApi, nhanVienApi, khoanLuongApi, bangLuongApi } from '../services/api'
 import { formatTien } from '../utils'
 import { StatCard, Card, CardHeader, Badge } from '../components/ui'
 
 export default function TrangChu() {
+  // State for month/year filter - default to current month/year
+  const currentDate = new Date()
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1) // 1-12
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear())
+
   const { data: phongBans } = useQuery({
     queryKey: ['phong-ban'],
     queryFn: phongBanApi.layTatCa,
@@ -41,8 +48,23 @@ export default function TrangChu() {
   const nhanViens = (Array.isArray(nhanViensData) ? nhanViensData : nhanViensData?.data || []).filter((nv: any) => nv && nv.id)
   const bangLuongs = (Array.isArray(bangLuongsData) ? bangLuongsData : bangLuongsData?.data || []).filter((bl: any) => bl && bl.id)
 
-  // Tính tổng thực lĩnh của tất cả bảng lương
-  const tongThucLinh = bangLuongs.reduce((sum: number, bl: any) => sum + (bl?.thucLinh || 0), 0) || 0
+  // Get available years from bangLuongs data
+  const availableYears = useMemo(() => {
+    const years = new Set<number>()
+    bangLuongs.forEach((bl: any) => {
+      if (bl.nam) years.add(bl.nam)
+    })
+    // Always include current year
+    years.add(currentDate.getFullYear())
+    return Array.from(years).sort((a, b) => b - a)
+  }, [bangLuongs])
+
+  // Tính tổng thực lĩnh theo tháng/năm được chọn
+  const tongThucLinhTheoThang = useMemo(() => {
+    return bangLuongs
+      .filter((bl: any) => bl.thang === selectedMonth && bl.nam === selectedYear)
+      .reduce((sum: number, bl: any) => sum + (bl?.thucLinh || 0), 0) || 0
+  }, [bangLuongs, selectedMonth, selectedYear])
 
   const stats = [
     {
@@ -148,22 +170,75 @@ export default function TrangChu() {
         <div className="absolute -top-20 -right-20 w-60 h-60 bg-[var(--accent)]/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[#4FC3FF]/10 rounded-full blur-3xl" />
         
-        <div className="relative flex items-center gap-6">
-          <div className="
-            p-5 rounded-2xl
-            bg-gradient-to-br from-[#53F39A] to-[#4FC3FF]
-            shadow-lg shadow-[#53F39A]/30
-          ">
-            <TrendingUp size={32} className="text-[#0B1220]" />
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="
+              p-5 rounded-2xl
+              bg-gradient-to-br from-[#53F39A] to-[#4FC3FF]
+              shadow-lg shadow-[#53F39A]/30
+            ">
+              <TrendingUp size={32} className="text-[#0B1220]" />
+            </div>
+            <div>
+              <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-medium">
+                Tổng quỹ lương
+              </p>
+              <p className="text-4xl font-bold text-[var(--text-primary)] mt-1 tabular-nums">
+                {formatTien(tongThucLinhTheoThang)}
+                <span className="text-lg text-[var(--text-muted)] ml-2 font-normal">VNĐ</span>
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-medium">
-              Tổng quỹ lương
-            </p>
-            <p className="text-4xl font-bold text-[var(--text-primary)] mt-1 tabular-nums">
-              {formatTien(tongThucLinh)}
-              <span className="text-lg text-[var(--text-muted)] ml-2 font-normal">VNĐ</span>
-            </p>
+
+          {/* Month/Year Filter */}
+          <div className="flex items-center gap-3">
+            {/* Month Selector */}
+            <div className="relative">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="
+                  appearance-none pl-4 pr-10 py-2.5
+                  bg-[var(--bg-2)] border border-[var(--border)]
+                  rounded-xl text-[var(--text-primary)]
+                  text-sm font-medium cursor-pointer
+                  hover:border-[var(--accent)]/50
+                  focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30
+                  transition-all
+                "
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                  <option key={month} value={month}>
+                    Tháng {month}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+            </div>
+
+            {/* Year Selector */}
+            <div className="relative">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="
+                  appearance-none pl-4 pr-10 py-2.5
+                  bg-[var(--bg-2)] border border-[var(--border)]
+                  rounded-xl text-[var(--text-primary)]
+                  text-sm font-medium cursor-pointer
+                  hover:border-[var(--accent)]/50
+                  focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30
+                  transition-all
+                "
+              >
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+            </div>
           </div>
         </div>
       </Card>

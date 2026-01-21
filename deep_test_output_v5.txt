@@ -1,0 +1,49 @@
+
+🚀 STARTING DEEP TEST SUITE (REVISED)...
+
+🔹 1. AUTHENTICATION
+✅ [Login] Admin authenticated
+
+🔹 2. DATA VERIFICATION
+   Fetched 33 employees.
+
+🔹 3. TIMESHEET AGGREGATION
+   Fetching TS from: http://localhost:3001/api/timesheet?thang=1&nam=2026
+   Found 20 records in data.
+   Note: No employee has attendance data > 0. Picking first available for structure check.
+✅ [Seed Data] Selected Test Employee: NV0036
+❌ [Timesheet Logic] Dev OT: 0h, WorkDays: 0
+
+🔹 4. PAYROLL CALCULATION & SYNC
+   Payroll already exists, fetching existing ID...
+✅ [Create Payroll] Payroll ID: 98
+   Triggering System Sync...
+   Triggering Rule Engine Calculation...
+❌ [Rule Engine] Engine completed: 0 rules executed
+   Validating Calculated Values...
+   Found 6 details for NV0036.
+   Summary:
+     - LUONG_CO_BAN: 17,498,431
+     - PHU_CAP_XANG_XE: 534,318
+     - HO_TRO_CHUYEN_CAN: 948,057
+     - HO_TRO_AN_CA: 896,457
+     - BHXH_NV: 1,837,334
+     - THUE_TNCN: 453,993
+❌ [Val Check - Base] Got 0
+❌ [Val Check - Derived] NET Calc: 0
+
+🔹 5. REPORTS
+   Found 10 department reports.
+   Depts: [
+  'Khối Văn Phòng',
+  'Giao hàng',
+  'Kho vận',
+  'Kinh Doanh',
+  'Nhân Sự',
+  'Đơn hàng',
+  'Thu mua',
+  'Chia hàng',
+  'Kế Toán',
+  'Marketing'
+]
+❌ [Report Generation] TECH report not found

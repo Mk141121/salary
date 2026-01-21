@@ -9,8 +9,9 @@ import {
   ValidateNested,
   IsBoolean,
   Min,
+  IsIn,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 // ============================================
 // DTO CẤU HÌNH ỨNG LƯƠNG (JSON)
@@ -192,18 +193,22 @@ export class LocBangUngLuongDto {
   thangNam?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   phongBanId?: number;
 
   @IsOptional()
   @IsString()
+  @IsIn(['NHAP', 'DA_CHOT', 'DA_KHOA'])
   trangThai?: 'NHAP' | 'DA_CHOT' | 'DA_KHOA';
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   trang?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   soLuong?: number;
 }

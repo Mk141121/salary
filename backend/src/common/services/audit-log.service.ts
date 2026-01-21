@@ -91,7 +91,7 @@ export class AuditLogService {
     return this.ghiLog({
       nguoiDungId: params.nguoiDungId,
       tenDangNhap: params.tenDangNhap,
-      hanhDong: 'CHOT_BANG_LUONG',
+      hanhDong: 'CHOT_LUONG',
       bangDuLieu: 'bang_luong',
       banGhiId: params.bangLuongId.toString(),
       duLieuMoi: JSON.stringify({
@@ -115,7 +115,7 @@ export class AuditLogService {
     return this.ghiLog({
       nguoiDungId: params.nguoiDungId,
       tenDangNhap: params.tenDangNhap,
-      hanhDong: 'MO_KHOA_BANG_LUONG',
+      hanhDong: 'MO_KHOA',
       bangDuLieu: 'bang_luong',
       banGhiId: params.bangLuongId.toString(),
       moTa: `Mở khóa bảng lương: ${params.lyDo}`,
@@ -133,7 +133,7 @@ export class AuditLogService {
     return this.ghiLog({
       nguoiDungId: params.nguoiDungId,
       tenDangNhap: params.tenDangNhap,
-      hanhDong: 'KHOA_BANG_LUONG',
+      hanhDong: 'CHOT_LUONG',
       bangDuLieu: 'bang_luong',
       banGhiId: params.bangLuongId.toString(),
       moTa: `Khóa vĩnh viễn bảng lương ${params.bangLuongId}`,

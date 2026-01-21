@@ -15,6 +15,7 @@ export default function DanhSachBangLuong() {
   const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
   const [filterNam, setFilterNam] = useState(new Date().getFullYear())
+  const [filterThang, setFilterThang] = useState<number | undefined>(new Date().getMonth() + 1)
   const [filterPhongBan, setFilterPhongBan] = useState<number | undefined>()
 
   // Form tạo mới - hỗ trợ nhiều phòng ban
@@ -26,8 +27,8 @@ export default function DanhSachBangLuong() {
   })
 
   const { data: bangLuongsData, isLoading } = useQuery({
-    queryKey: ['bang-luong', filterNam, filterPhongBan],
-    queryFn: () => bangLuongApi.layDanhSach({ nam: filterNam, phongBanId: filterPhongBan }),
+    queryKey: ['bang-luong', filterNam, filterThang, filterPhongBan],
+    queryFn: () => bangLuongApi.layDanhSach({ nam: filterNam, thang: filterThang, phongBanId: filterPhongBan }),
   })
 
   // Handle paginated response format { data: [], meta: {} }
@@ -175,6 +176,27 @@ export default function DanhSachBangLuong() {
             >
               {[2024, 2025, 2026, 2027].map((nam) => (
                 <option key={nam} value={nam}>{nam}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">
+              Tháng
+            </label>
+            <select
+              value={filterThang || ''}
+              onChange={(e) => setFilterThang(e.target.value ? Number(e.target.value) : undefined)}
+              className="
+                h-10 px-4 rounded-xl
+                bg-[var(--bg-1)] border border-[var(--border)]
+                text-[var(--text-primary)]
+                focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20
+                transition-all
+              "
+            >
+              <option value="">Tất cả</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((thang) => (
+                <option key={thang} value={thang}>Tháng {thang}</option>
               ))}
             </select>
           </div>

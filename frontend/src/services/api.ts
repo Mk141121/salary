@@ -696,11 +696,11 @@ export const ungLuongApi = {
   
   // Set theo tỉ lệ
   setTheoTiLe: (id: number, data: { tiLe: number; lamTron?: number }) =>
-    api.post(`/ung-luong/bang/${id}/set-ti-le`, data).then((res) => res.data as { message: string }),
+    api.post(`/ung-luong/bang/${id}/set-theo-ti-le`, data).then((res) => res.data as { message: string }),
   
   // Set số tiền cố định
   setSoTienCoDinh: (id: number, data: { soTien: number }) =>
-    api.post(`/ung-luong/bang/${id}/set-so-tien`, data).then((res) => res.data as { message: string }),
+    api.post(`/ung-luong/bang/${id}/set-so-tien-co-dinh`, data).then((res) => res.data as { message: string }),
   
   // Chốt
   chot: (id: number) =>
