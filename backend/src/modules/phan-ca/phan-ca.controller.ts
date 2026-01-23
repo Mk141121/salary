@@ -57,8 +57,9 @@ export class PhanCaController {
     @Query('denNgay') denNgay: string,
     @Request() req: any,
   ) {
-    // TODO: Lấy nhanVienId từ user đang đăng nhập
-    const nhanVienId = req.user?.nhanVienId;
+    const nhanVienId =
+      req.user?.nhanVienId ??
+      (req.user?.id ? await this.phanCaService.layNhanVienIdTuNguoiDung(req.user.id) : null);
     if (!nhanVienId) {
       return [];
     }

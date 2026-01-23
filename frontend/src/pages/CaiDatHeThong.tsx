@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Settings, Building2, FileText, Save, Loader2, Gift, Plus, Edit2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { thongTinCongTyApi, ThongTinCongTy, khoanLuongApi, KhoanLuong, CachTinhLuong } from '../services/api'
+import { thongTinCongTyApi, ThongTinCongTy, khoanLuongApi, KhoanLuong, CachTinhLuong, bhxhThueApi, CauHinhBHXH } from '../services/api'
 
 // Map cách tính lương sang tiếng Việt
 const CACH_TINH_MAP: Record<CachTinhLuong, { label: string; desc: string }> = {
@@ -138,7 +138,7 @@ export default function CaiDatHeThong() {
 
   // ==================== BHXH ====================
   // Form data cho BHXH
-  const [bhxhData, setBhxhData] = useState({
+  const [bhxhData, setBhxhData] = useState<CauHinhBHXH>({
     nam: new Date().getFullYear(),
     tyLeBHXH_NV: 8.0,
     tyLeBHYT_NV: 1.5,
@@ -146,16 +146,21 @@ export default function CaiDatHeThong() {
     tyLeBHXH_DN: 17.5,
     tyLeBHYT_DN: 3.0,
     tyLeBHTN_DN: 1.0,
-    tyLeBHXH_KPCCD_NV: 0.5,
-    tyLeBHXH_KPCCD_DN: 1.0,
-    mucLuongCoSo: 1800000,
-    mucLuongToiThieu: 4960000,
+    luongCoSo: 1800000,
+    luongCoBanToiThieu: 4960000,
+    tranDongBHXH: 0,
   })
 
   // Lấy thông tin công ty
   const { data: thongTinCongTy, isLoading: loadingCongTy } = useQuery({
     queryKey: ['thong-tin-cong-ty'],
     queryFn: thongTinCongTyApi.lay,
+  })
+
+  const { data: cauHinhBHXH, isLoading: loadingBHXH } = useQuery({
+    queryKey: ['cau-hinh-bhxh', bhxhData.nam],
+    queryFn: () => bhxhThueApi.layCauHinhBHXH(bhxhData.nam),
+    retry: false,
   })
 
   // Form data cho thông tin công ty
@@ -177,6 +182,16 @@ export default function CaiDatHeThong() {
     }
   }, [thongTinCongTy])
 
+  useEffect(() => {
+    if (cauHinhBHXH) {
+      setBhxhData((prev) => ({
+        ...prev,
+        ...cauHinhBHXH,
+        nam: prev.nam,
+      }))
+    }
+  }, [cauHinhBHXH])
+
   // Mutation cập nhật thông tin công ty
   const capNhatCongTyMutation = useMutation({
     mutationFn: thongTinCongTyApi.capNhat,
@@ -189,10 +204,20 @@ export default function CaiDatHeThong() {
     },
   })
 
+  const capNhatBHXHMutation = useMutation({
+    mutationFn: bhxhThueApi.luuCauHinhBHXH,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cau-hinh-bhxh', bhxhData.nam] })
+      toast.success('Lưu cấu hình BHXH/Thuế thành công!')
+    },
+    onError: () => {
+      toast.error('Có lỗi khi lưu cấu hình BHXH/Thuế')
+    },
+  })
+
   const handleSaveBHXH = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement API call khi backend sẵn sàng
-    toast.success('Lưu cấu hình BHXH/Thuế thành công!')
+    await capNhatBHXHMutation.mutateAsync(bhxhData)
   }
 
   const handleSaveCongTy = async (e: React.FormEvent) => {
@@ -386,6 +411,11 @@ export default function CaiDatHeThong() {
           {/* ==================== TAB BHXH ==================== */}
           {activeTab === 'bhxh' && (
             <form onSubmit={handleSaveBHXH} className="space-y-6 max-w-3xl">
+              {loadingBHXH && (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              )}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Cấu hình BHXH/BHYT/BHTN</h3>
                 
@@ -399,6 +429,17 @@ export default function CaiDatHeThong() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                       value={bhxhData.nam}
                       onChange={(e) => setBhxhData({ ...bhxhData, nam: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">
+                      <span className="text-sm font-semibold text-gray-700">Trần đóng BHXH (VNĐ)</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                      value={bhxhData.tranDongBHXH}
+                      onChange={(e) => setBhxhData({ ...bhxhData, tranDongBHXH: Number(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -495,8 +536,8 @@ export default function CaiDatHeThong() {
                     <input
                       type="number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                      value={bhxhData.mucLuongCoSo}
-                      onChange={(e) => setBhxhData({ ...bhxhData, mucLuongCoSo: Number(e.target.value) })}
+                      value={bhxhData.luongCoSo}
+                      onChange={(e) => setBhxhData({ ...bhxhData, luongCoSo: Number(e.target.value) })}
                     />
                   </div>
                   <div>
@@ -506,8 +547,8 @@ export default function CaiDatHeThong() {
                     <input
                       type="number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                      value={bhxhData.mucLuongToiThieu}
-                      onChange={(e) => setBhxhData({ ...bhxhData, mucLuongToiThieu: Number(e.target.value) })}
+                      value={bhxhData.luongCoBanToiThieu}
+                      onChange={(e) => setBhxhData({ ...bhxhData, luongCoBanToiThieu: Number(e.target.value) })}
                     />
                   </div>
                 </div>

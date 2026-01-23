@@ -9,6 +9,7 @@ import { PhuCapNhanVienModule } from '../phu-cap-nhan-vien/phu-cap-nhan-vien.mod
 import { BHXHThueModule } from '../bhxh-thue/bhxh-thue.module';
 import { SnapshotDieuChinhModule } from '../snapshot-dieu-chinh/snapshot-dieu-chinh.module';
 import { ChamCongModule } from '../cham-cong/cham-cong.module';
+import { SanLuongModule } from '../san-luong/san-luong.module';
 import { EmailModule } from '../email/email.module';
 import { AuditLogService } from '../../common/services/audit-log.service';
 
@@ -18,6 +19,7 @@ import { AuditLogService } from '../../common/services/audit-log.service';
     BHXHThueModule,
     SnapshotDieuChinhModule,
     ChamCongModule,
+    SanLuongModule,
     EmailModule,
   ],
   controllers: [BangLuongController],

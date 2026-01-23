@@ -5,6 +5,7 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 // Các giá trị enum cho trạng thái và loại phòng ban
 export const TRANG_THAI_PHONG_BAN = ['HOAT_DONG', 'NGUNG_HOAT_DONG'] as const;
 export const LOAI_PHONG_BAN = ['VAN_HANH', 'KINH_DOANH', 'VAN_PHONG', 'SAN_XUAT'] as const;
+export const QUY_TAC_NGAY_CONG = ['FULL', 'SAT_HALF_SUN_OFF'] as const;
 
 export class TaoPhongBanDto {
   @ApiProperty({ description: 'Mã phòng ban', example: 'KT' })
@@ -54,6 +55,19 @@ export class TaoPhongBanDto {
   @Min(0)
   @Max(60)
   phutChoPhepTre?: number;
+
+  @ApiPropertyOptional({ description: 'Quy tắc ngày công', enum: QUY_TAC_NGAY_CONG })
+  @IsOptional()
+  @IsString()
+  @IsIn(QUY_TAC_NGAY_CONG)
+  quyTacNgayCong?: string;
+
+  @ApiPropertyOptional({ description: 'Số ngày công cố định theo tháng (ưu tiên hơn quy tắc)', example: 26 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(31)
+  soNgayCongThang?: number | null;
 }
 
 export class CapNhatPhongBanDto extends PartialType(TaoPhongBanDto) {

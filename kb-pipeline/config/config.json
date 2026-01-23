@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "HRM-Lite Payroll System",
+    "language": "vi",
+    "currency": {
+      "symbol": "₫",
+      "locale": "vi-VN",
+      "thousandSeparator": ".",
+      "decimalSeparator": ","
+    }
+  },
+  "sources": {
+    "docsRaw": "./docs_raw",
+    "docsExisting": "../docs",
+    "prd": "../Phase 2",
+    "frontend": "../frontend/src",
+    "backend": "../backend/src",
+    "prisma": "../backend/prisma/schema.prisma"
+  },
+  "output": {
+    "base": "./knowledge_base",
+    "index": "./knowledge_base/00_index",
+    "docs": "./knowledge_base/01_docs_md",
+    "chunks": "./knowledge_base/02_chunks",
+    "reports": "./knowledge_base/03_reports"
+  },
+  "chunking": {
+    "minTokens": 350,
+    "maxTokens": 900,
+    "overlapTokens": 100,
+    "splitBy": ["h1", "h2", "h3", "paragraph"],
+    "preserveBlocks": ["table", "code", "list"]
+  },
+  "conversion": {
+    "headingStyle": "atx",
+    "codeBlockStyle": "fenced",
+    "bulletListMarker": "-",
+    "strongDelimiter": "**"
+  },
+  "versionDetection": {
+    "patterns": ["v(\\d+)", "version[\\s-]?(\\d+)", "_(v\\d+)\\."],
+    "preferLatest": true
+  }
+}

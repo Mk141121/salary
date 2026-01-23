@@ -12,6 +12,7 @@ import { NgayCongService } from './ngay-cong.service';
 import { PhuCapNhanVienService } from '../phu-cap-nhan-vien/phu-cap-nhan-vien.service';
 import { BHXHThueService } from '../bhxh-thue/bhxh-thue.service';
 import { SnapshotDieuChinhService } from '../snapshot-dieu-chinh/snapshot-dieu-chinh.service';
+import { SanLuongService } from '../san-luong/san-luong.service';
 import { ChamCongService } from '../cham-cong/cham-cong.service';
 import { AuditLogService } from '../../common/services/audit-log.service';
 import {
@@ -33,6 +34,7 @@ export class BangLuongService {
     private phuCapNhanVienService: PhuCapNhanVienService,
     private bhxhThueService: BHXHThueService,
     private snapshotService: SnapshotDieuChinhService,
+    private sanLuongService: SanLuongService,
     private chamCongService: ChamCongService,
     private auditLogService: AuditLogService,
   ) {}
@@ -267,7 +269,11 @@ export class BangLuongService {
     if (!luongCoBan) return;
 
     // Tính số ngày công lý thuyết theo rule (Thứ 7 = 0.5, CN = 0)
-    const ngayCongLyThuyet = this.chamCongService.tinhSoNgayCongLyThuyet(thang, nam);
+    const ngayCongLyThuyet = await this.chamCongService.tinhSoNgayCongLyThuyet(
+      thang,
+      nam,
+      phongBanId,
+    );
 
     // Lấy cơ cấu lương của phòng ban (nếu có)
     const coCauLuong = await this.prisma.coCauLuong.findFirst({
@@ -515,6 +521,23 @@ export class BangLuongService {
       }
     }
 
+    // 6. Thêm tiền sản lượng (chia hàng/giao hàng) + phạt SP lỗi (nếu có)
+    const chiTietSanLuong = await this.tinhChiTietSanLuong(
+      bangLuongId,
+      phongBanId,
+      thang,
+      nam,
+    );
+    if (chiTietSanLuong.length > 0) {
+      for (const ct of chiTietSanLuong) {
+        const key = `${ct.nhanVienId}-${ct.khoanLuongId}`;
+        if (!daThemKhoan.has(key)) {
+          chiTietData.push(ct);
+          daThemKhoan.add(key);
+        }
+      }
+    }
+
     if (chiTietData.length > 0) {
       await this.prisma.chiTietBangLuong.createMany({
         data: chiTietData,
@@ -552,6 +575,210 @@ export class BangLuongService {
 
       default:
         return giaTriGoc;
+    }
+  }
+
+  /**
+   * Tính tiền sản lượng và phạt SP lỗi theo snapshot + cấu hình đơn giá
+   * - TIEN_SAN_LUONG_CH = TONG_SP_DAT * DON_GIA_SP
+   * - PHAT_SP_LOI = TONG_SP_LOI * DON_GIA_SP * HE_SO_LOI_SP
+   * - TIEN_SAN_LUONG_GH = TONG_KHOI_LUONG_THANH_CONG * DON_GIA_KHOI_LUONG
+   */
+  private async tinhChiTietSanLuong(
+    bangLuongId: number,
+    phongBanId: number,
+    thang: number,
+    nam: number,
+    nhanVienIds?: number[],
+  ): Promise<{
+    bangLuongId: number;
+    nhanVienId: number;
+    khoanLuongId: number;
+    soTien: number;
+    nguon: NguonChiTiet;
+  }[]> {
+    await this.sanLuongService.taoSnapshotSanLuong(bangLuongId, thang, nam);
+
+    const [snapshotChiaHang, snapshotGiaoHang, khoanLuongSanLuong, donGiaList] = await Promise.all([
+      this.prisma.snapshotSanLuongChiaHang.findMany({ where: { bangLuongId } }),
+      this.prisma.snapshotGiaoHang.findMany({ where: { bangLuongId } }),
+      this.prisma.khoanLuong.findMany({
+        where: {
+          trangThai: true,
+          maKhoan: { in: ['TIEN_SAN_LUONG_CH', 'TIEN_SAN_LUONG_GH', 'PHAT_SP_LOI'] },
+        },
+      }),
+      this.prisma.cauHinhDonGia.findMany({
+        where: {
+          trangThai: true,
+          OR: [{ phongBanId }, { phongBanId: null }],
+        },
+        orderBy: [{ phongBanId: 'desc' }],
+      }),
+    ]);
+
+    if (khoanLuongSanLuong.length === 0) {
+      return [];
+    }
+
+    const khoanLuongMap = new Map(khoanLuongSanLuong.map((kl) => [kl.maKhoan, kl]));
+    const donGiaMap: Record<string, number> = {};
+    for (const dg of donGiaList) {
+      if (!donGiaMap[dg.maBien]) {
+        donGiaMap[dg.maBien] = Number(dg.giaTri);
+      }
+    }
+
+    const donGiaSp = donGiaMap.DON_GIA_SP ?? 1000;
+    const heSoLoi = donGiaMap.HE_SO_LOI_SP ?? 0.5;
+    const donGiaKhoiLuong = donGiaMap.DON_GIA_KHOI_LUONG ?? 5000;
+
+    const giaTriMap = new Map<string, number>();
+
+    const klChiaHang = khoanLuongMap.get('TIEN_SAN_LUONG_CH');
+    const klGiaoHang = khoanLuongMap.get('TIEN_SAN_LUONG_GH');
+    const klPhatSpLoi = khoanLuongMap.get('PHAT_SP_LOI');
+
+    for (const item of snapshotChiaHang) {
+      if (klChiaHang) {
+        const soTien = Math.max(0, Math.round(item.tongSpDat * donGiaSp));
+        giaTriMap.set(`${item.nhanVienId}-${klChiaHang.id}`, soTien);
+      }
+      if (klPhatSpLoi) {
+        const soTien = Math.max(0, Math.round(item.tongSpLoi * donGiaSp * heSoLoi));
+        giaTriMap.set(`${item.nhanVienId}-${klPhatSpLoi.id}`, soTien);
+      }
+    }
+
+    for (const item of snapshotGiaoHang) {
+      if (klGiaoHang) {
+        const khoiLuong = Number(item.tongKhoiLuongThanhCong) || 0;
+        const soTien = Math.max(0, Math.round(khoiLuong * donGiaKhoiLuong));
+        giaTriMap.set(`${item.nhanVienId}-${klGiaoHang.id}`, soTien);
+      }
+    }
+
+    const nhanVienTargets = nhanVienIds
+      ? Array.from(new Set(nhanVienIds))
+      : Array.from(new Set([
+          ...snapshotChiaHang.map((s) => s.nhanVienId),
+          ...snapshotGiaoHang.map((s) => s.nhanVienId),
+        ]));
+
+    const results: {
+      bangLuongId: number;
+      nhanVienId: number;
+      khoanLuongId: number;
+      soTien: number;
+      nguon: NguonChiTiet;
+    }[] = [];
+
+    for (const nhanVienId of nhanVienTargets) {
+      if (klChiaHang) {
+        const soTien = giaTriMap.get(`${nhanVienId}-${klChiaHang.id}`) ?? 0;
+        if (nhanVienIds || soTien > 0) {
+          results.push({
+            bangLuongId,
+            nhanVienId,
+            khoanLuongId: klChiaHang.id,
+            soTien,
+            nguon: NguonChiTiet.RULE,
+          });
+        }
+      }
+      if (klGiaoHang) {
+        const soTien = giaTriMap.get(`${nhanVienId}-${klGiaoHang.id}`) ?? 0;
+        if (nhanVienIds || soTien > 0) {
+          results.push({
+            bangLuongId,
+            nhanVienId,
+            khoanLuongId: klGiaoHang.id,
+            soTien,
+            nguon: NguonChiTiet.RULE,
+          });
+        }
+      }
+      if (klPhatSpLoi) {
+        const soTien = giaTriMap.get(`${nhanVienId}-${klPhatSpLoi.id}`) ?? 0;
+        if (nhanVienIds || soTien > 0) {
+          results.push({
+            bangLuongId,
+            nhanVienId,
+            khoanLuongId: klPhatSpLoi.id,
+            soTien,
+            nguon: NguonChiTiet.RULE,
+          });
+        }
+      }
+    }
+
+    return results;
+  }
+
+  private async capNhatChiTietSanLuong(
+    bangLuongId: number,
+    phongBanId: number,
+    thang: number,
+    nam: number,
+    nhanVienIds: number[],
+  ) {
+    const chiTietSanLuong = await this.tinhChiTietSanLuong(
+      bangLuongId,
+      phongBanId,
+      thang,
+      nam,
+      nhanVienIds,
+    );
+
+    if (chiTietSanLuong.length === 0) {
+      return;
+    }
+
+    const khoanLuongIds = Array.from(new Set(chiTietSanLuong.map((ct) => ct.khoanLuongId)));
+    const existing = await this.prisma.chiTietBangLuong.findMany({
+      where: {
+        bangLuongId,
+        nhanVienId: { in: nhanVienIds },
+        khoanLuongId: { in: khoanLuongIds },
+      },
+    });
+    const existingMap = new Map(existing.map((ct) => [`${ct.nhanVienId}-${ct.khoanLuongId}`, ct]));
+
+    const createData: {
+      bangLuongId: number;
+      nhanVienId: number;
+      khoanLuongId: number;
+      soTien: number;
+      nguon: NguonChiTiet;
+    }[] = [];
+    const updateOps: ReturnType<typeof this.prisma.chiTietBangLuong.update>[] = [];
+
+    for (const ct of chiTietSanLuong) {
+      const key = `${ct.nhanVienId}-${ct.khoanLuongId}`;
+      const existingCt = existingMap.get(key);
+
+      if (existingCt) {
+        const soTienHienTai = Number(existingCt.soTien);
+        if (soTienHienTai !== ct.soTien || existingCt.nguon !== ct.nguon) {
+          updateOps.push(
+            this.prisma.chiTietBangLuong.update({
+              where: { id: existingCt.id },
+              data: { soTien: ct.soTien, nguon: ct.nguon },
+            }),
+          );
+        }
+      } else if (ct.soTien > 0) {
+        createData.push(ct);
+      }
+    }
+
+    if (updateOps.length > 0 || createData.length > 0) {
+      await this.prisma.$transaction([
+        ...updateOps,
+        ...(createData.length > 0
+          ? [this.prisma.chiTietBangLuong.createMany({ data: createData })]
+          : []),
+      ]);
     }
   }
 
@@ -852,7 +1079,12 @@ export class BangLuongService {
     }
 
     // Lấy tất cả ngày công của bảng lương
-    const danhSachNgayCong = await this.ngayCongService.layTatCaNgayCong(bangLuongId);
+    let danhSachNgayCong = await this.ngayCongService.layTatCaNgayCong(bangLuongId);
+    if (danhSachNgayCong.length === 0) {
+      // Nếu chưa có ngày công thì khởi tạo từ chấm công rồi lấy lại
+      await this.ngayCongService.khoiTaoNgayCongTuChamCong(bangLuongId);
+      danhSachNgayCong = await this.ngayCongService.layTatCaNgayCong(bangLuongId);
+    }
 
     let soNhanVienCapNhat = 0;
 
@@ -867,6 +1099,17 @@ export class BangLuongService {
       );
       
       soNhanVienCapNhat++;
+    }
+
+    const nhanVienIds = danhSachNgayCong.map((nc) => nc.nhanVienId);
+    if (nhanVienIds.length > 0) {
+      await this.capNhatChiTietSanLuong(
+        bangLuongId,
+        bangLuong.phongBanId,
+        bangLuong.thang,
+        bangLuong.nam,
+        nhanVienIds,
+      );
     }
 
     return {

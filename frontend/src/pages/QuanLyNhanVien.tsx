@@ -1,11 +1,14 @@
 // Quản lý nhân viên
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Plus, Edit2, Trash2, Search, RotateCcw } from 'lucide-react'
+import { Users, Plus, Edit2, Search, FileSpreadsheet, ChevronDown, Pause, UserX, UserCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { nhanVienApi, phongBanApi, NhanVien, TrangThaiNhanVien, LoaiNhanVien, LOAI_NHAN_VIEN_MAP } from '../services/api'
 import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
+import { useAuth } from '../contexts/AuthContext'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 // Map trạng thái sang tiếng Việt
 const TRANG_THAI_MAP: Record<TrangThaiNhanVien, { label: string; color: string }> = {
@@ -16,11 +19,23 @@ const TRANG_THAI_MAP: Record<TrangThaiNhanVien, { label: string; color: string }
 
 export default function QuanLyNhanVien() {
   const queryClient = useQueryClient()
+  const { token } = useAuth()
   const [showModal, setShowModal] = useState(false)
   const [filterPhongBan, setFilterPhongBan] = useState<number | undefined>()
   const [filterTrangThai, setFilterTrangThai] = useState<TrangThaiNhanVien | ''>('')
   const [filterLoaiNhanVien, setFilterLoaiNhanVien] = useState<LoaiNhanVien | ''>('')
   const [tuKhoa, setTuKhoa] = useState('')
+  
+  // Modal đổi trạng thái
+  const [showTrangThaiModal, setShowTrangThaiModal] = useState(false)
+  const [selectedNhanVien, setSelectedNhanVien] = useState<NhanVien | null>(null)
+  const [trangThaiMoi, setTrangThaiMoi] = useState<TrangThaiNhanVien>('DANG_LAM')
+  const [lyDoDoiTrangThai, setLyDoDoiTrangThai] = useState('')
+  const [isUpdatingTrangThai, setIsUpdatingTrangThai] = useState(false)
+  
+  // Dropdown menu ref
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const [formData, setFormData] = useState({
     maNhanVien: '',
@@ -85,17 +100,6 @@ export default function QuanLyNhanVien() {
     },
   })
 
-  const xoaMutation = useMutation({
-    mutationFn: nhanVienApi.xoa,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nhan-vien'] })
-      toast.success('Xóa nhân viên thành công!')
-    },
-    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
-    },
-  })
-
   const resetForm = () => {
     setShowModal(false)
     setFormData({
@@ -126,10 +130,56 @@ export default function QuanLyNhanVien() {
     }
   }
 
-  // Khôi phục nhân viên đã nghỉ
-  const handleKhoiPhuc = (nv: NhanVien) => {
-    if (confirm(`Khôi phục nhân viên "${nv.hoTen}" về trạng thái Đang làm?`)) {
-      capNhatMutation.mutate({ id: nv.id, data: { trangThai: 'DANG_LAM' } })
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Mở modal đổi trạng thái
+  const handleOpenTrangThaiModal = (nv: NhanVien, trangThai: TrangThaiNhanVien) => {
+    setSelectedNhanVien(nv)
+    setTrangThaiMoi(trangThai)
+    setLyDoDoiTrangThai('')
+    setShowTrangThaiModal(true)
+    setActiveDropdown(null)
+  }
+
+  // Cập nhật trạng thái nhân viên
+  const handleCapNhatTrangThai = async () => {
+    if (!selectedNhanVien) return
+
+    setIsUpdatingTrangThai(true)
+    try {
+      const res = await fetch(`${API_URL}/api/nhan-vien/${selectedNhanVien.id}/trang-thai`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          trangThai: trangThaiMoi,
+          lyDo: lyDoDoiTrangThai || undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || 'Lỗi cập nhật trạng thái')
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['nhan-vien'] })
+      toast.success(`Đã cập nhật trạng thái thành "${TRANG_THAI_MAP[trangThaiMoi].label}"`)
+      setShowTrangThaiModal(false)
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi cập nhật trạng thái')
+    } finally {
+      setIsUpdatingTrangThai(false)
     }
   }
 
@@ -142,12 +192,6 @@ export default function QuanLyNhanVien() {
     taoMoiMutation.mutate(formData)
   }
 
-  const handleXoa = (nv: NhanVien) => {
-    if (confirm(`Bạn có chắc muốn xóa nhân viên "${nv.hoTen}"?`)) {
-      xoaMutation.mutate(nv.id)
-    }
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -155,13 +199,22 @@ export default function QuanLyNhanVien() {
           <Users size={28} />
           Quản lý Nhân viên
         </h1>
-        <button
-          onClick={handleOpenModal}
-          className="btn btn-primary"
-        >
-          <Plus size={20} />
-          Thêm nhân viên
-        </button>
+        <div className="flex gap-2">
+          <Link
+            to="/nhan-vien/import-export"
+            className="btn btn-secondary flex items-center gap-2"
+          >
+            <FileSpreadsheet size={18} />
+            Import/Export Excel
+          </Link>
+          <button
+            onClick={handleOpenModal}
+            className="btn btn-primary"
+          >
+            <Plus size={20} />
+            Thêm nhân viên
+          </button>
+        </div>
       </div>
 
       {/* Bộ lọc */}
@@ -274,23 +327,51 @@ export default function QuanLyNhanVien() {
                           <Edit2 size={14} />
                           Chi tiết
                         </Link>
-                        {nv.trangThai === 'NGHI_VIEC' ? (
+                        
+                        {/* Dropdown đổi trạng thái */}
+                        <div className="relative" ref={activeDropdown === nv.id ? dropdownRef : null}>
                           <button
-                            onClick={() => handleKhoiPhuc(nv)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                            title="Khôi phục"
+                            onClick={() => setActiveDropdown(activeDropdown === nv.id ? null : nv.id)}
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex items-center"
+                            title="Đổi trạng thái"
                           >
-                            <RotateCcw size={18} />
+                            <ChevronDown size={18} />
                           </button>
-                        ) : (
-                          <button
-                            onClick={() => handleXoa(nv)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                            title="Cho nghỉ việc"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        )}
+                          
+                          {activeDropdown === nv.id && (
+                            <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg z-10">
+                              <div className="py-1">
+                                {nv.trangThai !== 'DANG_LAM' && (
+                                  <button
+                                    onClick={() => handleOpenTrangThaiModal(nv, 'DANG_LAM')}
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-green-50 flex items-center gap-2 text-green-700"
+                                  >
+                                    <UserCheck size={16} />
+                                    Đang làm việc
+                                  </button>
+                                )}
+                                {nv.trangThai !== 'TAM_NGHI' && (
+                                  <button
+                                    onClick={() => handleOpenTrangThaiModal(nv, 'TAM_NGHI')}
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-yellow-50 flex items-center gap-2 text-yellow-700"
+                                  >
+                                    <Pause size={16} />
+                                    Tạm nghỉ
+                                  </button>
+                                )}
+                                {nv.trangThai !== 'NGHI_VIEC' && (
+                                  <button
+                                    onClick={() => handleOpenTrangThaiModal(nv, 'NGHI_VIEC')}
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-700"
+                                  >
+                                    <UserX size={16} />
+                                    Nghỉ việc
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -479,6 +560,78 @@ export default function QuanLyNhanVien() {
                 className="btn btn-primary"
               >
                 {taoMoiMutation.isPending || capNhatMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal đổi trạng thái */}
+      {showTrangThaiModal && selectedNhanVien && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              {trangThaiMoi === 'DANG_LAM' && <UserCheck className="text-green-600" size={24} />}
+              {trangThaiMoi === 'TAM_NGHI' && <Pause className="text-yellow-600" size={24} />}
+              {trangThaiMoi === 'NGHI_VIEC' && <UserX className="text-red-600" size={24} />}
+              Đổi trạng thái nhân viên
+            </h2>
+            
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <p className="font-medium">{selectedNhanVien.maNhanVien} - {selectedNhanVien.hoTen}</p>
+              <p className="text-sm text-gray-500">
+                {selectedNhanVien.phongBan?.tenPhongBan} • {selectedNhanVien.chucVu || 'Nhân viên'}
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm mb-2">
+                Chuyển từ <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TRANG_THAI_MAP[selectedNhanVien.trangThai]?.color || 'bg-gray-100'}`}>
+                  {TRANG_THAI_MAP[selectedNhanVien.trangThai]?.label}
+                </span> sang <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TRANG_THAI_MAP[trangThaiMoi]?.color || 'bg-gray-100'}`}>
+                  {TRANG_THAI_MAP[trangThaiMoi]?.label}
+                </span>
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">
+                Lý do {trangThaiMoi === 'NGHI_VIEC' ? '(khuyến khích ghi)' : '(không bắt buộc)'}
+              </label>
+              <textarea
+                value={lyDoDoiTrangThai}
+                onChange={(e) => setLyDoDoiTrangThai(e.target.value)}
+                placeholder={trangThaiMoi === 'NGHI_VIEC' ? 'VD: Nghỉ theo nguyện vọng cá nhân...' : 'Ghi chú (nếu có)...'}
+                className="w-full border rounded-lg px-3 py-2 h-24 resize-none"
+              />
+            </div>
+
+            {trangThaiMoi === 'NGHI_VIEC' && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">
+                  ⚠️ Khi chuyển sang "Nghỉ việc", hệ thống sẽ ghi nhận ngày nghỉ việc là hôm nay.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowTrangThaiModal(false)} 
+                className="btn btn-secondary"
+                disabled={isUpdatingTrangThai}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleCapNhatTrangThai}
+                disabled={isUpdatingTrangThai}
+                className={`btn ${
+                  trangThaiMoi === 'DANG_LAM' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                  trangThaiMoi === 'TAM_NGHI' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
+                  'bg-red-600 hover:bg-red-700 text-white'
+                }`}
+              >
+                {isUpdatingTrangThai ? 'Đang xử lý...' : 'Xác nhận'}
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import SidebarDribbble from './SidebarDribbble'
 import HeaderPremium from './HeaderPremium'
 import CommandPalette from '../command-palette/CommandPalette'
+import ChatbotWidget from '../chatbot/ChatbotWidget'
 import { useCommandPalette } from '../../hooks/useCommandPalette'
 import { useRecentPages } from '../../hooks/useRecentPages'
 import { initTheme } from '../../lib/theme'
@@ -94,6 +95,9 @@ export default function NewLayout() {
         isOpen={commandPalette.isOpen}
         onClose={commandPalette.close}
       />
+
+      {/* Chatbot Widget - HRM Assistant */}
+      <ChatbotWidget />
 
       {/* Mobile overlay khi sidebar mở */}
       {sidebarOpen && (

@@ -73,6 +73,8 @@ export interface PhongBan {
   gioVaoChuan?: string
   gioRaChuan?: string
   phutChoPhepTre?: number
+  quyTacNgayCong?: string
+  soNgayCongThang?: number | null
   phongBanCha?: { id: number; tenPhongBan: string }
   phongBanCons?: PhongBan[]
   children?: PhongBan[] // For tree view
@@ -115,6 +117,8 @@ export const phongBanApi = {
     gioVaoChuan?: string;
     gioRaChuan?: string;
     phutChoPhepTre?: number;
+    quyTacNgayCong?: string;
+    soNgayCongThang?: number | null;
   }) =>
     api.post('/phong-ban', data).then((res) => res.data),
   capNhat: (id: number, data: Partial<{ 
@@ -127,6 +131,8 @@ export const phongBanApi = {
     gioVaoChuan: string;
     gioRaChuan: string;
     phutChoPhepTre: number;
+    quyTacNgayCong: string;
+    soNgayCongThang: number | null;
   }>) =>
     api.put(`/phong-ban/${id}`, data).then((res) => res.data),
   doiPhongBanCha: (id: number, phongBanChaId: number | null) =>
@@ -223,6 +229,39 @@ export const khoanLuongApi = {
   xoa: (id: number) => api.delete(`/khoan-luong/${id}`).then((res) => res.data),
 }
 
+// ==================== BHXH & THUẾ ====================
+export interface CauHinhBHXH {
+  id?: number
+  nam: number
+  tyLeBHXH_NV: number
+  tyLeBHXH_DN: number
+  tyLeBHYT_NV: number
+  tyLeBHYT_DN: number
+  tyLeBHTN_NV: number
+  tyLeBHTN_DN: number
+  luongCoBanToiThieu: number
+  tranDongBHXH: number
+  luongCoSo: number
+}
+
+export interface CauHinhThueTNCN {
+  id?: number
+  nam: number
+  giamTruBanThan: number
+  giamTruPhuThuoc: number
+}
+
+export const bhxhThueApi = {
+  layCauHinhBHXH: (nam: number) =>
+    api.get<CauHinhBHXH>(`/bhxh-thue/cau-hinh-bhxh/${nam}`).then((res) => res.data),
+  luuCauHinhBHXH: (data: CauHinhBHXH) =>
+    api.post('/bhxh-thue/cau-hinh-bhxh', data).then((res) => res.data),
+  khoiTaoMacDinh: () =>
+    api.post('/bhxh-thue/khoi-tao-mac-dinh').then((res) => res.data),
+  layCauHinhThue: (nam: number) =>
+    api.get<CauHinhThueTNCN>(`/bhxh-thue/cau-hinh-thue/${nam}`).then((res) => res.data),
+}
+
 // ==================== BẢNG LƯƠNG ====================
 export interface BangLuong {
   id: number
@@ -264,6 +303,7 @@ export interface ChiTietLuongNhanVien {
   chucVu: string | null
   phongBan: string
   ngayCongThucTe: number // Số ngày làm thực tế
+  ngayCong?: NgayCongBangLuong
   sanLuong?: SanLuongNhanVien // Thông tin sản lượng
   cacKhoanLuong: {
     khoanLuongId: number

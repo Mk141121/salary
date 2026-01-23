@@ -1,6 +1,12 @@
 // UngLuongCalculatorService - Tính tiền công lũy kế và điều kiện ứng lương
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  countWorkingDaysInMonth,
+  countWorkingDaysInRange,
+  resolveWorkdayRule,
+  WorkdayRule,
+} from '../../common/utils/ngayCong';
 
 // Cấu hình mặc định cho điều kiện ứng lương
 export const CAU_HINH_MAC_DINH = {
@@ -187,33 +193,28 @@ export class UngLuongCalculatorService {
     return tongPhat;
   }
 
-  /**
-   * Tính số ngày làm việc theo lịch (không tính T7, CN)
-   * Dùng khi chưa có dữ liệu chấm công thực tế
-   */
-  private tinhNgayLamViecTheoLich(tuNgay: Date, denNgay: Date): number {
-    let soNgay = 0;
-    const currentDate = new Date(tuNgay);
-    
-    while (currentDate <= denNgay) {
-      const dayOfWeek = currentDate.getDay();
-      // 0 = Chủ nhật, 6 = Thứ 7
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        soNgay += 1;
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    
-    return soNgay;
-  }
+  private async layWorkdayConfig(nhanVienId: number): Promise<{
+    rule: WorkdayRule;
+    soNgayCongThang?: number | null;
+  }> {
+    const nhanVien = await this.prisma.nhanVien.findUnique({
+      where: { id: nhanVienId },
+      select: { phongBanId: true },
+    });
 
-  /**
-   * Tính số công chuẩn trong tháng (không tính T7, CN)
-   */
-  private tinhSoCongChuanTheoLich(thang: number, nam: number): number {
-    const tuNgay = new Date(nam, thang - 1, 1);
-    const denNgay = new Date(nam, thang, 0); // Ngày cuối tháng
-    return this.tinhNgayLamViecTheoLich(tuNgay, denNgay);
+    if (!nhanVien?.phongBanId) {
+      return { rule: resolveWorkdayRule(undefined) };
+    }
+
+    const phongBan = await this.prisma.phongBan.findUnique({
+      where: { id: nhanVien.phongBanId },
+      select: { maPhongBan: true, tenPhongBan: true, loaiPhongBan: true, quyTacNgayCong: true, soNgayCongThang: true },
+    });
+
+    return {
+      rule: resolveWorkdayRule(phongBan || undefined),
+      soNgayCongThang: phongBan?.soNgayCongThang ?? null,
+    };
   }
 
   /**
@@ -224,6 +225,7 @@ export class UngLuongCalculatorService {
     nhanVienId: number,
     tuNgay: Date,
     denNgay: Date,
+    ngayTinhToiDa?: Date,
   ): Promise<{
     soNgayCong: number;
     soNgayNghi: number;
@@ -246,9 +248,11 @@ export class UngLuongCalculatorService {
     const chamCong = await this.prisma.chamCong.findFirst({
       where: { nhanVienId, thang, nam },
     });
-    const soCongChuan = chamCong 
-      ? Number(chamCong.soCongChuan) 
-      : this.tinhSoCongChuanTheoLich(thang, nam);
+    const workdayConfig = await this.layWorkdayConfig(nhanVienId);
+
+    const soCongChuan = chamCong
+      ? Number(chamCong.soCongChuan)
+      : countWorkingDaysInMonth(thang, nam, workdayConfig.rule, workdayConfig.soNgayCongThang ?? null);
 
     // Nếu có dữ liệu chấm công thực tế -> dùng dữ liệu thực tế
     if (chiTietChamCongs.length > 0) {
@@ -280,11 +284,11 @@ export class UngLuongCalculatorService {
 
     // Chưa có dữ liệu chấm công -> Tạm tính theo lịch thời gian làm việc
     // Giả định nhân viên đi làm đầy đủ các ngày trong tuần (T2-T6)
-    const ngayHienTai = new Date();
-    // Giới hạn denNgay không vượt quá ngày hiện tại
-    const denNgayThucTe = denNgay > ngayHienTai ? ngayHienTai : denNgay;
+    const ngayGioiHan = ngayTinhToiDa ? new Date(ngayTinhToiDa) : new Date();
+    // Giới hạn denNgay không vượt quá ngày giới hạn (mặc định là hiện tại)
+    const denNgayThucTe = denNgay > ngayGioiHan ? ngayGioiHan : denNgay;
     
-    const soNgayCong = this.tinhNgayLamViecTheoLich(tuNgay, denNgayThucTe);
+    const soNgayCong = countWorkingDaysInRange(tuNgay, denNgayThucTe, workdayConfig.rule);
     
     this.logger.log(
       `[Tạm tính] NV ${nhanVienId}: ${soNgayCong} ngày công từ ${tuNgay.toISOString().split('T')[0]} đến ${denNgayThucTe.toISOString().split('T')[0]}`,
@@ -336,6 +340,7 @@ export class UngLuongCalculatorService {
     nhanVienId: number,
     tuNgay: Date,
     denNgay: Date,
+    ngayTinhToiDa?: Date,
   ): Promise<KetQuaTinhLuyKe> {
     const thang = tuNgay.getMonth() + 1;
     const nam = tuNgay.getFullYear();
@@ -344,7 +349,7 @@ export class UngLuongCalculatorService {
     const luongCoBan = await this.layLuongCoBanHieuLuc(nhanVienId, denNgay);
 
     // Tính ngày công
-    const ngayCong = await this.tinhNgayCong(nhanVienId, tuNgay, denNgay);
+    const ngayCong = await this.tinhNgayCong(nhanVienId, tuNgay, denNgay, ngayTinhToiDa);
     
     // Tính lương theo ngày công (pro-rate)
     const luongTheoNgayCong = ngayCong.soCongChuan > 0
@@ -465,11 +470,12 @@ export class UngLuongCalculatorService {
     tuNgay: Date,
     denNgay: Date,
     cauHinhJson?: Record<string, unknown>,
+    ngayTinhToiDa?: Date,
   ): Promise<{
     luyKe: KetQuaTinhLuyKe;
     dieuKien: KetQuaKiemTraDieuKien;
   }> {
-    const luyKe = await this.tinhTienCongLuyKe(nhanVienId, tuNgay, denNgay);
+    const luyKe = await this.tinhTienCongLuyKe(nhanVienId, tuNgay, denNgay, ngayTinhToiDa);
     const dieuKien = await this.kiemTraDieuKien(
       nhanVienId,
       luyKe.tienCongLuyKe,

@@ -31,6 +31,10 @@ model PhongBan {
   gioVaoChuan    String @default("08:00") @map("gio_vao_chuan") // Format: HH:mm
   gioRaChuan     String @default("17:00") @map("gio_ra_chuan") // Format: HH:mm
   phutChoPhepTre Int    @default(5) @map("phut_cho_phep_tre") // Số phút được phép đi muộn
+  // Cấu hình quy tắc ngày công theo phòng ban
+  quyTacNgayCong String? @default("SAT_HALF_SUN_OFF") @map("quy_tac_ngay_cong") // FULL | SAT_HALF_SUN_OFF
+  // Cấu hình số ngày công cố định theo tháng (ưu tiên hơn quy tắc nếu có)
+  soNgayCongThang Int?   @map("so_ngay_cong_thang")
 
   // Audit fields
   taoBoi      Int?     @map("tao_boi")
@@ -176,6 +180,14 @@ model NhanVien {
   gioiTinh     GioiTinh?         @map("gioi_tinh")
   ngaySinh     DateTime?         @map("ngay_sinh") @db.Date
   diaChi       String?           @map("dia_chi")
+  // CCCD/CMND
+  soCCCD       String?           @map("so_cccd")
+  hinhCCCDTruoc String?          @map("hinh_cccd_truoc") // URL hình CCCD mặt trước
+  hinhCCCDSau   String?          @map("hinh_cccd_sau")   // URL hình CCCD mặt sau
+  // Liên hệ khẩn cấp
+  soDienThoaiKhanCap  String?    @map("so_dien_thoai_khan_cap")
+  nguoiLienHeKhanCap  String?    @map("nguoi_lien_he_khan_cap") // Tên người thân
+  quanHeKhanCap       String?    @map("quan_he_khan_cap")       // Quan hệ (cha, mẹ, vợ, chồng...)
   trangThai    TrangThaiNhanVien @default(DANG_LAM) @map("trang_thai")
   taoBoi       Int?              @map("tao_boi")
   capNhatBoi   Int?              @map("cap_nhat_boi")
@@ -539,6 +551,7 @@ model SnapshotBangLuong {
 
   @@index([bangLuongId])
   @@index([nhanVienId])
+  @@index([bangLuongId, nhanVienId])
   @@index([phongBanId])
   @@map("snapshot_bang_luong")
 }
@@ -1729,18 +1742,23 @@ model SnapshotGiaoHang {
 // Quản lý lịch sử lương theo hợp đồng
 // ============================================
 model NhanVienHopDong {
-  id          Int              @id @default(autoincrement())
-  nhanVienId  Int              @map("nhan_vien_id")
-  loaiHopDong LoaiHopDong      @map("loai_hop_dong")
-  tuNgay      DateTime         @map("tu_ngay") @db.Date
-  denNgay     DateTime?        @map("den_ngay") @db.Date
-  luongCoBan  Decimal          @map("luong_co_ban") @db.Decimal(15, 0)
-  luongDongBH Decimal?         @map("luong_dong_bh") @db.Decimal(15, 0)
-  heSoLuong   Decimal?         @map("he_so_luong") @db.Decimal(5, 2)
-  trangThai   TrangThaiHopDong @default(HIEU_LUC) @map("trang_thai")
-  ghiChu      String?          @map("ghi_chu")
-  taoBoi      Int?             @map("tao_boi")
-  ngayTao     DateTime         @default(now()) @map("ngay_tao")
+  id           Int              @id @default(autoincrement())
+  nhanVienId   Int              @map("nhan_vien_id")
+  loaiHopDong  LoaiHopDong      @map("loai_hop_dong")
+  tuNgay       DateTime         @map("tu_ngay") @db.Date
+  denNgay      DateTime?        @map("den_ngay") @db.Date
+  luongCoBan   Decimal          @map("luong_co_ban") @db.Decimal(15, 0)
+  luongDongBH  Decimal?         @map("luong_dong_bh") @db.Decimal(15, 0)
+  heSoLuong    Decimal?         @map("he_so_luong") @db.Decimal(5, 2)
+  // Loại nhân viên theo hợp đồng (chuyển từ NhanVien sang đây)
+  loaiNhanVien LoaiNhanVien     @default(CHINH_THUC) @map("loai_nhan_vien")
+  trangThai    TrangThaiHopDong @default(HIEU_LUC) @map("trang_thai")
+  ghiChu       String?          @map("ghi_chu")
+  // File hợp đồng scan (hình hoặc PDF)
+  fileHopDong  String?          @map("file_hop_dong")      // URL file chính
+  filesHopDong String[]         @map("files_hop_dong")     // Mảng URL nhiều file
+  taoBoi       Int?             @map("tao_boi")
+  ngayTao      DateTime         @default(now()) @map("ngay_tao")
 
   // Quan hệ
   nhanVien NhanVien @relation(fields: [nhanVienId], references: [id], onDelete: Cascade)
@@ -2638,4 +2656,36 @@ model LichSuSuaCong {
   @@index([nguonThayDoi])
   @@index([ngayTao])
   @@map("lich_su_sua_cong")
+}
+
+// ================================================
+// CHATBOT - Lịch sử hội thoại & Analytics
+// ================================================
+
+model ChatHistory {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @map("session_id") @db.Uuid
+  userId    Int?     @map("user_id")
+  role      String   // user | assistant
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("chat_history")
+}
+
+model ChatAnalytics {
+  id           Int      @id @default(autoincrement())
+  query        String   @db.Text
+  sourcesCount Int      @default(0) @map("sources_count")
+  userId       Int?     @map("user_id")
+  sessionId    String?  @map("session_id") @db.Uuid
+  feedback     Int?     // -1, 0, 1 (dislike, neutral, like)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("chat_analytics")
 }

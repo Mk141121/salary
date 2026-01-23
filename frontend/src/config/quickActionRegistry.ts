@@ -32,7 +32,9 @@ class QuickActionRegistry {
       await handler()
       return true
     }
-    console.warn(`Quick action "${key}" không có handler đăng ký`)
+    if (import.meta.env.DEV) {
+      console.warn(`Quick action "${key}" không có handler đăng ký`)
+    }
     return false
   }
 

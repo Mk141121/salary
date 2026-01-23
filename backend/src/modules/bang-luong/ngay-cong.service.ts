@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import { CachTinhLuong } from '@prisma/client';
+import { countWorkingDaysInMonth, countWorkingDaysInRange, resolveWorkdayRule } from '../../common/utils/ngayCong';
 
 @Injectable()
 export class NgayCongService {
@@ -27,6 +28,7 @@ export class NgayCongService {
     const ngayCongLyThuyet = await this.tinhNgayCongLyThuyet(
       bangLuong.thang,
       bangLuong.nam,
+      bangLuong.phongBanId,
     );
 
     if (ngayCongLyThuyet <= 0) return;
@@ -121,28 +123,85 @@ export class NgayCongService {
 
     const records = [];
 
+    const nhanVienIds = nhanViens.map((nv) => nv.id);
+    const chamCongThang = await this.prisma.chamCong.findMany({
+      where: {
+        nhanVienId: { in: nhanVienIds },
+        thang: bangLuong.thang,
+        nam: bangLuong.nam,
+      },
+    });
+    const chamCongMap = new Map(chamCongThang.map((cc) => [cc.nhanVienId, cc]));
+
+    const ngayDau = new Date(bangLuong.nam, bangLuong.thang - 1, 1);
+    const ngayCuoi = new Date(bangLuong.nam, bangLuong.thang, 0);
+    const ngayKhoiTao = bangLuong.ngayTao ? new Date(bangLuong.ngayTao) : new Date();
+    const denNgay = ngayKhoiTao < ngayCuoi ? ngayKhoiTao : ngayCuoi;
+
+    const chiTietChamCong = await this.prisma.chiTietChamCong.findMany({
+      where: {
+        nhanVienId: { in: nhanVienIds },
+        ngay: { gte: ngayDau, lte: denNgay },
+      },
+    });
+
+    const chiTietMap = new Map<number, { soCongThucTe: number; soNgayNghiPhep: number; soNgayNghiKhongLuong: number }>();
+    for (const cc of chiTietChamCong) {
+      const current = chiTietMap.get(cc.nhanVienId) || {
+        soCongThucTe: 0,
+        soNgayNghiPhep: 0,
+        soNgayNghiKhongLuong: 0,
+      };
+
+      switch (cc.trangThai) {
+        case 'DI_LAM':
+        case 'LAM_TU_XA':
+        case 'CONG_TAC':
+          current.soCongThucTe += 1;
+          break;
+        case 'NGHI_PHEP':
+        case 'NGHI_LE':
+        case 'NGHI_BENH':
+          current.soNgayNghiPhep += 1;
+          break;
+        case 'NGHI_KHONG_LUONG':
+          current.soNgayNghiKhongLuong += 1;
+          break;
+      }
+
+      chiTietMap.set(cc.nhanVienId, current);
+    }
+
     for (const nv of nhanViens) {
-      // Lấy dữ liệu chấm công
-      const chamCong = await this.prisma.chamCong.findFirst({
-        where: {
-          nhanVienId: nv.id,
-          thang: bangLuong.thang,
-          nam: bangLuong.nam,
-        },
-      });
+      const chamCong = chamCongMap.get(nv.id);
+      const chiTiet = chiTietMap.get(nv.id);
+
+      let soCongThucTe = 0;
+      let soNgayNghiPhep = 0;
+      let soNgayNghiKhongPhep = 0;
 
       if (chamCong) {
-        records.push({
-          bangLuongId: bangLuongId,
-          nhanVienId: nv.id,
-          ngayCongLyThuyet: new Decimal(ngayCongLyThuyet),
-          soCongThucTe: chamCong.soCongThucTe,
-          soNgayNghiPhep: chamCong.soNgayNghiPhep,
-          soNgayNghiKhongPhep: chamCong.soNgayNghiKhongLuong,
-          ngayCongDieuChinh: null,
-          ghiChu: null,
-        });
+        soCongThucTe = Number(chamCong.soCongThucTe || 0);
+        soNgayNghiPhep = Number(chamCong.soNgayNghiPhep || 0);
+        soNgayNghiKhongPhep = Number(chamCong.soNgayNghiKhongLuong || 0);
+      } else if (chiTiet) {
+        soCongThucTe = chiTiet.soCongThucTe;
+        soNgayNghiPhep = chiTiet.soNgayNghiPhep;
+        soNgayNghiKhongPhep = chiTiet.soNgayNghiKhongLuong;
+      } else {
+        soCongThucTe = await this.tinhSoCongTheoLich(ngayDau, denNgay, bangLuong.phongBanId);
       }
+
+      records.push({
+        bangLuongId: bangLuongId,
+        nhanVienId: nv.id,
+        ngayCongLyThuyet: new Decimal(ngayCongLyThuyet),
+        soCongThucTe: new Decimal(soCongThucTe),
+        soNgayNghiPhep: new Decimal(soNgayNghiPhep),
+        soNgayNghiKhongPhep: new Decimal(soNgayNghiKhongPhep),
+        ngayCongDieuChinh: null,
+        ghiChu: null,
+      });
     }
 
     // Xóa dữ liệu cũ nếu có
@@ -158,6 +217,21 @@ export class NgayCongService {
     }
 
     return records;
+  }
+
+  /**
+   * Tính số ngày công theo lịch (T2-T6) trong khoảng thời gian
+   */
+  private async tinhSoCongTheoLich(tuNgay: Date, denNgay: Date, phongBanId?: number): Promise<number> {
+    let phongBan: { maPhongBan: string | null; tenPhongBan: string | null; loaiPhongBan: string | null } | null = null;
+    if (phongBanId) {
+      phongBan = await this.prisma.phongBan.findUnique({
+        where: { id: phongBanId },
+        select: { maPhongBan: true, tenPhongBan: true, loaiPhongBan: true, quyTacNgayCong: true, soNgayCongThang: true },
+      });
+    }
+    const rule = resolveWorkdayRule(phongBan || undefined);
+    return countWorkingDaysInRange(tuNgay, denNgay, rule);
   }
 
   /**
@@ -265,23 +339,17 @@ export class NgayCongService {
   private async tinhNgayCongLyThuyet(
     thang: number,
     nam: number,
+    phongBanId?: number,
   ): Promise<number> {
-    // Số ngày trong tháng
-    const soNgayTrongThang = new Date(nam, thang, 0).getDate();
-
-    // Đếm số ngày cuối tuần (Thứ 7, Chủ nhật)
-    let soNgayCuoiTuan = 0;
-    for (let ngay = 1; ngay <= soNgayTrongThang; ngay++) {
-      const date = new Date(nam, thang - 1, ngay);
-      const dayOfWeek = date.getDay();
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        // 0: Chủ nhật, 6: Thứ 7
-        soNgayCuoiTuan++;
-      }
+    let phongBan: { maPhongBan: string | null; tenPhongBan: string | null; loaiPhongBan: string | null; soNgayCongThang?: number | null } | null = null;
+    if (phongBanId) {
+      phongBan = await this.prisma.phongBan.findUnique({
+        where: { id: phongBanId },
+        select: { maPhongBan: true, tenPhongBan: true, loaiPhongBan: true, quyTacNgayCong: true, soNgayCongThang: true },
+      });
     }
-
-    // Ngày công lý thuyết = Tổng ngày - Ngày cuối tuần
-    return soNgayTrongThang - soNgayCuoiTuan;
+    const rule = resolveWorkdayRule(phongBan || undefined);
+    return countWorkingDaysInMonth(thang, nam, rule, phongBan?.soNgayCongThang ?? null);
   }
 
   /**

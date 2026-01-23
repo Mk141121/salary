@@ -73,6 +73,20 @@ export default function QuanLyQuyChe() {
     }
   }
 
+  const getErrorMessage = (error: unknown) => {
+    const err = error as {
+      response?: { data?: { message?: string | string[] } }
+      message?: string
+    }
+
+    const message = err.response?.data?.message
+    if (Array.isArray(message)) {
+      return message.join('\n')
+    }
+
+    return message || err.message || 'Lỗi tạo quy chế'
+  }
+
   const handleTaoQuyChe = async () => {
     if (!form.phongBanId || !form.tenQuyChe || !form.tuNgay) {
       alert('Vui lòng nhập đầy đủ thông tin')
@@ -96,7 +110,7 @@ export default function QuanLyQuyChe() {
       loadQuyChe()
     } catch (error) {
       console.error('Lỗi tạo quy chế:', error)
-      alert('Lỗi tạo quy chế')
+      alert(getErrorMessage(error))
     }
   }
 

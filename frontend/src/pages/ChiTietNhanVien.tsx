@@ -21,13 +21,14 @@ import {
   Save,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { nhanVienApi, phongBanApi, phuCapNhanVienApi, khoanLuongApi, PhuCapNhanVien, KhoanLuong, LoaiNhanVien, LOAI_NHAN_VIEN_MAP } from '../services/api'
+import { nhanVienApi, phongBanApi, phuCapNhanVienApi, khoanLuongApi, PhuCapNhanVien, KhoanLuong } from '../services/api'
 import { formatTien, formatNgay } from '../utils'
 import TabHopDong from '../components/TabHopDong'
 import TabNganHang from '../components/TabNganHang'
 import TabNhomNhanVien from '../components/TabNhomNhanVien'
 import TabThueBH from '../components/TabThueBH'
 import TabLichSuPhongBan from '../components/TabLichSuPhongBan'
+import { FileUpload } from '../components/FileUpload'
 import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
 type TabType = 'thong-tin' | 'hop-dong' | 'phu-cap' | 'lich-su' | 'lich-su-phong-ban'
@@ -53,9 +54,14 @@ export default function ChiTietNhanVien() {
     gioiTinh: '' as '' | 'NAM' | 'NU' | 'KHAC',
     ngaySinh: '',
     diaChi: '',
-    ngayVaoLam: '',
-    luongCoBan: 0,
-    loaiNhanVien: 'CHINH_THUC' as LoaiNhanVien,
+    // CCCD
+    soCCCD: '',
+    hinhCCCDTruoc: '',
+    hinhCCCDSau: '',
+    // Liên hệ khẩn cấp
+    soDienThoaiKhanCap: '',
+    nguoiLienHeKhanCap: '',
+    quanHeKhanCap: '',
     dongBHXH: true,
   })
 
@@ -182,9 +188,14 @@ export default function ChiTietNhanVien() {
         gioiTinh: (nhanVien as any).gioiTinh || '',
         ngaySinh: (nhanVien as any).ngaySinh ? new Date((nhanVien as any).ngaySinh).toISOString().split('T')[0] : '',
         diaChi: (nhanVien as any).diaChi || '',
-        ngayVaoLam: (nhanVien as any).ngayVaoLam ? new Date((nhanVien as any).ngayVaoLam).toISOString().split('T')[0] : '',
-        luongCoBan: nhanVien.luongCoBan || 0,
-        loaiNhanVien: (nhanVien as any).loaiNhanVien || 'CHINH_THUC',
+        // CCCD
+        soCCCD: (nhanVien as any).soCCCD || '',
+        hinhCCCDTruoc: (nhanVien as any).hinhCCCDTruoc || '',
+        hinhCCCDSau: (nhanVien as any).hinhCCCDSau || '',
+        // Liên hệ khẩn cấp
+        soDienThoaiKhanCap: (nhanVien as any).soDienThoaiKhanCap || '',
+        nguoiLienHeKhanCap: (nhanVien as any).nguoiLienHeKhanCap || '',
+        quanHeKhanCap: (nhanVien as any).quanHeKhanCap || '',
         dongBHXH: (nhanVien as any).dongBHXH !== false,
       })
     }
@@ -267,9 +278,14 @@ export default function ChiTietNhanVien() {
       gioiTinh: formNhanVien.gioiTinh || null,
       ngaySinh: formNhanVien.ngaySinh || null,
       diaChi: formNhanVien.diaChi?.trim() || null,
-      ngayVaoLam: formNhanVien.ngayVaoLam || null,
-      luongCoBan: formNhanVien.luongCoBan || 0,
-      loaiNhanVien: formNhanVien.loaiNhanVien,
+      // CCCD
+      soCCCD: formNhanVien.soCCCD?.trim() || null,
+      hinhCCCDTruoc: formNhanVien.hinhCCCDTruoc || null,
+      hinhCCCDSau: formNhanVien.hinhCCCDSau || null,
+      // Liên hệ khẩn cấp
+      soDienThoaiKhanCap: formNhanVien.soDienThoaiKhanCap?.trim() || null,
+      nguoiLienHeKhanCap: formNhanVien.nguoiLienHeKhanCap?.trim() || null,
+      quanHeKhanCap: formNhanVien.quanHeKhanCap?.trim() || null,
       dongBHXH: formNhanVien.dongBHXH,
     } as any)
   }
@@ -285,9 +301,14 @@ export default function ChiTietNhanVien() {
         gioiTinh: (nhanVien as any).gioiTinh || '',
         ngaySinh: (nhanVien as any).ngaySinh ? new Date((nhanVien as any).ngaySinh).toISOString().split('T')[0] : '',
         diaChi: (nhanVien as any).diaChi || '',
-        ngayVaoLam: (nhanVien as any).ngayVaoLam ? new Date((nhanVien as any).ngayVaoLam).toISOString().split('T')[0] : '',
-        luongCoBan: nhanVien.luongCoBan || 0,
-        loaiNhanVien: (nhanVien as any).loaiNhanVien || 'CHINH_THUC',
+        // CCCD
+        soCCCD: (nhanVien as any).soCCCD || '',
+        hinhCCCDTruoc: (nhanVien as any).hinhCCCDTruoc || '',
+        hinhCCCDSau: (nhanVien as any).hinhCCCDSau || '',
+        // Liên hệ khẩn cấp
+        soDienThoaiKhanCap: (nhanVien as any).soDienThoaiKhanCap || '',
+        nguoiLienHeKhanCap: (nhanVien as any).nguoiLienHeKhanCap || '',
+        quanHeKhanCap: (nhanVien as any).quanHeKhanCap || '',
         dongBHXH: (nhanVien as any).dongBHXH !== false,
       })
     }
@@ -494,35 +515,74 @@ export default function ChiTietNhanVien() {
                   <label className="block text-sm text-gray-500">Số điện thoại</label>
                   <p className="font-medium">{nhanVien.soDienThoai || '-'}</p>
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm text-gray-500">Địa chỉ</label>
                   <p className="font-medium">{(nhanVien as any).diaChi || '-'}</p>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-500">Ngày vào làm</label>
-                  <p className="font-medium">{(nhanVien as any).ngayVaoLam ? formatNgay((nhanVien as any).ngayVaoLam) : '-'}</p>
+                
+                {/* CCCD */}
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <h4 className="font-medium text-gray-700 mb-3">Căn cước công dân</h4>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm text-gray-500">Số CCCD/CMND</label>
+                      <p className="font-medium">{(nhanVien as any).soCCCD || '-'}</p>
+                    </div>
+                    <div className="flex gap-4">
+                      {(nhanVien as any).hinhCCCDTruoc && (
+                        <div>
+                          <label className="block text-sm text-gray-500 mb-1">Mặt trước</label>
+                          <img src={(nhanVien as any).hinhCCCDTruoc} alt="CCCD mặt trước" className="w-32 h-20 object-cover rounded border" />
+                        </div>
+                      )}
+                      {(nhanVien as any).hinhCCCDSau && (
+                        <div>
+                          <label className="block text-sm text-gray-500 mb-1">Mặt sau</label>
+                          <img src={(nhanVien as any).hinhCCCDSau} alt="CCCD mặt sau" className="w-32 h-20 object-cover rounded border" />
+                        </div>
+                      )}
+                      {!(nhanVien as any).hinhCCCDTruoc && !(nhanVien as any).hinhCCCDSau && (
+                        <p className="text-gray-400 text-sm">Chưa có hình CCCD</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-500">Lương cơ bản</label>
-                  <p className="font-medium text-primary-600">{formatTien(nhanVien.luongCoBan)}</p>
+
+                {/* Liên hệ khẩn cấp */}
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <h4 className="font-medium text-gray-700 mb-3">Liên hệ khẩn cấp (người thân)</h4>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm text-gray-500">Người liên hệ</label>
+                      <p className="font-medium">{(nhanVien as any).nguoiLienHeKhanCap || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500">Quan hệ</label>
+                      <p className="font-medium">{(nhanVien as any).quanHeKhanCap || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500">Số điện thoại</label>
+                      <p className="font-medium">{(nhanVien as any).soDienThoaiKhanCap || '-'}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-500">Loại nhân viên</label>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${LOAI_NHAN_VIEN_MAP[((nhanVien as any).loaiNhanVien || 'CHINH_THUC') as LoaiNhanVien]?.color || 'bg-gray-100'}`}>
-                    {LOAI_NHAN_VIEN_MAP[((nhanVien as any).loaiNhanVien || 'CHINH_THUC') as LoaiNhanVien]?.label || 'Chính thức'}
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-500">Đóng BHXH</label>
-                  {(nhanVien as any).dongBHXH !== false ? (
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Có đóng</span>
-                  ) : (
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Không đóng</span>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
-                  <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
+
+                {/* Đóng BHXH & Tổng phụ cấp */}
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm text-gray-500">Đóng BHXH</label>
+                      {(nhanVien as any).dongBHXH !== false ? (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Có đóng</span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Không đóng</span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
+                      <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -617,70 +677,118 @@ export default function ChiTietNhanVien() {
                     placeholder="Nhập địa chỉ"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Ngày vào làm</label>
-                  <VietnameseDatePicker
-                    value={formNhanVien.ngayVaoLam}
-                    onChange={(val) => setFormNhanVien({ ...formNhanVien, ngayVaoLam: val })}
-                    className="w-full border rounded-lg px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Lương cơ bản</label>
-                  <input
-                    type="number"
-                    value={formNhanVien.luongCoBan}
-                    onChange={(e) => setFormNhanVien({ ...formNhanVien, luongCoBan: parseFloat(e.target.value) || 0 })}
-                    className="w-full border rounded-lg px-3 py-2"
-                    placeholder="Nhập lương cơ bản"
-                    min={0}
-                    step={100000}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Loại nhân viên</label>
-                  <select
-                    value={formNhanVien.loaiNhanVien}
-                    onChange={(e) => setFormNhanVien({ ...formNhanVien, loaiNhanVien: e.target.value as LoaiNhanVien })}
-                    className="w-full border rounded-lg px-3 py-2"
-                  >
-                    <option value="CHINH_THUC">Chính thức</option>
-                    <option value="THU_VIEC">Thử việc</option>
-                    <option value="HOC_VIEC">Học việc</option>
-                    <option value="THUC_TAP">Thực tập</option>
-                    <option value="CONG_TAC_VIEN">Cộng tác viên</option>
-                    <option value="THOI_VU">Thời vụ</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Đóng BHXH</label>
-                  <div className="flex items-center gap-4 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
+
+                {/* CCCD */}
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <h4 className="font-medium text-gray-700 mb-3">Căn cước công dân</h4>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Số CCCD/CMND</label>
                       <input
-                        type="radio"
-                        name="editDongBHXH"
-                        checked={formNhanVien.dongBHXH === true}
-                        onChange={() => setFormNhanVien({ ...formNhanVien, dongBHXH: true })}
-                        className="w-4 h-4 text-blue-600"
+                        type="text"
+                        value={formNhanVien.soCCCD}
+                        onChange={(e) => setFormNhanVien({ ...formNhanVien, soCCCD: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2"
+                        placeholder="Nhập số CCCD"
                       />
-                      <span>Có đóng</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="editDongBHXH"
-                        checked={formNhanVien.dongBHXH === false}
-                        onChange={() => setFormNhanVien({ ...formNhanVien, dongBHXH: false })}
-                        className="w-4 h-4 text-red-600"
-                      />
-                      <span>Không đóng</span>
-                    </label>
+                    </div>
+                    <FileUpload
+                      endpoint={`/api/upload/cccd/${id}/truoc`}
+                      currentUrl={formNhanVien.hinhCCCDTruoc}
+                      onUploadSuccess={(url) => setFormNhanVien({ ...formNhanVien, hinhCCCDTruoc: url })}
+                      onRemove={() => setFormNhanVien({ ...formNhanVien, hinhCCCDTruoc: '' })}
+                      accept="image"
+                      label="Hình CCCD mặt trước"
+                    />
+                    <FileUpload
+                      endpoint={`/api/upload/cccd/${id}/sau`}
+                      currentUrl={formNhanVien.hinhCCCDSau}
+                      onUploadSuccess={(url) => setFormNhanVien({ ...formNhanVien, hinhCCCDSau: url })}
+                      onRemove={() => setFormNhanVien({ ...formNhanVien, hinhCCCDSau: '' })}
+                      accept="image"
+                      label="Hình CCCD mặt sau"
+                    />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
-                  <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
-                  <span className="text-xs text-gray-400">(Tự động tính từ các khoản phụ cấp)</span>
+
+                {/* Liên hệ khẩn cấp */}
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <h4 className="font-medium text-gray-700 mb-3">Liên hệ khẩn cấp (người thân)</h4>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Người liên hệ</label>
+                      <input
+                        type="text"
+                        value={formNhanVien.nguoiLienHeKhanCap}
+                        onChange={(e) => setFormNhanVien({ ...formNhanVien, nguoiLienHeKhanCap: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2"
+                        placeholder="Tên người thân"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Quan hệ</label>
+                      <select
+                        value={formNhanVien.quanHeKhanCap}
+                        onChange={(e) => setFormNhanVien({ ...formNhanVien, quanHeKhanCap: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      >
+                        <option value="">-- Chọn --</option>
+                        <option value="Cha">Cha</option>
+                        <option value="Mẹ">Mẹ</option>
+                        <option value="Vợ">Vợ</option>
+                        <option value="Chồng">Chồng</option>
+                        <option value="Anh/Chị/Em">Anh/Chị/Em</option>
+                        <option value="Con">Con</option>
+                        <option value="Khác">Khác</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+                      <input
+                        type="tel"
+                        value={formNhanVien.soDienThoaiKhanCap}
+                        onChange={(e) => setFormNhanVien({ ...formNhanVien, soDienThoaiKhanCap: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2"
+                        placeholder="SĐT khẩn cấp"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Đóng BHXH & Tổng phụ cấp */}
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Đóng BHXH</label>
+                      <div className="flex items-center gap-4 mt-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="editDongBHXH"
+                            checked={formNhanVien.dongBHXH === true}
+                            onChange={() => setFormNhanVien({ ...formNhanVien, dongBHXH: true })}
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span>Có đóng</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="editDongBHXH"
+                            checked={formNhanVien.dongBHXH === false}
+                            onChange={() => setFormNhanVien({ ...formNhanVien, dongBHXH: false })}
+                            className="w-4 h-4 text-red-600"
+                          />
+                          <span>Không đóng</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500">Tổng phụ cấp hiện tại</label>
+                      <p className="font-medium text-green-600">{formatTien(tongPhuCap)}</p>
+                      <span className="text-xs text-gray-400">(Tự động tính từ các khoản phụ cấp)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

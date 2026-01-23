@@ -23,6 +23,14 @@ export class PhanCaService {
     private caLamViecService: CaLamViecService,
   ) {}
 
+  async layNhanVienIdTuNguoiDung(nguoiDungId: number) {
+    const nguoiDung = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiDungId },
+      select: { nhanVienId: true },
+    });
+    return nguoiDung?.nhanVienId ?? null;
+  }
+
   /**
    * Lấy danh sách lịch phân ca
    */

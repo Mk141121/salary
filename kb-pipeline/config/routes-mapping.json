@@ -1,0 +1,184 @@
+{
+  "routes": {
+    "/": {
+      "module": "DASHBOARD",
+      "page": "TrangChu.tsx",
+      "personas": ["admin", "hr", "ke_toan", "manager", "nhan_vien"]
+    },
+    "/bang-luong": {
+      "module": "PAYROLL",
+      "page": "DanhSachBangLuong.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/bang-luong/:id": {
+      "module": "PAYROLL",
+      "page": "ChiTietBangLuong.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/quy-che": {
+      "module": "RULE_ENGINE",
+      "page": "QuanLyQuyChe.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/quy-che/:id": {
+      "module": "RULE_ENGINE",
+      "page": "ChiTietQuyChe.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/rule-trace/:id": {
+      "module": "RULE_ENGINE",
+      "page": "XemRuleTrace.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/nhan-vien": {
+      "module": "EMPLOYEES",
+      "page": "QuanLyNhanVien.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/nhan-vien/:id": {
+      "module": "EMPLOYEES",
+      "page": "ChiTietNhanVien.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/nhan-vien/import-export": {
+      "module": "EMPLOYEES",
+      "page": "ImportExportNhanVien.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/phong-ban": {
+      "module": "EMPLOYEES",
+      "page": "QuanLyPhongBan.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/cham-cong": {
+      "module": "ATTENDANCE",
+      "page": "QuanLyChamCong.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/bang-cong": {
+      "module": "ATTENDANCE",
+      "page": "BangCongThang.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/gps-logs": {
+      "module": "ATTENDANCE",
+      "page": "GPSLogs.tsx",
+      "personas": ["admin"]
+    },
+    "/geofence": {
+      "module": "ATTENDANCE",
+      "page": "CauHinhGeofence.tsx",
+      "personas": ["admin"]
+    },
+    "/ca-lam-viec": {
+      "module": "SCHEDULING",
+      "page": "DanhMucCaLamViec.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/lich-phan-ca": {
+      "module": "SCHEDULING",
+      "page": "LichPhanCa.tsx",
+      "personas": ["admin", "hr", "truong_phong"]
+    },
+    "/don-nghi": {
+      "module": "REQUESTS",
+      "page": "DonNghiCuaToi.tsx",
+      "personas": ["nhan_vien", "manager", "hr"]
+    },
+    "/duyet-nghi": {
+      "module": "REQUESTS",
+      "page": "DuyetNghiPhep.tsx",
+      "personas": ["manager", "hr", "admin"]
+    },
+    "/yeu-cau": {
+      "module": "REQUESTS",
+      "page": "DonYeuCauCuaToi.tsx",
+      "personas": ["nhan_vien", "manager", "hr"]
+    },
+    "/duyet-yeu-cau": {
+      "module": "REQUESTS",
+      "page": "DuyetYeuCau.tsx",
+      "personas": ["manager", "hr", "admin"]
+    },
+    "/lich-nghi": {
+      "module": "REQUESTS",
+      "page": "LichNghiPhep.tsx",
+      "personas": ["admin", "hr", "manager"]
+    },
+    "/kpi": {
+      "module": "KPI",
+      "page": "QuanLyKPI.tsx",
+      "personas": ["admin", "hr", "manager"]
+    },
+    "/ky-danh-gia": {
+      "module": "KPI",
+      "page": "KyDanhGiaKPI.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/cau-hinh-thuong-kpi": {
+      "module": "KPI",
+      "page": "CauHinhThuongKPI.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/import": {
+      "module": "IMPORT",
+      "page": "ImportExcel.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/import-chia-hang": {
+      "module": "IMPORT",
+      "page": "ImportChiaHang.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/import-giao-hang": {
+      "module": "IMPORT",
+      "page": "ImportGiaoHang.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/lich-su-import": {
+      "module": "IMPORT",
+      "page": "LichSuImport.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/ung-luong": {
+      "module": "ADVANCE",
+      "page": "DanhSachBangUngLuong.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/ung-luong/:id": {
+      "module": "ADVANCE",
+      "page": "ChiTietBangUngLuong.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    },
+    "/cai-dat": {
+      "module": "SETTINGS",
+      "page": "CaiDatHeThong.tsx",
+      "personas": ["admin"]
+    },
+    "/nguoi-dung": {
+      "module": "SETTINGS",
+      "page": "QuanLyNguoiDung.tsx",
+      "personas": ["admin"]
+    },
+    "/audit-log": {
+      "module": "AUDIT",
+      "page": "AuditLog.tsx",
+      "personas": ["admin"]
+    },
+    "/khoan-luong": {
+      "module": "PAYROLL",
+      "page": "QuanLyKhoanLuong.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/don-gia": {
+      "module": "IMPORT",
+      "page": "DonGiaSanLuong.tsx",
+      "personas": ["admin", "hr"]
+    },
+    "/tra-cuu-san-luong": {
+      "module": "IMPORT",
+      "page": "TraCuuSanLuong.tsx",
+      "personas": ["admin", "hr", "ke_toan"]
+    }
+  }
+}

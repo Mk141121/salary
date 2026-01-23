@@ -137,7 +137,11 @@ export default function QuickActions() {
         }
         break
       case 'modal':
-        // TODO: Implement modal actions
+        if (action.callbackKey) {
+          await registry.execute(action.callbackKey)
+        } else if (action.to) {
+          navigate(action.to)
+        }
         break
     }
   }

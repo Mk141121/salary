@@ -34,11 +34,14 @@ export class ChamCongController {
   @ApiOperation({ summary: 'Lấy thông tin ngày công lý thuyết trong tháng' })
   @ApiQuery({ name: 'thang', required: true })
   @ApiQuery({ name: 'nam', required: true })
+  @ApiQuery({ name: 'phongBanId', required: false })
   async layNgayCongLyThuyet(
     @Query('thang', ParseIntPipe) thang: number,
     @Query('nam', ParseIntPipe) nam: number,
+    @Query('phongBanId') phongBanId?: string,
   ) {
-    return this.chamCongService.layThongTinNgayCongLyThuyet(thang, nam);
+    const pbId = phongBanId ? Number(phongBanId) : undefined;
+    return this.chamCongService.layThongTinNgayCongLyThuyet(thang, nam, pbId);
   }
 
   // ============================================

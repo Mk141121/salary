@@ -164,16 +164,42 @@ export class SoLuongService {
       orderBy: [{ nam: 'desc' }, { thang: 'desc' }],
     });
 
+    const ngayCongRecords = await this.prisma.ngayCongBangLuong.findMany({
+      where: {
+        nhanVienId,
+        bangLuongId: { in: bangLuongs.map((bl) => bl.id) },
+      },
+      select: {
+        bangLuongId: true,
+        soCongThucTe: true,
+        ngayCongDieuChinh: true,
+        soNgayNghiCoPhep: true,
+        soNgayNghiKhongPhep: true,
+      },
+    });
+
+    const ngayCongMap = new Map(
+      ngayCongRecords.map((record) => [record.bangLuongId, record]),
+    );
+
     const result: BangLuongItem[] = [];
 
+    const snapshotsAll = await this.prisma.snapshotBangLuong.findMany({
+      where: {
+        nhanVienId,
+        bangLuongId: { in: bangLuongs.map((bl) => bl.id) },
+      },
+    });
+
+    const snapshotMap = new Map<number, typeof snapshotsAll>();
+    for (const ss of snapshotsAll) {
+      const list = snapshotMap.get(ss.bangLuongId) || [];
+      list.push(ss);
+      snapshotMap.set(ss.bangLuongId, list);
+    }
+
     for (const bl of bangLuongs) {
-      // Lay snapshots cho bang luong nay va nhan vien
-      const snapshots = await this.prisma.snapshotBangLuong.findMany({
-        where: {
-          bangLuongId: bl.id,
-          nhanVienId,
-        },
-      });
+      const snapshots = snapshotMap.get(bl.id) || [];
 
       if (snapshots.length === 0) continue;
 
@@ -217,7 +243,12 @@ export class SoLuongService {
         }
       }
 
-      const ngayCong = 26; // TODO: Lay tu bang cham cong
+      const ngayCongRecord = ngayCongMap.get(bl.id);
+      const ngayCong = ngayCongRecord
+        ? Number(ngayCongRecord.ngayCongDieuChinh ?? ngayCongRecord.soCongThucTe ?? 0)
+        : 0;
+      const nghiCoPhep = ngayCongRecord ? Number(ngayCongRecord.soNgayNghiCoPhep ?? 0) : 0;
+      const nghiKhongPhep = ngayCongRecord ? Number(ngayCongRecord.soNgayNghiKhongPhep ?? 0) : 0;
 
       const thucLanh = luongCoBan + phuCapTong + thuongKPI + thuongThuNhap 
         - khauTruTong - bhxh - bhyt - bhtn - thueTNCN;
@@ -239,8 +270,8 @@ export class SoLuongService {
         thueTNCN,
         thucLanh,
         ngayCong,
-        nghiCoPhep: 0,
-        nghiKhongPhep: 0,
+        nghiCoPhep,
+        nghiKhongPhep,
         chotNgay: bl.ngayChot?.toISOString(),
       });
     }

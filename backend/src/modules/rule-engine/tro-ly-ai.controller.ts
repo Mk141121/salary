@@ -6,6 +6,8 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { TroLyAiService } from './tro-ly-ai.service';
@@ -28,9 +30,11 @@ export class TroLyAiController {
     status: 201,
     description: 'Trả về rule đề xuất hoặc danh sách câu hỏi cần làm rõ',
   })
-  async goiYRule(@Body() dto: GoiYRuleDto) {
-    // TODO: Lấy nguoiTaoId từ JWT token
-    const nguoiTaoId = undefined;
+  async goiYRule(@Body() dto: GoiYRuleDto, @Request() req: any) {
+    const nguoiTaoId = req.user?.id;
+    if (!nguoiTaoId) {
+      throw new ForbiddenException('Không có thông tin người dùng');
+    }
     return this.troLyAiService.goiYRule(dto, nguoiTaoId);
   }
 
@@ -64,9 +68,12 @@ export class TroLyAiController {
   async apDungRule(
     @Param('quyCheId', ParseIntPipe) quyCheId: number,
     @Body() dto: ApDungRuleDeXuatDto,
+    @Request() req: any,
   ) {
-    // TODO: Lấy nguoiTaoId từ JWT token
-    const nguoiTaoId = undefined;
+    const nguoiTaoId = req.user?.id;
+    if (!nguoiTaoId) {
+      throw new ForbiddenException('Không có thông tin người dùng');
+    }
     return this.troLyAiService.apDungRule(dto, quyCheId, nguoiTaoId);
   }
 

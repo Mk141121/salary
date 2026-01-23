@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { FileText, Image } from 'lucide-react';
 import {
   NhanVienHopDong,
   layDanhSachHopDong,
@@ -13,6 +14,18 @@ import {
   formatCurrency,
 } from '../services/nhanVienMoRongApi';
 import { VietnameseDatePicker } from './VietnameseDatePicker';
+import { LOAI_NHAN_VIEN_MAP } from '../services/api';
+import { FileUpload, MultiFileUpload } from './FileUpload';
+
+// Loại nhân viên options
+const LOAI_NHAN_VIEN_OPTIONS = [
+  { value: 'CHINH_THUC', label: 'Chính thức' },
+  { value: 'THU_VIEC', label: 'Thử việc' },
+  { value: 'HOC_VIEC', label: 'Học việc' },
+  { value: 'THUC_TAP', label: 'Thực tập' },
+  { value: 'CONG_TAC_VIEN', label: 'Cộng tác viên' },
+  { value: 'THOI_VU', label: 'Thời vụ' },
+];
 
 interface Props {
   nhanVienId: number;
@@ -31,7 +44,10 @@ export default function TabHopDong({ nhanVienId }: Props) {
     luongCoBan: 0,
     luongDongBH: 0,
     heSoLuong: 1,
+    loaiNhanVien: 'CHINH_THUC',
     ghiChu: '',
+    fileHopDong: '', // URL file chính
+    filesHopDong: [] as string[], // Mảng URL nhiều file
   });
 
   const [ngungForm, setNgungForm] = useState({
@@ -106,7 +122,10 @@ export default function TabHopDong({ nhanVienId }: Props) {
       luongCoBan: 0,
       luongDongBH: 0,
       heSoLuong: 1,
+      loaiNhanVien: 'CHINH_THUC',
       ghiChu: '',
+      fileHopDong: '',
+      filesHopDong: [],
     });
   };
 
@@ -118,7 +137,10 @@ export default function TabHopDong({ nhanVienId }: Props) {
       luongCoBan: Number(hd.luongCoBan),
       luongDongBH: Number(hd.luongDongBH || 0),
       heSoLuong: Number(hd.heSoLuong || 1),
+      loaiNhanVien: (hd as any).loaiNhanVien || 'CHINH_THUC',
       ghiChu: hd.ghiChu || '',
+      fileHopDong: (hd as any).fileHopDong || '',
+      filesHopDong: (hd as any).filesHopDong || [],
     });
     setEditingId(hd.id);
     setShowForm(true);
@@ -174,6 +196,18 @@ export default function TabHopDong({ nhanVienId }: Props) {
               </select>
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1">Loại nhân viên</label>
+              <select
+                value={form.loaiNhanVien}
+                onChange={(e) => setForm({ ...form, loaiNhanVien: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2"
+              >
+                {LOAI_NHAN_VIEN_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1">Lương cơ bản</label>
               <input
                 type="number"
@@ -185,7 +219,7 @@ export default function TabHopDong({ nhanVienId }: Props) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Từ ngày</label>
+              <label className="block text-sm font-medium mb-1">Ngày vào làm / Từ ngày</label>
               <VietnameseDatePicker
                 value={form.tuNgay}
                 onChange={(val) => setForm({ ...form, tuNgay: val })}
@@ -221,6 +255,29 @@ export default function TabHopDong({ nhanVienId }: Props) {
                 min={0}
               />
             </div>
+            
+            {/* Upload file hợp đồng */}
+            <div className="col-span-2 border-t pt-4 mt-2">
+              <div className="grid grid-cols-2 gap-4">
+                <FileUpload
+                  endpoint={`/api/upload/hop-dong/${nhanVienId}`}
+                  currentUrl={form.fileHopDong}
+                  onUploadSuccess={(url) => setForm({ ...form, fileHopDong: url })}
+                  onRemove={() => setForm({ ...form, fileHopDong: '' })}
+                  accept="document"
+                  label="File hợp đồng chính (ảnh/PDF)"
+                />
+                <MultiFileUpload
+                  endpoint={`/api/upload/hop-dong/${nhanVienId}/multi`}
+                  currentUrls={form.filesHopDong}
+                  onUploadSuccess={(urls) => setForm({ ...form, filesHopDong: urls })}
+                  accept="document"
+                  label="File bổ sung (tùy chọn)"
+                  maxFiles={10}
+                />
+              </div>
+            </div>
+
             <div className="col-span-2">
               <label className="block text-sm font-medium mb-1">Ghi chú</label>
               <textarea
@@ -314,7 +371,7 @@ export default function TabHopDong({ nhanVienId }: Props) {
                 <div className={`bg-white rounded-lg shadow p-4 ${hd.trangThai === 'HIEU_LUC' ? 'border-l-4 border-green-500' : ''}`}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold">{loaiHopDongLabel[hd.loaiHopDong]}</span>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           hd.trangThai === 'HIEU_LUC' ? 'bg-green-100 text-green-800' :
@@ -323,6 +380,12 @@ export default function TabHopDong({ nhanVienId }: Props) {
                         }`}>
                           {trangThaiHopDongLabel[hd.trangThai]}
                         </span>
+                        {/* Loại nhân viên */}
+                        {(hd as any).loaiNhanVien && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${LOAI_NHAN_VIEN_MAP[(hd as any).loaiNhanVien as keyof typeof LOAI_NHAN_VIEN_MAP]?.color || 'bg-gray-100'}`}>
+                            {LOAI_NHAN_VIEN_MAP[(hd as any).loaiNhanVien as keyof typeof LOAI_NHAN_VIEN_MAP]?.label || (hd as any).loaiNhanVien}
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
                         {new Date(hd.tuNgay).toLocaleDateString('vi-VN')} → {hd.denNgay ? new Date(hd.denNgay).toLocaleDateString('vi-VN') : 'Vô thời hạn'}
@@ -340,6 +403,40 @@ export default function TabHopDong({ nhanVienId }: Props) {
 
                   {hd.ghiChu && (
                     <div className="text-sm text-gray-500 mt-2 italic">{hd.ghiChu}</div>
+                  )}
+
+                  {/* File hợp đồng */}
+                  {((hd as any).fileHopDong || ((hd as any).filesHopDong && (hd as any).filesHopDong.length > 0)) && (
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                        <FileText size={12} /> File đính kèm:
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(hd as any).fileHopDong && (
+                          <a
+                            href={(hd as any).fileHopDong}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100"
+                          >
+                            {(hd as any).fileHopDong.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? <Image size={12} /> : <FileText size={12} />}
+                            File chính
+                          </a>
+                        )}
+                        {(hd as any).filesHopDong?.map((url: string, i: number) => (
+                          <a
+                            key={i}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded text-xs hover:bg-gray-100"
+                          >
+                            {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? <Image size={12} /> : <FileText size={12} />}
+                            File {i + 2}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {/* Actions */}

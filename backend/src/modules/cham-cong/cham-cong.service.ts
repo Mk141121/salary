@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoaiNgayCong, TrangThaiChamCong } from '@prisma/client';
 import { NGAY_CONG_CHUAN_MAC_DINH } from '../../common/constants';
+import { countWorkingDaysInMonth, resolveWorkdayRule } from '../../common/utils/ngayCong';
 
 @Injectable()
 export class ChamCongService {
@@ -22,35 +23,32 @@ export class ChamCongService {
    * Công thức: Tổng ngày trong tháng - (số Chủ nhật × 1) - (số Thứ 7 × 0.5)
    * Ví dụ: Tháng có 30 ngày, 4 CN, 5 T7 → 30 - 4 - (5 × 0.5) = 23.5 ngày
    */
-  tinhSoNgayCongLyThuyet(thang: number, nam: number): number {
-    // Lấy số ngày trong tháng
-    const soNgayTrongThang = new Date(nam, thang, 0).getDate();
-    
-    let soNgayChuNhat = 0;
-    let soNgayThuBay = 0;
-    
-    // Đếm số Thứ 7 và Chủ nhật trong tháng
-    for (let ngay = 1; ngay <= soNgayTrongThang; ngay++) {
-      const date = new Date(nam, thang - 1, ngay);
-      const thuTrongTuan = date.getDay(); // 0 = Chủ nhật, 6 = Thứ 7
-      
-      if (thuTrongTuan === 0) {
-        soNgayChuNhat++;
-      } else if (thuTrongTuan === 6) {
-        soNgayThuBay++;
-      }
+  async tinhSoNgayCongLyThuyet(thang: number, nam: number, phongBanId?: number): Promise<number> {
+    let phongBan: { maPhongBan: string | null; tenPhongBan: string | null; loaiPhongBan: string | null; soNgayCongThang?: number | null } | null = null;
+    if (phongBanId) {
+      phongBan = await this.prisma.phongBan.findUnique({
+        where: { id: phongBanId },
+        select: { maPhongBan: true, tenPhongBan: true, loaiPhongBan: true, quyTacNgayCong: true, soNgayCongThang: true },
+      });
     }
-    
-    // Ngày công lý thuyết = tổng ngày - CN - (T7 × 0.5)
-    const ngayCongLyThuyet = soNgayTrongThang - soNgayChuNhat - (soNgayThuBay * 0.5);
-    
-    return ngayCongLyThuyet;
+
+    const rule = resolveWorkdayRule(phongBan || undefined);
+    return countWorkingDaysInMonth(thang, nam, rule, phongBan?.soNgayCongThang ?? null);
   }
 
   /**
    * Lấy thông tin chi tiết ngày công lý thuyết
    */
-  layThongTinNgayCongLyThuyet(thang: number, nam: number) {
+  async layThongTinNgayCongLyThuyet(thang: number, nam: number, phongBanId?: number) {
+    let phongBan: { maPhongBan: string | null; tenPhongBan: string | null; loaiPhongBan: string | null; soNgayCongThang?: number | null } | null = null;
+    if (phongBanId) {
+      phongBan = await this.prisma.phongBan.findUnique({
+        where: { id: phongBanId },
+        select: { maPhongBan: true, tenPhongBan: true, loaiPhongBan: true, quyTacNgayCong: true, soNgayCongThang: true },
+      });
+    }
+
+    const rule = resolveWorkdayRule(phongBan || undefined);
     const soNgayTrongThang = new Date(nam, thang, 0).getDate();
     
     let soNgayChuNhat = 0;
@@ -70,7 +68,12 @@ export class ChamCongService {
       }
     }
     
-    const ngayCongLyThuyet = soNgayTrongThang - soNgayChuNhat - (soNgayThuBay * 0.5);
+    const ngayCongLyThuyet = countWorkingDaysInMonth(thang, nam, rule, phongBan?.soNgayCongThang ?? null);
+    const moTa = phongBan?.soNgayCongThang
+      ? `Cố định ${ngayCongLyThuyet} ngày theo phòng ban`
+      : rule === 'FULL'
+        ? `${soNgayTrongThang} ngày - không nghỉ = ${ngayCongLyThuyet} ngày`
+        : `${soNgayTrongThang} ngày - ${soNgayChuNhat} CN - (${soNgayThuBay} T7 × 0.5) = ${ngayCongLyThuyet} ngày`;
     
     return {
       thang,
@@ -80,7 +83,7 @@ export class ChamCongService {
       soNgayThuBay,
       soNgayThuong,
       ngayCongLyThuyet,
-      moTa: `${soNgayTrongThang} ngày - ${soNgayChuNhat} CN - (${soNgayThuBay} T7 × 0.5) = ${ngayCongLyThuyet} ngày`,
+      moTa,
     };
   }
 

@@ -348,6 +348,7 @@ export class UngLuongService {
         tuNgay,
         denNgay,
         cauHinh,
+        bangUngLuong.ngayTao,
       );
 
       chiTietData.push({

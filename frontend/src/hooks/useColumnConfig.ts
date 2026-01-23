@@ -198,10 +198,9 @@ export function createBangLuongColumns(
     { id: 'hoTen', label: 'Họ tên', visible: true, order: 2, sticky: true, width: '180px' },
     { id: 'chucVu', label: 'Chức vụ', visible: true, order: 3, width: '120px' },
     { id: 'ngayCong', label: 'Ngày công', visible: true, order: 4, align: 'center', bgColor: 'bg-orange-100' },
-    { id: 'ncDieuChinh', label: 'NC Điều chỉnh', visible: true, order: 5, align: 'center', bgColor: 'bg-orange-100' },
   ]
 
-  let orderIndex = 6
+  let orderIndex = 5
 
   // Cột sản lượng chia hàng
   if (coSanLuong && (loaiSanLuong === 'CHIA_HANG' || loaiSanLuong === 'CA_HAI')) {

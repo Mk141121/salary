@@ -44,6 +44,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
+# Copy knowledge base for chatbot
+COPY --from=builder /app/knowledge_base ./knowledge_base
+
 # Change ownership to non-root user
 RUN chown -R nestjs:nodejs /app
 
@@ -56,5 +59,5 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=5 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
 
-# Start the application with migration
-CMD npx prisma db push && node dist/src/main.js
+# Start the application with migration (accept data loss for non-Prisma tables)
+CMD npx prisma db push --accept-data-loss && node dist/src/main.js

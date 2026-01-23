@@ -24,6 +24,17 @@ export interface ChiTietLuongNhanVien {
   chucVu: string | null;
   phongBan: string;
   ngayCongThucTe: number; // Số ngày làm thực tế
+  ngayCong?: {
+    id: number;
+    bangLuongId: number;
+    nhanVienId: number;
+    ngayCongLyThuyet: number;
+    soCongThucTe: number;
+    soNgayNghiPhep: number;
+    soNgayNghiKhongPhep: number;
+    ngayCongDieuChinh?: number | null;
+    ghiChu?: string | null;
+  };
   sanLuong?: SanLuongNhanVien; // Thông tin sản lượng
   cacKhoanLuong: {
     khoanLuongId: number;
@@ -141,11 +152,23 @@ export class TinhLuongService {
       where: { trangThai: true },
       orderBy: { thuTu: 'asc' },
     });
+    // Đảm bảo trả đủ các khoản lương đã có trong chi tiết bảng lương
+    const khoanLuongTrongBang = new Map(
+      bangLuong.chiTiets.map((ct) => [ct.khoanLuongId, ct.khoanLuong])
+    );
+    const daCo = new Set(danhSachKhoanLuong.map((kl) => kl.id));
+    const khoanLuongThieu = Array.from(khoanLuongTrongBang.values())
+      .filter((kl) => !daCo.has(kl.id))
+      .sort((a, b) => (a.thuTu ?? 0) - (b.thuTu ?? 0) || a.tenKhoan.localeCompare(b.tenKhoan));
+    if (khoanLuongThieu.length > 0) {
+      danhSachKhoanLuong.push(...khoanLuongThieu);
+    }
 
     // Tính số ngày công lý thuyết trong tháng
-    const ngayCongLyThuyet = this.chamCongService.tinhSoNgayCongLyThuyet(
+    const ngayCongLyThuyet = await this.chamCongService.tinhSoNgayCongLyThuyet(
       bangLuong.thang,
       bangLuong.nam,
+      bangLuong.phongBanId,
     );
 
     // Nhóm chi tiết theo nhân viên
@@ -163,26 +186,18 @@ export class TinhLuongService {
       orderBy: { hoTen: 'asc' },
     });
 
-    // Lấy chấm công của tất cả nhân viên trong phòng ban
-    const chamCongMap = new Map<number, number>();
-    for (const nv of nhanViens) {
-      try {
-        const cc = await this.chamCongService.layChamCongNhanVien(
-          nv.id,
-          bangLuong.thang,
-          bangLuong.nam,
-        );
-        if (cc) {
-          // Ngày công thực tế = số công thực tế + ngày nghỉ phép (nghỉ phép được tính như đi làm)
-          const ngayCongThucTe = Number(cc.soCongThucTe || 0) + Number(cc.soNgayNghiPhep || 0);
-          chamCongMap.set(nv.id, ngayCongThucTe);
-        } else {
-          chamCongMap.set(nv.id, ngayCongLyThuyet);
-        }
-      } catch {
-        chamCongMap.set(nv.id, ngayCongLyThuyet);
-      }
-    }
+    // Lấy chấm công của tất cả nhân viên trong phòng ban (batch)
+    const chamCongMap = await this.chamCongService.layChamCongNhieuNhanVien(
+      nhanViens.map((nv) => nv.id),
+      bangLuong.thang,
+      bangLuong.nam,
+    );
+
+    // Lấy ngày công đã điều chỉnh trong bảng lương
+    const ngayCongRecords = await this.prisma.ngayCongBangLuong.findMany({
+      where: { bangLuongId },
+    });
+    const ngayCongMap = new Map(ngayCongRecords.map((nc) => [nc.nhanVienId, nc]));
 
     // Lấy snapshot sản lượng chia hàng
     const snapshotChiaHang = await this.prisma.snapshotSanLuongChiaHang.findMany({
@@ -205,7 +220,17 @@ export class TinhLuongService {
 
     // Khởi tạo cho mỗi nhân viên
     for (const nv of nhanViens) {
-      const ngayCongThucTe = chamCongMap.get(nv.id) || ngayCongLyThuyet;
+      const chamCong = chamCongMap.get(nv.id);
+      const ngayCongRecord = ngayCongMap.get(nv.id);
+      const soCongThucTe = Number(chamCong?.soCongThucTe || 0);
+      const soNgayNghiPhep = Number(chamCong?.soNgayNghiPhep || 0);
+      const soNgayNghiKhongPhep = Number(chamCong?.soNgayNghiKhongLuong || 0);
+
+      const ngayCongThucTe = ngayCongRecord
+        ? (ngayCongRecord.ngayCongDieuChinh !== null
+          ? Number(ngayCongRecord.ngayCongDieuChinh)
+          : Number(ngayCongRecord.soCongThucTe) + Number(ngayCongRecord.soNgayNghiPhep))
+        : (soCongThucTe + soNgayNghiPhep) || ngayCongLyThuyet;
       
       // Gắn thông tin sản lượng nếu có
       const sanLuong: SanLuongNhanVien = {};
@@ -225,6 +250,19 @@ export class TinhLuongService {
         chucVu: nv.chucVu,
         phongBan: nv.phongBan.tenPhongBan,
         ngayCongThucTe,
+        ngayCong: {
+          id: ngayCongRecord?.id || 0,
+          bangLuongId,
+          nhanVienId: nv.id,
+          ngayCongLyThuyet,
+          soCongThucTe: ngayCongRecord ? Number(ngayCongRecord.soCongThucTe) : soCongThucTe,
+          soNgayNghiPhep: ngayCongRecord ? Number(ngayCongRecord.soNgayNghiPhep) : soNgayNghiPhep,
+          soNgayNghiKhongPhep: ngayCongRecord ? Number(ngayCongRecord.soNgayNghiKhongPhep) : soNgayNghiKhongPhep,
+          ngayCongDieuChinh: ngayCongRecord?.ngayCongDieuChinh !== null && ngayCongRecord?.ngayCongDieuChinh !== undefined
+            ? Number(ngayCongRecord.ngayCongDieuChinh)
+            : null,
+          ghiChu: ngayCongRecord?.ghiChu ?? null,
+        },
         sanLuong: Object.keys(sanLuong).length > 0 ? sanLuong : undefined,
         cacKhoanLuong: [],
         tongThuNhap: 0,

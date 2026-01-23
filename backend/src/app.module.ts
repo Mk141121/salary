@@ -39,6 +39,11 @@ import { TimesheetModule } from './modules/timesheet/timesheet.module';
 import { PayrollSyncModule } from './modules/payroll-sync/payroll-sync.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ApprovalDashboardModule } from './modules/approval-dashboard/approval-dashboard.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { SchedulingModule } from './modules/scheduling/scheduling.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -107,6 +112,17 @@ import { HealthController } from './health.controller';
     ReportsModule,
     // Sprint 13: Approval Dashboard & Auto-Escalation
     ApprovalDashboardModule,
+    // Upload Module - CCCD, Hợp đồng, etc.
+    UploadModule,
+    // Sprint 14: Chatbot RAG - Hỗ trợ nhân viên
+    ChatbotModule,
+    // Phase 2: Scheduling - Xếp Ca (PRD-01)
+    SchedulingModule,
+    // Serve static files (uploads)
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
 
   ],
   controllers: [HealthController],

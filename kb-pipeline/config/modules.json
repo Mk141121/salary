@@ -1,0 +1,177 @@
+{
+  "modules": [
+    {
+      "id": "PAYROLL",
+      "name": "Bảng Lương",
+      "description": "Quản lý tính lương, kỳ lương, snapshot",
+      "keywords": ["bảng lương", "tính lương", "kỳ lương", "snapshot", "chốt", "khoá", "payroll"],
+      "routes": ["/bang-luong", "/chi-tiet-bang-luong", "/snapshot"],
+      "frontendPages": [
+        "DanhSachBangLuong.tsx",
+        "ChiTietBangLuong.tsx",
+        "PayrollSync.tsx"
+      ],
+      "backendModules": ["bang-luong", "snapshot"],
+      "entities": ["BangLuong", "SnapshotBangLuong", "ChiTietLuong"]
+    },
+    {
+      "id": "RULE_ENGINE",
+      "name": "Quy Chế Lương",
+      "description": "Rule engine tính lương, công thức, điều kiện",
+      "keywords": ["quy chế", "rule", "công thức", "biểu thức", "rule trace", "AI gợi ý"],
+      "routes": ["/quy-che", "/chi-tiet-quy-che", "/rule-trace"],
+      "frontendPages": [
+        "QuanLyQuyChe.tsx",
+        "ChiTietQuyChe.tsx",
+        "XemRuleTrace.tsx"
+      ],
+      "backendModules": ["quy-che", "rule-engine"],
+      "entities": ["QuyChe", "QuyCheRule", "RuleTrace"]
+    },
+    {
+      "id": "EMPLOYEES",
+      "name": "Nhân Viên",
+      "description": "Quản lý thông tin nhân viên, hợp đồng",
+      "keywords": ["nhân viên", "hồ sơ", "hợp đồng", "phòng ban", "chức vụ"],
+      "routes": ["/nhan-vien", "/chi-tiet-nhan-vien", "/phong-ban"],
+      "frontendPages": [
+        "QuanLyNhanVien.tsx",
+        "ChiTietNhanVien.tsx",
+        "QuanLyPhongBan.tsx",
+        "ImportExportNhanVien.tsx"
+      ],
+      "backendModules": ["nhan-vien", "phong-ban", "hop-dong"],
+      "entities": ["NhanVien", "PhongBan", "ChucVu", "NhanVienHopDong"]
+    },
+    {
+      "id": "ATTENDANCE",
+      "name": "Chấm Công",
+      "description": "Quản lý chấm công, ngày công, vắng mặt",
+      "keywords": ["chấm công", "ngày công", "công chuẩn", "vắng mặt", "GPS", "geofence"],
+      "routes": ["/cham-cong", "/bang-cong", "/gps-logs"],
+      "frontendPages": [
+        "QuanLyChamCong.tsx",
+        "BangCongThang.tsx",
+        "GPSLogs.tsx",
+        "CauHinhGeofence.tsx"
+      ],
+      "backendModules": ["cham-cong", "gps"],
+      "entities": ["ChamCong", "BangCongThang", "GPSLog"]
+    },
+    {
+      "id": "SCHEDULING",
+      "name": "Xếp Ca",
+      "description": "Quản lý ca làm việc, lịch phân ca",
+      "keywords": ["ca làm việc", "lịch ca", "phân ca", "xếp ca"],
+      "routes": ["/ca-lam-viec", "/lich-phan-ca"],
+      "frontendPages": [
+        "DanhMucCaLamViec.tsx",
+        "LichPhanCa.tsx"
+      ],
+      "backendModules": ["ca-lam-viec", "lich-phan-ca"],
+      "entities": ["CaLamViec", "LichPhanCa"]
+    },
+    {
+      "id": "REQUESTS",
+      "name": "Yêu Cầu & Nghỉ Phép",
+      "description": "Đơn nghỉ phép, yêu cầu, phê duyệt",
+      "keywords": ["nghỉ phép", "đơn nghỉ", "yêu cầu", "phê duyệt", "duyệt đơn"],
+      "routes": ["/don-nghi", "/duyet-nghi", "/yeu-cau"],
+      "frontendPages": [
+        "DonNghiCuaToi.tsx",
+        "DonYeuCauCuaToi.tsx",
+        "DuyetNghiPhep.tsx",
+        "DuyetYeuCau.tsx",
+        "LichNghiPhep.tsx"
+      ],
+      "backendModules": ["don-nghi", "yeu-cau"],
+      "entities": ["DonNghi", "YeuCau", "LoaiNghi"]
+    },
+    {
+      "id": "KPI",
+      "name": "KPI & Đánh Giá",
+      "description": "Quản lý KPI, kỳ đánh giá, thưởng KPI",
+      "keywords": ["KPI", "đánh giá", "thưởng KPI", "kỳ đánh giá", "mục tiêu"],
+      "routes": ["/kpi", "/ky-danh-gia", "/cau-hinh-thuong-kpi"],
+      "frontendPages": [
+        "QuanLyKPI.tsx",
+        "KyDanhGiaKPI.tsx",
+        "CauHinhThuongKPI.tsx"
+      ],
+      "backendModules": ["kpi"],
+      "entities": ["KPI", "KyDanhGiaKPI", "KetQuaKPI"]
+    },
+    {
+      "id": "IMPORT",
+      "name": "Import Dữ Liệu",
+      "description": "Import Excel, sản lượng, chia hàng, giao hàng",
+      "keywords": ["import", "excel", "sản lượng", "chia hàng", "giao hàng", "upload"],
+      "routes": ["/import", "/import-chia-hang", "/import-giao-hang", "/lich-su-import"],
+      "frontendPages": [
+        "ImportExcel.tsx",
+        "ImportChiaHang.tsx",
+        "ImportGiaoHang.tsx",
+        "LichSuImport.tsx"
+      ],
+      "backendModules": ["import"],
+      "entities": ["LichSuImport", "SanLuongChiaHang", "GiaoHang"]
+    },
+    {
+      "id": "TAX_BHXH",
+      "name": "BHXH & Thuế",
+      "description": "Bảo hiểm xã hội, y tế, thất nghiệp, thuế TNCN",
+      "keywords": ["BHXH", "BHYT", "BHTN", "thuế", "TNCN", "bảo hiểm"],
+      "routes": ["/bhxh", "/thue"],
+      "frontendPages": [],
+      "backendModules": ["bhxh", "thue"],
+      "entities": ["BHXH", "ThueTNCN"]
+    },
+    {
+      "id": "ADVANCE",
+      "name": "Ứng Lương",
+      "description": "Quản lý ứng lương, điều kiện ứng",
+      "keywords": ["ứng lương", "tạm ứng", "điều kiện ứng"],
+      "routes": ["/ung-luong", "/bang-ung-luong"],
+      "frontendPages": [
+        "DanhSachBangUngLuong.tsx",
+        "ChiTietBangUngLuong.tsx",
+        "CauHinhCotUngLuong.tsx"
+      ],
+      "backendModules": ["ung-luong"],
+      "entities": ["BangUngLuong", "ChiTietUngLuong"]
+    },
+    {
+      "id": "REPORTS",
+      "name": "Báo Cáo",
+      "description": "Các loại báo cáo, thống kê",
+      "keywords": ["báo cáo", "thống kê", "report", "export"],
+      "routes": ["/bao-cao", "/thong-ke"],
+      "frontendPages": ["reports/"],
+      "backendModules": ["reports"],
+      "entities": []
+    },
+    {
+      "id": "SETTINGS",
+      "name": "Cài Đặt Hệ Thống",
+      "description": "Cấu hình hệ thống, người dùng, phân quyền",
+      "keywords": ["cài đặt", "cấu hình", "người dùng", "phân quyền", "vai trò", "RBAC"],
+      "routes": ["/cai-dat", "/nguoi-dung", "/phan-quyen"],
+      "frontendPages": [
+        "CaiDatHeThong.tsx",
+        "QuanLyNguoiDung.tsx"
+      ],
+      "backendModules": ["auth", "user", "role"],
+      "entities": ["NguoiDung", "VaiTro", "Quyen"]
+    },
+    {
+      "id": "AUDIT",
+      "name": "Audit Log",
+      "description": "Ghi lịch sử thao tác, audit trail",
+      "keywords": ["audit", "log", "lịch sử", "thao tác", "tracking"],
+      "routes": ["/audit-log"],
+      "frontendPages": ["AuditLog.tsx"],
+      "backendModules": ["audit"],
+      "entities": ["AuditLog"]
+    }
+  ]
+}

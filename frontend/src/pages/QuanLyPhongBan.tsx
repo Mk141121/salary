@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
-  Building2, Plus, Edit2, Trash2, Search, Users, Clock, 
+  Building2, Plus, Edit2, Trash2, Search, Users, Clock, Calendar,
   ChevronRight, ChevronDown, FolderTree, Layers, GitBranch
 } from 'lucide-react'
 import { phongBanApi, PhongBan, DonViCon } from '../services/api'
@@ -19,6 +19,11 @@ const LOAI_DON_VI_CON = [
   { value: 'TO', label: 'Tổ' },
   { value: 'NHOM', label: 'Nhóm' },
   { value: 'CA', label: 'Ca' },
+]
+
+const QUY_TAC_NGAY_CONG = [
+  { value: 'SAT_HALF_SUN_OFF', label: 'Thứ 7 nửa ngày, Chủ nhật nghỉ' },
+  { value: 'FULL', label: 'Làm cả tháng (không nghỉ T7/CN)' },
 ]
 
 // Component hiển thị node trong cây
@@ -175,6 +180,8 @@ export default function QuanLyPhongBan() {
     gioVaoChuan: '08:00',
     gioRaChuan: '17:00',
     phutChoPhepTre: 5,
+    quyTacNgayCong: 'SAT_HALF_SUN_OFF',
+    soNgayCongThang: null as number | null,
   })
 
   const [donViConForm, setDonViConForm] = useState({
@@ -290,6 +297,8 @@ export default function QuanLyPhongBan() {
       gioVaoChuan: '08:00',
       gioRaChuan: '17:00',
       phutChoPhepTre: 5,
+      quyTacNgayCong: 'SAT_HALF_SUN_OFF',
+      soNgayCongThang: null,
     })
     setShowModal(true)
   }
@@ -305,6 +314,8 @@ export default function QuanLyPhongBan() {
       gioVaoChuan: pb.gioVaoChuan || '08:00',
       gioRaChuan: pb.gioRaChuan || '17:00',
       phutChoPhepTre: pb.phutChoPhepTre ?? 5,
+      quyTacNgayCong: pb.quyTacNgayCong || 'SAT_HALF_SUN_OFF',
+      soNgayCongThang: pb.soNgayCongThang ?? null,
     })
     setShowModal(true)
   }
@@ -619,6 +630,53 @@ export default function QuanLyPhongBan() {
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">phút</span>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cấu hình ngày công */}
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-medium text-gray-900">Ngày làm việc</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quy tắc ngày công</label>
+                    <select
+                      value={formData.quyTacNgayCong}
+                      onChange={(e) => setFormData({ ...formData, quyTacNgayCong: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      {QUY_TAC_NGAY_CONG.map((rule) => (
+                        <option key={rule.value} value={rule.value}>
+                          {rule.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Số ngày công cố định</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={formData.soNgayCongThang ?? ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            soNgayCongThang: e.target.value === '' ? null : Number(e.target.value),
+                          })
+                        }
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 pr-12"
+                        placeholder="VD: 26"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">ngày</span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-500 flex items-center col-span-2">
+                    Nếu nhập số ngày cố định, hệ thống sẽ ưu tiên số này (kể cả làm Chủ nhật).
                   </div>
                 </div>
               </div>

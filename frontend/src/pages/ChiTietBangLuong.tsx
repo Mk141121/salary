@@ -50,13 +50,6 @@ export default function ChiTietBangLuong() {
     enabled: !!id,
   })
 
-  // Lấy dữ liệu ngày công
-  const { data: danhSachNgayCong } = useQuery({
-    queryKey: ['ngay-cong', id],
-    queryFn: () => ngayCongApi.layTatCa(Number(id)),
-    enabled: !!id,
-  })
-
   const { data: lichSu } = useQuery({
     queryKey: ['bang-luong-lich-su', id],
     queryFn: () => bangLuongApi.layLichSu(Number(id)),
@@ -117,7 +110,6 @@ export default function ChiTietBangLuong() {
     mutationFn: ({ nhanVienId, ngayCongMoi, ghiChu }: { nhanVienId: number; ngayCongMoi: number; ghiChu?: string }) =>
       ngayCongApi.dieuChinh(Number(id), nhanVienId, { ngayCongMoi, ghiChu }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ngay-cong', id] })
       queryClient.invalidateQueries({ queryKey: ['bang-luong', id] })
       toast.success('Cập nhật ngày công thành công!')
       setEditingNgayCong(null)
@@ -141,34 +133,31 @@ export default function ChiTietBangLuong() {
 
   // Handler cho modal ngày công
   const handleOpenNgayCongModal = (nhanVienId: number) => {
-    const ngayCong = danhSachNgayCong?.find((nc) => nc.nhanVienId === nhanVienId)
-    if (ngayCong) {
-      setEditingNgayCong(ngayCong)
-    } else {
-      // Tạo object tạm từ dữ liệu bảng lương để cho phép điều chỉnh
-      const nhanVien = bangLuong?.danhSachNhanVien.find((nv) => nv.nhanVienId === nhanVienId)
-      if (nhanVien && bangLuong) {
-        const tempNgayCong: NgayCongBangLuong = {
-          id: 0,
-          bangLuongId: bangLuong.id,
-          nhanVienId: nhanVienId,
-          ngayCongLyThuyet: bangLuong.ngayCongLyThuyet,
-          soCongThucTe: nhanVien.ngayCongThucTe,
-          soNgayNghiPhep: 0,
-          soNgayNghiKhongPhep: 0,
-          ngayCongDieuChinh: null,
-          ghiChu: null,
-          nhanVien: {
-            id: nhanVienId,
-            maNhanVien: nhanVien.maNhanVien,
-            hoTen: nhanVien.hoTen,
-          },
-        }
-        setEditingNgayCong(tempNgayCong)
-      } else {
-        toast.error('Không tìm thấy thông tin nhân viên')
-      }
+    const nhanVien = bangLuong?.danhSachNhanVien.find((nv) => nv.nhanVienId === nhanVienId)
+    if (!nhanVien || !bangLuong) {
+      toast.error('Không tìm thấy thông tin nhân viên')
+      return
     }
+
+    const ngayCongNguon = nhanVien.ngayCong
+    const tempNgayCong: NgayCongBangLuong = {
+      id: ngayCongNguon?.id || 0,
+      bangLuongId: bangLuong.id,
+      nhanVienId: nhanVienId,
+      ngayCongLyThuyet: bangLuong.ngayCongLyThuyet,
+      soCongThucTe: ngayCongNguon?.soCongThucTe ?? nhanVien.ngayCongThucTe,
+      soNgayNghiPhep: ngayCongNguon?.soNgayNghiPhep ?? 0,
+      soNgayNghiKhongPhep: ngayCongNguon?.soNgayNghiKhongPhep ?? 0,
+      ngayCongDieuChinh: ngayCongNguon?.ngayCongDieuChinh ?? null,
+      ghiChu: ngayCongNguon?.ghiChu ?? null,
+      nhanVien: {
+        id: nhanVienId,
+        maNhanVien: nhanVien.maNhanVien,
+        hoTen: nhanVien.hoTen,
+      },
+    }
+
+    setEditingNgayCong(tempNgayCong)
   }
 
   const handleSaveNgayCong = async (ngayCongMoi: number, ghiChu?: string) => {
@@ -496,7 +485,6 @@ export default function ChiTietBangLuong() {
                   if (col.id === 'hoTen') return <th key={col.id} className="sticky left-[120px] z-20 bg-gray-200 min-w-[180px]">Họ tên</th>
                   if (col.id === 'chucVu') return <th key={col.id} className="min-w-[120px]">{col.label}</th>
                   if (col.id === 'ngayCong') return <th key={col.id} className="min-w-[80px] text-center bg-orange-100">{col.label}</th>
-                  if (col.id === 'ncDieuChinh') return <th key={col.id} className="min-w-[100px] text-center bg-orange-100">{col.label}</th>
                   
                   // Cột sản lượng chia hàng
                   if (col.id === 'spDat' && bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'CHIA_HANG' || bangLuong.loaiSanLuong === 'CA_HAI')) {
@@ -532,7 +520,7 @@ export default function ChiTietBangLuong() {
             <tbody>
               {bangLuong.danhSachNhanVien.map((nv, index) => {
                 const totals = calculateTotals(nv)
-                const ngayCong = danhSachNgayCong?.find((nc) => nc.nhanVienId === nv.nhanVienId)
+                const ngayCong = nv.ngayCong
                 const ngayCongThucTe = ngayCong?.ngayCongDieuChinh
                   ? Number(ngayCong.ngayCongDieuChinh)
                   : ngayCong
@@ -582,23 +570,6 @@ export default function ChiTietBangLuong() {
                         )
                       }
                       
-                      if (col.id === 'ncDieuChinh') {
-                        return (
-                          <td key={col.id}
-                            className={`text-center bg-orange-50 ${isEditable ? 'cursor-pointer hover:bg-orange-100' : ''}`}
-                            onClick={() => isEditable && handleOpenNgayCongModal(nv.nhanVienId)}
-                            title={isEditable ? 'Click để điều chỉnh ngày công' : ''}
-                          >
-                            {ngayCong?.ngayCongDieuChinh ? (
-                              <span className="font-medium text-orange-600">{Number(ngayCong.ngayCongDieuChinh).toFixed(1)}</span>
-                            ) : (
-                              <span className={isEditable ? 'text-blue-500 hover:underline' : 'text-gray-400'}>
-                                {isEditable ? 'Nhập' : '-'}
-                              </span>
-                            )}
-                          </td>
-                        )
-                      }
                       
                       // Cột sản lượng chia hàng
                       if (col.id === 'spDat' && bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'CHIA_HANG' || bangLuong.loaiSanLuong === 'CA_HAI')) {
@@ -686,7 +657,6 @@ export default function ChiTietBangLuong() {
                   
                   // Cột ngày công - để trống
                   if (col.id === 'ngayCong') return <td key={col.id} className="bg-orange-100"></td>
-                  if (col.id === 'ncDieuChinh') return <td key={col.id} className="bg-orange-100"></td>
                   
                   // Cột sản lượng chia hàng
                   if (col.id === 'spDat' && bangLuong.coSanLuong && (bangLuong.loaiSanLuong === 'CHIA_HANG' || bangLuong.loaiSanLuong === 'CA_HAI')) {

@@ -5,6 +5,7 @@ import DanhSachBangLuong from './pages/DanhSachBangLuong'
 import ChiTietBangLuong from './pages/ChiTietBangLuong'
 import QuanLyNhanVien from './pages/QuanLyNhanVien'
 import ChiTietNhanVien from './pages/ChiTietNhanVien'
+import ImportExportNhanVien from './pages/ImportExportNhanVien'
 import QuanLyKhoanLuong from './pages/QuanLyKhoanLuong'
 import ImportExcel from './pages/ImportExcel'
 import QuanLyChamCong from './pages/QuanLyChamCong'
@@ -82,6 +83,7 @@ function App() {
         <Route path="bang-luong" element={<DanhSachBangLuong />} />
         <Route path="bang-luong/:id" element={<ChiTietBangLuong />} />
         <Route path="nhan-vien" element={<QuanLyNhanVien />} />
+        <Route path="nhan-vien/import-export" element={<ImportExportNhanVien />} />
         <Route path="nhan-vien/:id" element={<ChiTietNhanVien />} />
         <Route path="nhom-nhan-vien" element={<QuanLyNhomNhanVien />} />
         <Route path="phong-ban" element={<QuanLyPhongBan />} />

@@ -71,34 +71,9 @@ export class YeuCauService {
 
   // =============== ĐƠN YÊU CẦU ===============
 
-  async layDanhSachDon(filter: LocDonYeuCauDto) {
-    const {
-      nhanVienId,
-      phongBanId,
-      loaiYeuCauId,
-      trangThai,
-      tuNgay,
-      denNgay,
-      nguoiDuyet1Id,
-      nguoiDuyet2Id,
-      page = 1,
-      limit = 20,
-    } = filter;
-
-    const where: any = {};
-
-    if (nhanVienId) where.nhanVienId = nhanVienId;
-    if (phongBanId) where.phongBanId = phongBanId;
-    if (loaiYeuCauId) where.loaiYeuCauId = loaiYeuCauId;
-    if (trangThai) where.trangThai = trangThai as TrangThaiDonYeuCau;
-    if (nguoiDuyet1Id) where.nguoiDuyet1Id = nguoiDuyet1Id;
-    if (nguoiDuyet2Id) where.nguoiDuyet2Id = nguoiDuyet2Id;
-
-    if (tuNgay || denNgay) {
-      where.ngayYeuCau = {};
-      if (tuNgay) where.ngayYeuCau.gte = new Date(tuNgay);
-      if (denNgay) where.ngayYeuCau.lte = new Date(denNgay);
-    }
+  async layDanhSachDon(filter: LocDonYeuCauDto, phongBanIds?: number[]) {
+    const { page = 1, limit = 20 } = filter;
+    const where = this.buildDonWhere(filter, phongBanIds);
 
     const [data, total] = await Promise.all([
       this.prisma.donYeuCau.findMany({
@@ -136,6 +111,86 @@ export class YeuCauService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  private buildDonWhere(filter: LocDonYeuCauDto, phongBanIds?: number[]) {
+    const {
+      nhanVienId,
+      phongBanId,
+      loaiYeuCauId,
+      trangThai,
+      tuNgay,
+      denNgay,
+      nguoiDuyet1Id,
+      nguoiDuyet2Id,
+    } = filter;
+
+    const where: any = {};
+
+    if (nhanVienId) where.nhanVienId = nhanVienId;
+    if (phongBanIds && phongBanIds.length > 0) {
+      where.phongBanId = { in: phongBanIds };
+    } else if (phongBanId) {
+      where.phongBanId = phongBanId;
+    }
+    if (loaiYeuCauId) where.loaiYeuCauId = loaiYeuCauId;
+    if (trangThai) where.trangThai = trangThai as TrangThaiDonYeuCau;
+    if (nguoiDuyet1Id) where.nguoiDuyet1Id = nguoiDuyet1Id;
+    if (nguoiDuyet2Id) where.nguoiDuyet2Id = nguoiDuyet2Id;
+
+    if (tuNgay || denNgay) {
+      where.ngayYeuCau = {};
+      if (tuNgay) where.ngayYeuCau.gte = new Date(tuNgay);
+      if (denNgay) where.ngayYeuCau.lte = new Date(denNgay);
+    }
+
+    return where;
+  }
+
+  private async layPhongBanScope(nguoiDuyetId: number) {
+    const nguoiDung = await this.prisma.nguoiDung.findUnique({
+      where: { id: nguoiDuyetId },
+      select: {
+        nhanVienId: true,
+        vaiTros: {
+          select: {
+            phongBanId: true,
+            vaiTro: { select: { maVaiTro: true } },
+          },
+        },
+      },
+    });
+
+    if (!nguoiDung) {
+      return { allowAll: false, phongBanIds: [] as number[] };
+    }
+
+    const vaiTros = nguoiDung.vaiTros.map((vt) => vt.vaiTro.maVaiTro);
+    const hasGlobalScope = nguoiDung.vaiTros.some((vt) => vt.phongBanId === null);
+
+    if (hasGlobalScope || vaiTros.includes('ADMIN')) {
+      return { allowAll: true, phongBanIds: [] as number[] };
+    }
+
+    const scopedPhongBanIds = nguoiDung.vaiTros
+      .map((vt) => vt.phongBanId)
+      .filter((id): id is number => typeof id === 'number');
+
+    if (scopedPhongBanIds.length > 0) {
+      return { allowAll: false, phongBanIds: Array.from(new Set(scopedPhongBanIds)) };
+    }
+
+    if (nguoiDung.nhanVienId) {
+      const nhanVien = await this.prisma.nhanVien.findUnique({
+        where: { id: nguoiDung.nhanVienId },
+        select: { phongBanId: true },
+      });
+      if (nhanVien?.phongBanId) {
+        return { allowAll: false, phongBanIds: [nhanVien.phongBanId] };
+      }
+    }
+
+    return { allowAll: false, phongBanIds: [] as number[] };
   }
 
   /**
@@ -596,19 +651,25 @@ export class YeuCauService {
   // =============== INBOX (Danh sách chờ duyệt) ===============
 
   async layInboxDuyetCap1(nguoiDuyetId: number, filter: LocDonYeuCauDto) {
-    // TODO: Implement logic tìm đơn thuộc team của người duyệt
-    // Tạm thời lấy tất cả đơn CHO_DUYET_1
-    return this.layDanhSachDon({
-      ...filter,
-      trangThai: 'CHO_DUYET_1',
-    });
+    const scope = await this.layPhongBanScope(nguoiDuyetId);
+    return this.layDanhSachDon(
+      {
+        ...filter,
+        trangThai: 'CHO_DUYET_1',
+      },
+      scope.allowAll ? undefined : scope.phongBanIds,
+    );
   }
 
   async layInboxDuyetCap2(nguoiDuyetId: number, filter: LocDonYeuCauDto) {
-    return this.layDanhSachDon({
-      ...filter,
-      trangThai: 'CHO_DUYET_2',
-    });
+    const scope = await this.layPhongBanScope(nguoiDuyetId);
+    return this.layDanhSachDon(
+      {
+        ...filter,
+        trangThai: 'CHO_DUYET_2',
+      },
+      scope.allowAll ? undefined : scope.phongBanIds,
+    );
   }
 
   // Duyệt hàng loạt

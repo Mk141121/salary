@@ -1,0 +1,41 @@
+{
+  "name": "kb-pipeline",
+  "version": "1.0.0",
+  "description": "Knowledge Base RAG Pipeline for HRM-Lite Payroll System",
+  "type": "module",
+  "scripts": {
+    "kb:build": "npx tsx scripts/build.ts",
+    "kb:scan": "npx tsx scripts/01-scan-sources.ts",
+    "kb:generate": "npx tsx scripts/02-generate-docs.ts",
+    "kb:convert": "npx tsx scripts/03-convert-html.ts",
+    "kb:normalize": "npx tsx scripts/04-normalize.ts",
+    "kb:chunk": "npx tsx scripts/05-chunk.ts",
+    "kb:tag": "npx tsx scripts/06-tag.ts",
+    "kb:glossary": "npx tsx scripts/07-glossary.ts",
+    "kb:faq": "npx tsx scripts/08-faq.ts",
+    "kb:index": "npx tsx scripts/09-index.ts",
+    "kb:embed": "npx tsx scripts/10-embed.ts",
+    "kb:preview": "npx tsx scripts/preview.ts",
+    "kb:watch": "npx tsx watch scripts/build.ts"
+  },
+  "dependencies": {
+    "turndown": "^7.2.0",
+    "@joplin/turndown-plugin-gfm": "^1.0.56",
+    "glob": "^10.3.10",
+    "gray-matter": "^4.0.3",
+    "marked": "^11.1.1",
+    "js-tiktoken": "^1.0.8",
+    "dotenv": "^16.3.1",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "commander": "^12.0.0",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.10.6",
+    "@types/turndown": "^5.0.4",
+    "@types/crypto-js": "^4.2.1"
+  }
+}

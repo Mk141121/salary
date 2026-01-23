@@ -1,0 +1,97 @@
+# ==============================================
+# HRM LITE - Production Docker Compose
+# Deployment ready configuration
+# ==============================================
+
+version: '3.8'
+
+services:
+  # ============ DATABASE ============
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: hrm-lite-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hrm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-hrm_lite}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hrm_admin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hrm-network
+    # NO ports exposed in production - access through backend only
+
+  # ============ BACKEND ============
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hrm-lite-backend-prod
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hrm_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-hrm_lite}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 3001
+      # Optional Redis (for production caching)
+      REDIS_URL: ${REDIS_URL:-}
+      # OpenAI for future AI features
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    networks:
+      - hrm-network
+    # NO ports exposed - access through nginx only
+
+  # ============ FRONTEND (NGINX) ============
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    container_name: hrm-lite-frontend-prod
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "${PUBLIC_PORT:-80}:80"
+      - "${PUBLIC_SSL_PORT:-443}:443"
+    volumes:
+      # SSL certificates (required for HTTPS)
+      - ./certs:/etc/nginx/certs:ro
+      # Custom nginx config if needed
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - hrm-network
+
+  # ============ REDIS (Optional) ============
+  redis:
+    image: redis:7-alpine
+    container_name: hrm-lite-redis-prod
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    networks:
+      - hrm-network
+    profiles:
+      - with-redis
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  hrm-network:
+    driver: bridge

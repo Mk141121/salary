@@ -491,6 +491,12 @@ export class QuyCheRuleService {
 
     // Lấy dữ liệu nhân viên nếu có
     let duLieu: Record<string, number> = { ...dto.duLieuGiaLap };
+    let dieuKienContext: {
+      nhanVienId?: number;
+      phongBanId?: number;
+      capTrachNhiem?: number;
+      vaiTros?: string[];
+    } = {};
 
     if (dto.nhanVienId) {
       const nhanVien = await this.prisma.nhanVien.findUnique({
@@ -513,6 +519,24 @@ export class QuyCheRuleService {
           HE_SO_TRACH_NHIEM: Number(nhanVien.nhanVienTrachNhiems[0]?.heSoTrachNhiem || 1),
           ...dto.duLieuGiaLap, // Override với dữ liệu giả lập
         };
+
+        const nguoiDung = await this.prisma.nguoiDung.findUnique({
+          where: { nhanVienId: nhanVien.id },
+          select: {
+            vaiTros: {
+              select: {
+                vaiTro: { select: { maVaiTro: true } },
+              },
+            },
+          },
+        });
+
+        dieuKienContext = {
+          nhanVienId: nhanVien.id,
+          phongBanId: nhanVien.phongBanId,
+          capTrachNhiem: nhanVien.nhanVienTrachNhiems[0]?.capTrachNhiem || 0,
+          vaiTros: nguoiDung?.vaiTros.map((vt) => vt.vaiTro.maVaiTro) || [],
+        };
       }
     }
 
@@ -526,8 +550,16 @@ export class QuyCheRuleService {
         const congThuc = JSON.parse(rule.congThucJson);
         const dieuKien = rule.dieuKienJson ? JSON.parse(rule.dieuKienJson) : null;
 
-        // Kiểm tra điều kiện (simplified cho preview)
-        // TODO: Implement đầy đủ logic kiểm tra điều kiện
+        // Kiểm tra điều kiện
+        if (!this.kiemTraDieuKienPreview(dieuKien, dieuKienContext)) {
+          trace.push({
+            ruleName: rule.tenRule,
+            input: duLieu,
+            output: 0,
+            message: 'Không thỏa điều kiện áp dụng',
+          });
+          continue;
+        }
 
         // Tính toán
         const ketQua = await this.tinhToanRule(rule.loaiRule, congThuc, duLieu);
@@ -567,6 +599,44 @@ export class QuyCheRuleService {
       chiTiet,
       trace,
     };
+  }
+
+  private kiemTraDieuKienPreview(
+    dieuKien: { apDungCho?: { vaiTro?: string[]; capTrachNhiem?: number[]; nhanVienIds?: number[]; phongBanIds?: number[] } } | null,
+    context: { nhanVienId?: number; phongBanId?: number; capTrachNhiem?: number; vaiTros?: string[] },
+  ): boolean {
+    if (!dieuKien || !dieuKien.apDungCho) {
+      return true;
+    }
+
+    const { apDungCho } = dieuKien;
+
+    if (apDungCho.vaiTro && apDungCho.vaiTro.length > 0) {
+      const hasRole = (context.vaiTros || []).some((role) => apDungCho.vaiTro?.includes(role));
+      if (!hasRole) {
+        return false;
+      }
+    }
+
+    if (apDungCho.capTrachNhiem && apDungCho.capTrachNhiem.length > 0) {
+      if (!apDungCho.capTrachNhiem.includes(context.capTrachNhiem || 0)) {
+        return false;
+      }
+    }
+
+    if (apDungCho.nhanVienIds && apDungCho.nhanVienIds.length > 0) {
+      if (!context.nhanVienId || !apDungCho.nhanVienIds.includes(context.nhanVienId)) {
+        return false;
+      }
+    }
+
+    if (apDungCho.phongBanIds && apDungCho.phongBanIds.length > 0) {
+      if (!context.phongBanId || !apDungCho.phongBanIds.includes(context.phongBanId)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   // ============================================

@@ -1,0 +1,128 @@
+{
+  "taxonomy": {
+    "module": {
+      "description": "Module/tính năng trong hệ thống",
+      "tags": [
+        "payroll",
+        "rule_engine",
+        "employees",
+        "attendance",
+        "scheduling",
+        "requests",
+        "kpi",
+        "import",
+        "tax_bhxh",
+        "advance",
+        "reports",
+        "settings",
+        "audit"
+      ]
+    },
+    "workflow": {
+      "description": "Quy trình nghiệp vụ",
+      "tags": [
+        "setup",
+        "month_end",
+        "snapshot",
+        "lock",
+        "approve",
+        "adjustment",
+        "export_bank",
+        "import_data",
+        "calculation"
+      ]
+    },
+    "persona": {
+      "description": "Đối tượng sử dụng",
+      "tags": [
+        "admin",
+        "hr",
+        "ke_toan",
+        "manager",
+        "nhan_vien",
+        "truong_phong"
+      ]
+    },
+    "action": {
+      "description": "Hành động người dùng",
+      "tags": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "import",
+        "export",
+        "approve",
+        "reject",
+        "lock",
+        "unlock",
+        "calculate",
+        "snapshot"
+      ]
+    },
+    "content_type": {
+      "description": "Loại nội dung",
+      "tags": [
+        "guide",
+        "tutorial",
+        "reference",
+        "faq",
+        "glossary",
+        "troubleshooting",
+        "api"
+      ]
+    },
+    "severity": {
+      "description": "Mức độ quan trọng (cho lỗi/cảnh báo)",
+      "tags": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ]
+    }
+  },
+  "keywordMapping": {
+    "bảng lương": ["payroll", "month_end"],
+    "tính lương": ["payroll", "calculation"],
+    "snapshot": ["payroll", "snapshot"],
+    "chốt kỳ": ["payroll", "lock"],
+    "khoá kỳ": ["payroll", "lock"],
+    "quy chế": ["rule_engine"],
+    "công thức": ["rule_engine", "calculation"],
+    "rule trace": ["rule_engine"],
+    "nhân viên": ["employees"],
+    "phòng ban": ["employees"],
+    "hợp đồng": ["employees"],
+    "chấm công": ["attendance"],
+    "ngày công": ["attendance"],
+    "GPS": ["attendance"],
+    "ca làm việc": ["scheduling"],
+    "xếp ca": ["scheduling"],
+    "nghỉ phép": ["requests", "approve"],
+    "đơn nghỉ": ["requests"],
+    "phê duyệt": ["approve"],
+    "KPI": ["kpi"],
+    "đánh giá": ["kpi"],
+    "import": ["import", "import_data"],
+    "excel": ["import", "export"],
+    "sản lượng": ["import", "payroll"],
+    "chia hàng": ["import"],
+    "giao hàng": ["import"],
+    "BHXH": ["tax_bhxh"],
+    "BHYT": ["tax_bhxh"],
+    "thuế": ["tax_bhxh"],
+    "TNCN": ["tax_bhxh"],
+    "ứng lương": ["advance"],
+    "tạm ứng": ["advance"],
+    "báo cáo": ["reports"],
+    "export": ["export"],
+    "cài đặt": ["settings", "setup"],
+    "cấu hình": ["settings", "setup"],
+    "người dùng": ["settings"],
+    "phân quyền": ["settings"],
+    "RBAC": ["settings"],
+    "audit": ["audit"],
+    "lịch sử": ["audit"]
+  }
+}
