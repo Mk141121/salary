@@ -80,7 +80,13 @@ export default function PortalRequests() {
         lyDo: data.lyDo,
       };
       
+      // Tạo đơn
       const res = await api.post('/yeu-cau/don', payload);
+      const donId = res.data.id;
+      
+      // Tự động gửi duyệt sau khi tạo
+      await api.post(`/yeu-cau/don/${donId}/gui-duyet`);
+      
       return res.data;
     },
     onSuccess: () => {
