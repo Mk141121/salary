@@ -2,7 +2,7 @@
 // Sprint 5: Xem và tạo yêu cầu OT/Trễ/Sớm/Công tác
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Clock, Check, X, AlertCircle, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, Clock, Check, X, AlertCircle, ChevronRight, Trash2, Edit2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 
@@ -35,6 +35,8 @@ const LOAI_YEU_CAU = [
 
 export default function PortalRequests() {
   const [showForm, setShowForm] = useState(false);
+  const [viewingRequest, setViewingRequest] = useState<YeuCau | null>(null);
+  const [editingRequest, setEditingRequest] = useState<YeuCau | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
   const queryClient = useQueryClient();
 
@@ -44,6 +46,13 @@ export default function PortalRequests() {
     ngay: new Date().toISOString().split('T')[0],
     soNgay: 1,
     soGio: 1,
+    lyDo: '',
+  });
+
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
+    ngay: '',
+    soNgay: 1,
     lyDo: '',
   });
 
@@ -138,6 +147,22 @@ export default function PortalRequests() {
     },
   });
 
+  // Mutation cập nhật yêu cầu
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { ngayYeuCau?: string; lyDo?: string; soGio?: number } }) => {
+      const res = await api.put(`/yeu-cau/don/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Đã cập nhật yêu cầu');
+      setEditingRequest(null);
+      queryClient.invalidateQueries({ queryKey: ['employee-portal', 'yeu-cau'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Không thể cập nhật yêu cầu');
+    },
+  });
+
   const handleDelete = (id: number) => {
     if (confirm('Bạn có chắc muốn xóa yêu cầu này?')) {
       deleteMutation.mutate(id);
@@ -171,6 +196,32 @@ export default function PortalRequests() {
       return;
     }
     createMutation.mutate(formData);
+  };
+
+  const handleEdit = (yc: YeuCau) => {
+    setEditFormData({
+      ngay: yc.ngay,
+      soNgay: yc.soGio ? Math.ceil(yc.soGio / 8) : 1,
+      lyDo: yc.lyDo,
+    });
+    setEditingRequest(yc);
+  };
+
+  const handleUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRequest) return;
+    if (!editFormData.lyDo.trim()) {
+      alert('Vui lòng nhập lý do');
+      return;
+    }
+    updateMutation.mutate({
+      id: editingRequest.id,
+      data: {
+        ngayYeuCau: editFormData.ngay,
+        lyDo: editFormData.lyDo,
+        soGio: editFormData.soNgay * 8,
+      },
+    });
   };
 
   return (
@@ -224,7 +275,8 @@ export default function PortalRequests() {
             return (
               <div
                 key={yc.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+                onClick={() => setViewingRequest(yc)}
+                className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <div className="text-2xl">{getLoaiIcon(yc.loai)}</div>
@@ -255,7 +307,14 @@ export default function PortalRequests() {
                   </div>
                   {/* Nút sửa/xóa khi đang chờ duyệt */}
                   {canEdit ? (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => handleEdit(yc)}
+                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Sửa yêu cầu"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDelete(yc.id)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -442,6 +501,194 @@ export default function PortalRequests() {
               >
                 {createMutation.isPending ? 'Đang gửi...' : 'Gửi yêu cầu'}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Detail Modal */}
+      {viewingRequest && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl p-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Eye className="w-5 h-5 text-blue-500" />
+                Chi tiết yêu cầu
+              </h3>
+              <button
+                onClick={() => setViewingRequest(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">{getLoaiIcon(viewingRequest.loai)}</div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                    {viewingRequest.tenLoai || getLoaiLabel(viewingRequest.loai)}
+                  </h4>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(viewingRequest.trangThai).color}`}>
+                    {getStatusBadge(viewingRequest.trangThai).text}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Ngày yêu cầu:</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {new Date(viewingRequest.ngay).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+                {viewingRequest.soGio && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Số ngày:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {Math.round((viewingRequest.soGio / 8) * 10) / 10} ngày
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Ngày tạo:</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {new Date(viewingRequest.ngayTao).toLocaleString('vi-VN')}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Lý do:</p>
+                <p className="text-gray-900 dark:text-white">{viewingRequest.lyDo}</p>
+              </div>
+
+              {viewingRequest.trangThai === 'TU_CHOI' && viewingRequest.lyDoTuChoi && (
+                <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-500 font-medium mb-1">Lý do từ chối:</p>
+                  <p className="text-red-600 dark:text-red-400">{viewingRequest.lyDoTuChoi}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                {['CHO_DUYET', 'TU_CHOI'].includes(viewingRequest.trangThai) && (
+                  <>
+                    <button
+                      onClick={() => {
+                        handleEdit(viewingRequest);
+                        setViewingRequest(null);
+                      }}
+                      className="flex-1 py-2 bg-blue-500 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDelete(viewingRequest.id);
+                        setViewingRequest(null);
+                      }}
+                      className="py-2 px-4 bg-red-500 text-white rounded-xl font-medium"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setViewingRequest(null)}
+                  className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingRequest && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-t-3xl p-6 pb-10 animate-slide-up">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-blue-500" />
+                Sửa yêu cầu
+              </h3>
+              <button
+                onClick={() => setEditingRequest(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                <div className="text-2xl">{getLoaiIcon(editingRequest.loai)}</div>
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {editingRequest.tenLoai || getLoaiLabel(editingRequest.loai)}
+                  </p>
+                  <p className="text-xs text-gray-500">Loại yêu cầu (không thể thay đổi)</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Ngày yêu cầu
+                </label>
+                <input
+                  type="date"
+                  value={editFormData.ngay}
+                  onChange={(e) => setEditFormData({ ...editFormData, ngay: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Số ngày
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={editFormData.soNgay}
+                  onChange={(e) => setEditFormData({ ...editFormData, soNgay: Number(e.target.value) })}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Lý do
+                </label>
+                <textarea
+                  value={editFormData.lyDo}
+                  onChange={(e) => setEditFormData({ ...editFormData, lyDo: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingRequest(null)}
+                  className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateMutation.isPending}
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium disabled:opacity-50"
+                >
+                  {updateMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
