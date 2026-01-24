@@ -423,11 +423,19 @@ export default function DuyetYeuCau() {
                       {formatDate(don.ngayYeuCau)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
-                      {don.gioBatDau && don.gioKetThuc
-                        ? `${don.gioBatDau} - ${don.gioKetThuc}`
-                        : don.gioBatDau || '-'}
-                      {don.soGio && (
-                        <span className="ml-2 text-blue-600 dark:text-blue-400">({don.soGio}h)</span>
+                      {don.gioBatDau && don.gioKetThuc ? (
+                        <>
+                          {don.gioBatDau} - {don.gioKetThuc}
+                          {don.soGio && (
+                            <span className="ml-2 text-blue-600 dark:text-blue-400">({don.soGio}h)</span>
+                          )}
+                        </>
+                      ) : don.gioBatDau ? (
+                        <>{don.gioBatDau}</>  
+                      ) : don.soGio ? (
+                        <span className="text-blue-600 dark:text-blue-400">{don.soGio} giờ</span>
+                      ) : (
+                        <span className="text-gray-400">Cả ngày</span>
                       )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">

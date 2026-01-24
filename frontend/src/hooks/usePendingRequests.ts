@@ -10,7 +10,7 @@ interface PendingRequestsResponse {
 export function usePendingRequests() {
   const { user, coQuyen, coVaiTro } = useAuth();
   
-  // Chỉ fetch nếu user có quyền duyệt
+  // Kiểm tra quyền duyệt
   const canApprove = 
     coVaiTro('ADMIN') || 
     coQuyen('YEU_CAU_DUYET_CAP_1') || 
@@ -19,10 +19,15 @@ export function usePendingRequests() {
   const { data, isLoading } = useQuery({
     queryKey: ['pending-requests-count'],
     queryFn: async () => {
-      const res = await api.get<PendingRequestsResponse>('/yeu-cau/don/pending-count');
-      return res.data;
+      try {
+        const res = await api.get<PendingRequestsResponse>('/yeu-cau/don/pending-count');
+        return res.data;
+      } catch {
+        return { count: 0 };
+      }
     },
-    enabled: !!user && canApprove,
+    // Luôn fetch nếu đã đăng nhập - API sẽ trả về count cho user có quyền
+    enabled: !!user,
     refetchInterval: 30000, // Refetch mỗi 30 giây
     staleTime: 10000, // Cache 10 giây
   });
