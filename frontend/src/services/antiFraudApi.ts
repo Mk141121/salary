@@ -329,7 +329,19 @@ export const getCurrentPosition = (): Promise<{
       (error) => {
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            reject(new Error('Bạn đã từ chối quyền truy cập GPS'));
+            // Hướng dẫn cụ thể cho iOS/Android
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let message = 'Bạn đã từ chối quyền truy cập GPS. ';
+            if (isIOS) {
+              message += 'Vào Cài đặt > Safari > Vị trí > Cho phép (hoặc Cài đặt > Quyền riêng tư > Dịch vụ vị trí > Safari)';
+            } else if (isAndroid) {
+              message += 'Vào Cài đặt > Ứng dụng > Trình duyệt > Quyền > Vị trí > Cho phép';
+            } else {
+              message += 'Vui lòng bật quyền GPS trong cài đặt trình duyệt và làm mới trang.';
+            }
+            reject(new Error(message));
             break;
           case error.POSITION_UNAVAILABLE:
             reject(new Error('Không thể xác định vị trí'));

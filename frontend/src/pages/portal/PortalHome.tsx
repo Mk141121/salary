@@ -222,10 +222,20 @@ export default function PortalHome() {
           )}
         </div>
         {checkError && (
-          <p className="text-sm text-red-500 mt-3 flex items-center gap-1">
-            <AlertTriangle className="w-4 h-4" />
-            {checkError}
-          </p>
+          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <p className="text-sm text-red-600 dark:text-red-400 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{checkError}</span>
+            </p>
+            {checkError.includes('GPS') && (
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-2 text-xs text-blue-600 dark:text-blue-400 underline"
+              >
+                Làm mới trang sau khi cấp quyền
+              </button>
+            )}
+          </div>
         )}
         {lastGpsResult && (
           <div className={`text-sm mt-3 flex items-center gap-2 ${
