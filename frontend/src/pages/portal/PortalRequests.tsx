@@ -60,7 +60,27 @@ export default function PortalRequests() {
   // Mutation tạo yêu cầu
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post('/yeu-cau', data);
+      // Map loại yêu cầu text sang ID từ danh mục
+      // Tạm thời dùng mapping cứng, sau này lấy từ API /yeu-cau/loai
+      const loaiMapping: Record<string, number> = {
+        'NGHI_PHEP': 6,
+        'NGHI_KHONG_LUONG': 6,
+        'NGHI_OM': 6,
+        'NGHI_VIEC_RIENG': 6,
+        'OT': 1,
+        'TRE_GIO': 2,
+        'VE_SOM': 3,
+        'CONG_TAC': 4,
+        'WFH': 7,
+      };
+      
+      const payload = {
+        loaiYeuCauId: loaiMapping[data.loai] || 7,
+        ngayYeuCau: data.ngay,
+        lyDo: data.lyDo,
+      };
+      
+      const res = await api.post('/yeu-cau/don', payload);
       return res.data;
     },
     onSuccess: () => {
