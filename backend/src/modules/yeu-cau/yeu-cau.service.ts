@@ -213,10 +213,26 @@ export class YeuCauService {
     const where: any = { nhanVienId };
     
     if (trangThaiFilter) {
+      // Map portal filter sang database enum values
+      const mapFilterToDbValues = (filter: string): string[] => {
+        switch (filter) {
+          case 'CHO_DUYET':
+            return ['NHAP', 'CHO_DUYET_1', 'CHO_DUYET_2'];
+          case 'DA_DUYET':
+            return ['DA_DUYET'];
+          case 'TU_CHOI':
+            return ['TU_CHOI'];
+          default:
+            return [filter];
+        }
+      };
+
       if (Array.isArray(trangThaiFilter)) {
-        where.trangThai = { in: trangThaiFilter };
+        const dbValues = trangThaiFilter.flatMap(mapFilterToDbValues);
+        where.trangThai = { in: dbValues };
       } else {
-        where.trangThai = trangThaiFilter;
+        const dbValues = mapFilterToDbValues(trangThaiFilter);
+        where.trangThai = { in: dbValues };
       }
     }
 
@@ -239,6 +255,7 @@ export class YeuCauService {
       ngay: d.ngayYeuCau?.toISOString().split('T')[0],
       soGio: d.soGio ? Number(d.soGio) : null,
       lyDo: d.lyDo,
+      lyDoTuChoi: d.lyDoTuChoi, // Thêm lý do từ chối
       trangThai: this.mapTrangThaiToPortal(d.trangThai),
       ngayTao: d.ngayTao,
     }));

@@ -13,6 +13,7 @@ interface YeuCau {
   ngay: string;
   soGio: number | null;
   lyDo: string;
+  lyDoTuChoi: string | null;
   trangThai: string;
   ngayTao: string;
 }
@@ -244,6 +245,13 @@ export default function PortalRequests() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                       {yc.lyDo}
                     </p>
+                    {/* Hiển thị lý do từ chối nếu có */}
+                    {yc.trangThai === 'TU_CHOI' && yc.lyDoTuChoi && (
+                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                        <X className="w-3 h-3" />
+                        <span className="font-medium">Lý do:</span> {yc.lyDoTuChoi}
+                      </p>
+                    )}
                   </div>
                   {/* Nút sửa/xóa khi đang chờ duyệt */}
                   {canEdit ? (
