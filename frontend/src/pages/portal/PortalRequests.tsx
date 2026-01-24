@@ -61,17 +61,17 @@ export default function PortalRequests() {
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       // Map loại yêu cầu text sang ID từ danh mục
-      // Tạm thời dùng mapping cứng, sau này lấy từ API /yeu-cau/loai
+      // ID từ database danh_muc_loai_yeu_cau
       const loaiMapping: Record<string, number> = {
-        'NGHI_PHEP': 6,
-        'NGHI_KHONG_LUONG': 6,
-        'NGHI_OM': 6,
-        'NGHI_VIEC_RIENG': 6,
-        'OT': 1,
-        'TRE_GIO': 2,
-        'VE_SOM': 3,
-        'CONG_TAC': 4,
-        'WFH': 7,
+        'NGHI_PHEP': 6,          // Nghỉ phép năm
+        'NGHI_KHONG_LUONG': 11,  // Nghỉ không lương
+        'NGHI_OM': 12,           // Nghỉ ốm
+        'NGHI_VIEC_RIENG': 13,   // Nghỉ việc riêng
+        'OT': 1,                 // Làm thêm giờ
+        'TRE_GIO': 2,            // Đi sớm (đi trễ)
+        'VE_SOM': 3,             // Về muộn (về sớm)
+        'CONG_TAC': 4,           // Công tác
+        'WFH': 14,               // Làm việc từ xa
       };
       
       const payload = {
@@ -90,7 +90,9 @@ export default function PortalRequests() {
       return res.data;
     },
     onSuccess: () => {
+      // Invalidate cả danh sách yêu cầu và dashboard để cập nhật số đơn chờ duyệt
       queryClient.invalidateQueries({ queryKey: ['employee-portal', 'yeu-cau'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-portal', 'dashboard'] });
       setShowForm(false);
       setFormData({
         loai: 'NGHI_PHEP',
