@@ -8,7 +8,7 @@ interface PendingRequestsResponse {
 }
 
 export function usePendingRequests() {
-  const { nguoiDung, coQuyen, coVaiTro } = useAuth();
+  const { user, coQuyen, coVaiTro } = useAuth();
   
   // Chỉ fetch nếu user có quyền duyệt
   const canApprove = 
@@ -22,7 +22,7 @@ export function usePendingRequests() {
       const res = await api.get<PendingRequestsResponse>('/yeu-cau/don/pending-count');
       return res.data;
     },
-    enabled: !!nguoiDung && canApprove,
+    enabled: !!user && canApprove,
     refetchInterval: 30000, // Refetch mỗi 30 giây
     staleTime: 10000, // Cache 10 giây
   });
