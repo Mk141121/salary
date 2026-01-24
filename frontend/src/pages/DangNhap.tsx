@@ -2,19 +2,31 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { authApi } from '../services/rbacApi'
+
+// Helper function để xác định redirect URL theo vai trò
+const getRedirectUrl = (vaiTros: string[]): string => {
+  // ADMIN và các vai trò quản lý -> trang admin
+  if (vaiTros.includes('ADMIN') || vaiTros.includes('HR') || vaiTros.includes('MANAGER')) {
+    return '/'
+  }
+  // EMPLOYEE -> cổng nhân viên
+  return '/portal'
+}
 
 export default function DangNhap() {
   const navigate = useNavigate()
-  const { dangNhap, isAuthenticated } = useAuth()
+  const { dangNhap, isAuthenticated, vaiTros } = useAuth()
   
   const [tenDangNhap, setTenDangNhap] = useState('')
   const [matKhau, setMatKhau] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
-  // Redirect nếu đã đăng nhập
+  // Redirect nếu đã đăng nhập - theo vai trò
   if (isAuthenticated) {
-    navigate('/', { replace: true })
+    const redirectUrl = getRedirectUrl(vaiTros)
+    navigate(redirectUrl, { replace: true })
     return null
   }
   
@@ -29,8 +41,13 @@ export default function DangNhap() {
     
     setIsLoading(true)
     try {
+      // Gọi API đăng nhập trực tiếp để lấy vai trò
+      const response = await authApi.dangNhap(tenDangNhap, matKhau)
       await dangNhap(tenDangNhap, matKhau)
-      navigate('/', { replace: true })
+      
+      // Điều hướng theo vai trò
+      const redirectUrl = getRedirectUrl(response.vaiTros)
+      navigate(redirectUrl, { replace: true })
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } }
       setError(error.response?.data?.message || 'Đăng nhập thất bại')

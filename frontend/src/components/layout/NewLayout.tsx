@@ -1,5 +1,5 @@
 // Layout Component - Premium Dribbble Style
-import { Outlet } from 'react-router-dom'
+import { Outlet, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import SidebarDribbble from './SidebarDribbble'
 import HeaderPremium from './HeaderPremium'
@@ -8,8 +8,10 @@ import ChatbotWidget from '../chatbot/ChatbotWidget'
 import { useCommandPalette } from '../../hooks/useCommandPalette'
 import { useRecentPages } from '../../hooks/useRecentPages'
 import { initTheme } from '../../lib/theme'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function NewLayout() {
+  const { isAuthenticated, vaiTros, isLoading } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const commandPalette = useCommandPalette()
@@ -47,6 +49,26 @@ export default function NewLayout() {
     window.addEventListener('open-command-palette', handleOpenPalette)
     return () => window.removeEventListener('open-command-palette', handleOpenPalette)
   }, [commandPalette])
+
+  // Kiểm tra quyền truy cập - chỉ ADMIN, HR, MANAGER được vào trang admin
+  // EMPLOYEE phải redirect sang portal
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-app)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/dang-nhap" replace />
+  }
+
+  // Nếu là EMPLOYEE và không có vai trò quản lý -> redirect sang portal
+  const isManager = vaiTros.some(vt => ['ADMIN', 'HR', 'MANAGER'].includes(vt))
+  if (!isManager && vaiTros.includes('EMPLOYEE')) {
+    return <Navigate to="/portal" replace />
+  }
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed)
