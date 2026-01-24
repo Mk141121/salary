@@ -329,17 +329,72 @@ export const getCurrentPosition = (): Promise<{
       (error) => {
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            // Hướng dẫn cụ thể cho iOS/Android
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isAndroid = /Android/.test(navigator.userAgent);
+            // Auto-detect OS và Browser để hiển thị hướng dẫn chính xác
+            const ua = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+            const isAndroid = /Android/.test(ua);
+            const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua) && !/CriOS/.test(ua);
+            const isChrome = /Chrome/.test(ua) || /CriOS/.test(ua);
+            const isFirefox = /Firefox/.test(ua) || /FxiOS/.test(ua);
+            const isSamsungBrowser = /SamsungBrowser/.test(ua);
             
-            let message = 'Bạn đã từ chối quyền truy cập GPS. ';
+            let message = '⚠️ Quyền GPS bị từ chối. ';
+            
             if (isIOS) {
-              message += 'Vào Cài đặt > Safari > Vị trí > Cho phép (hoặc Cài đặt > Quyền riêng tư > Dịch vụ vị trí > Safari)';
+              if (isSafari) {
+                message += '📱 **Hướng dẫn cho Safari trên iPhone/iPad:**\n';
+                message += '1. Mở Cài đặt > Quyền riêng tư & Bảo mật > Dịch vụ vị trí\n';
+                message += '2. Bật "Dịch vụ vị trí" và tìm Safari\n';
+                message += '3. Chọn "Khi sử dụng ứng dụng" hoặc "Hỏi"\n';
+                message += '4. Quay lại và làm mới trang';
+              } else if (isChrome) {
+                message += '📱 **Hướng dẫn cho Chrome trên iPhone/iPad:**\n';
+                message += '1. Mở Cài đặt > Quyền riêng tư & Bảo mật > Dịch vụ vị trí\n';
+                message += '2. Tìm "Chrome" trong danh sách\n';
+                message += '3. Chọn "Khi sử dụng ứng dụng"\n';
+                message += '4. Quay lại và làm mới trang';
+              } else if (isFirefox) {
+                message += '📱 **Hướng dẫn cho Firefox trên iPhone/iPad:**\n';
+                message += '1. Mở Cài đặt > Quyền riêng tư & Bảo mật > Dịch vụ vị trí\n';
+                message += '2. Tìm "Firefox" trong danh sách\n';
+                message += '3. Chọn "Khi sử dụng ứng dụng"\n';
+                message += '4. Quay lại và làm mới trang';
+              } else {
+                message += '📱 Vào Cài đặt > Quyền riêng tư & Bảo mật > Dịch vụ vị trí > Bật cho trình duyệt này';
+              }
             } else if (isAndroid) {
-              message += 'Vào Cài đặt > Ứng dụng > Trình duyệt > Quyền > Vị trí > Cho phép';
+              if (isChrome) {
+                message += '📱 **Hướng dẫn cho Chrome trên Android:**\n';
+                message += '1. Nhấn vào biểu tượng 🔒 hoặc ⓘ trên thanh địa chỉ\n';
+                message += '2. Chọn "Cài đặt trang web" hoặc "Quyền"\n';
+                message += '3. Tìm "Vị trí" và chọn "Cho phép"\n';
+                message += '4. Làm mới trang';
+              } else if (isSamsungBrowser) {
+                message += '📱 **Hướng dẫn cho Samsung Internet:**\n';
+                message += '1. Nhấn vào biểu tượng 🔒 trên thanh địa chỉ\n';
+                message += '2. Chọn "Quyền trang web"\n';
+                message += '3. Bật "Vị trí"\n';
+                message += '4. Làm mới trang';
+              } else if (isFirefox) {
+                message += '📱 **Hướng dẫn cho Firefox trên Android:**\n';
+                message += '1. Nhấn vào biểu tượng 🔒 trên thanh địa chỉ\n';
+                message += '2. Chọn "Chỉnh sửa cài đặt trang"\n';
+                message += '3. Bật "Vị trí"\n';
+                message += '4. Làm mới trang';
+              } else {
+                message += '📱 Vào Cài đặt > Ứng dụng > [Trình duyệt] > Quyền > Vị trí > Cho phép';
+              }
             } else {
-              message += 'Vui lòng bật quyền GPS trong cài đặt trình duyệt và làm mới trang.';
+              // Desktop browsers
+              if (isChrome) {
+                message += '💻 Nhấn vào 🔒 bên trái thanh địa chỉ > Quyền trang web > Vị trí > Cho phép';
+              } else if (isFirefox) {
+                message += '💻 Nhấn vào 🔒 bên trái thanh địa chỉ > Quyền > Vị trí > Cho phép';
+              } else if (isSafari) {
+                message += '💻 Safari > Cài đặt > Trang web > Vị trí > Cho phép';
+              } else {
+                message += '💻 Vui lòng bật quyền vị trí trong cài đặt trình duyệt';
+              }
             }
             reject(new Error(message));
             break;

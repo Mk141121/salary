@@ -223,16 +223,16 @@ export default function PortalHome() {
         </div>
         {checkError && (
           <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400 flex items-start gap-2">
+            <div className="text-sm text-red-600 dark:text-red-400 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>{checkError}</span>
-            </p>
+              <div className="whitespace-pre-line">{checkError}</div>
+            </div>
             {checkError.includes('GPS') && (
               <button 
                 onClick={() => window.location.reload()} 
-                className="mt-2 text-xs text-blue-600 dark:text-blue-400 underline"
+                className="mt-3 w-full py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
               >
-                Làm mới trang sau khi cấp quyền
+                🔄 Làm mới trang sau khi cấp quyền
               </button>
             )}
           </div>

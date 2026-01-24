@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, X, Send, Loader2, HelpCircle, BookOpen, ChevronDown } from 'lucide-react';
+import { MessageCircle, X, Send, HelpCircle, BookOpen, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import ReactMarkdown from 'react-markdown';
 
