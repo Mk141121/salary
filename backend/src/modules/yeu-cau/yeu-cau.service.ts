@@ -272,6 +272,11 @@ export class YeuCauService {
   }
 
   async taoDon(dto: TaoDonYeuCauDto, taoBoi?: number) {
+    // Check nhanVienId required
+    if (!dto.nhanVienId) {
+      throw new BadRequestException('Không xác định được nhân viên. Vui lòng đăng nhập lại.');
+    }
+    
     // Lấy thông tin nhân viên
     const nhanVien = await this.prisma.nhanVien.findUnique({
       where: { id: dto.nhanVienId },
@@ -320,7 +325,7 @@ export class YeuCauService {
     return this.prisma.donYeuCau.create({
       data: {
         maDon,
-        nhanVienId: dto.nhanVienId,
+        nhanVienId: dto.nhanVienId!, // Already validated above
         phongBanId: nhanVien.phongBanId,
         loaiYeuCauId: dto.loaiYeuCauId,
         ngayYeuCau: new Date(dto.ngayYeuCau),

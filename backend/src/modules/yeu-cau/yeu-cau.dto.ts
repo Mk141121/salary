@@ -99,8 +99,9 @@ export class CapNhatLoaiYeuCauDto {
 // =============== ĐƠN YÊU CẦU ===============
 
 export class TaoDonYeuCauDto {
+  @IsOptional()
   @IsInt()
-  nhanVienId: number;
+  nhanVienId?: number;
 
   @IsInt()
   loaiYeuCauId: number;

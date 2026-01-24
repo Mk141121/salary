@@ -147,10 +147,15 @@ export class YeuCauController {
   /**
    * POST /api/yeu-cau/don
    * Tạo đơn yêu cầu mới
+   * Không cần quyền đặc biệt - mọi nhân viên đăng nhập đều có thể tạo đơn
+   * Nếu không gửi nhanVienId, tự động lấy từ user đăng nhập
    */
   @Post('don')
-  @Quyen('YEU_CAU_TAO_DON')
   async taoDon(@Body() dto: TaoDonYeuCauDto, @Request() req: any) {
+    // Auto-fill nhanVienId from user if not provided
+    if (!dto.nhanVienId && req.user?.nhanVienId) {
+      dto.nhanVienId = req.user.nhanVienId;
+    }
     return this.yeuCauService.taoDon(dto, req.user?.id);
   }
 
