@@ -182,6 +182,15 @@ export class YeuCauController {
   }
 
   /**
+   * DELETE /api/yeu-cau/don/:id
+   * Xóa đơn yêu cầu (chỉ khi NHAP, TU_CHOI hoặc CHO_DUYET_1)
+   */
+  @Delete('don/:id')
+  async xoaDon(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.yeuCauService.xoaDon(id, req.user?.id);
+  }
+
+  /**
    * POST /api/yeu-cau/don/:id/gui-duyet
    * Gửi đơn để duyệt
    */

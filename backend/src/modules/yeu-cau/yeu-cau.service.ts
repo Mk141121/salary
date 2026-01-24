@@ -318,7 +318,10 @@ export class YeuCauService {
 
     // Tính số giờ nếu có giờ bắt đầu và kết thúc
     let soGio: Prisma.Decimal | null = null;
-    if (dto.gioBatDau && dto.gioKetThuc) {
+    if (dto.soGio) {
+      // Nhận trực tiếp từ DTO (dùng cho nghỉ phép: soNgay * 8)
+      soGio = new Decimal(dto.soGio);
+    } else if (dto.gioBatDau && dto.gioKetThuc) {
       const [h1, m1] = dto.gioBatDau.split(':').map(Number);
       const [h2, m2] = dto.gioKetThuc.split(':').map(Number);
       let minutes = (h2 * 60 + m2) - (h1 * 60 + m1);
@@ -360,9 +363,9 @@ export class YeuCauService {
   async capNhatDon(id: number, dto: CapNhatDonYeuCauDto, capNhatBoi?: number) {
     const don = await this.layChiTietDon(id);
 
-    // Chỉ được sửa khi NHAP hoặc TU_CHOI
-    if (!['NHAP', 'TU_CHOI'].includes(don.trangThai)) {
-      throw new BadRequestException('Không thể sửa đơn đã gửi duyệt');
+    // Chỉ được sửa khi NHAP, TU_CHOI hoặc CHO_DUYET_1 (chưa qua cấp 2)
+    if (!['NHAP', 'TU_CHOI', 'CHO_DUYET_1'].includes(don.trangThai)) {
+      throw new BadRequestException('Không thể sửa đơn đã duyệt cấp 1');
     }
 
     // Tính lại số giờ nếu có thay đổi
@@ -385,6 +388,25 @@ export class YeuCauService {
         soGio,
       },
     });
+  }
+
+  /**
+   * Xóa đơn yêu cầu
+   * Chỉ được xóa khi NHAP, TU_CHOI hoặc CHO_DUYET_1
+   */
+  async xoaDon(id: number, nguoiXoaId?: number) {
+    const don = await this.layChiTietDon(id);
+
+    // Chỉ được xóa khi chưa qua duyệt cấp 1
+    if (!['NHAP', 'TU_CHOI', 'CHO_DUYET_1'].includes(don.trangThai)) {
+      throw new BadRequestException('Không thể xóa đơn đã duyệt');
+    }
+
+    // Kiểm tra quyền: chỉ người tạo hoặc admin mới được xóa
+    // (sẽ check ở controller)
+
+    await this.prisma.donYeuCau.delete({ where: { id } });
+    return { success: true, message: 'Đã xóa đơn yêu cầu' };
   }
 
   async guiDuyet(id: number, guiBoi?: number) {

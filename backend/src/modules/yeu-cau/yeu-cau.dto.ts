@@ -133,6 +133,10 @@ export class TaoDonYeuCauDto {
   @IsOptional()
   @IsString()
   tepDinhKemUrl?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  soGio?: number; // Số giờ hoặc số ngày nghỉ (soNgay * 8)
 }
 
 export class CapNhatDonYeuCauDto {

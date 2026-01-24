@@ -2,17 +2,19 @@
 // Sprint 5: Xem và tạo yêu cầu OT/Trễ/Sớm/Công tác
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Clock, Check, X, AlertCircle, ChevronRight } from 'lucide-react';
+import { Plus, Clock, Check, X, AlertCircle, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../../services/api';
 
 interface YeuCau {
-  id: string;
+  id: number;
   loai: string;
+  tenLoai: string;
   ngay: string;
-  soGio: number;
+  soGio: number | null;
   lyDo: string;
   trangThai: string;
-  createdAt: string;
+  ngayTao: string;
 }
 
 const LOAI_YEU_CAU = [
@@ -74,10 +76,20 @@ export default function PortalRequests() {
         'WFH': 14,               // Làm việc từ xa
       };
       
+      // Tính soGio: nếu là nghỉ phép thì soNgay * 8, nếu là thời gian thì soGio trực tiếp
+      const loaiInfo = LOAI_YEU_CAU.find((l) => l.value === data.loai);
+      let soGio: number | undefined;
+      if (loaiInfo?.nhom === 'NGHI_PHEP') {
+        soGio = data.soNgay * 8; // 1 ngày = 8 giờ
+      } else if (loaiInfo?.nhom === 'THOI_GIAN') {
+        soGio = data.soGio;
+      }
+      
       const payload = {
         loaiYeuCauId: loaiMapping[data.loai] || 7,
         ngayYeuCau: data.ngay,
         lyDo: data.lyDo,
+        soGio,
       };
       
       // Tạo đơn
@@ -90,9 +102,11 @@ export default function PortalRequests() {
       return res.data;
     },
     onSuccess: () => {
+      toast.success('Đã gửi yêu cầu thành công!');
       // Invalidate cả danh sách yêu cầu và dashboard để cập nhật số đơn chờ duyệt
       queryClient.invalidateQueries({ queryKey: ['employee-portal', 'yeu-cau'] });
       queryClient.invalidateQueries({ queryKey: ['employee-portal', 'dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-requests-count'] });
       setShowForm(false);
       setFormData({
         loai: 'NGHI_PHEP',
@@ -102,7 +116,32 @@ export default function PortalRequests() {
         lyDo: '',
       });
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+    },
   });
+
+  // Mutation xóa yêu cầu
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/yeu-cau/don/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('Đã xóa yêu cầu');
+      queryClient.invalidateQueries({ queryKey: ['employee-portal', 'yeu-cau'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-portal', 'dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-requests-count'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Không thể xóa yêu cầu');
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    if (confirm('Bạn có chắc muốn xóa yêu cầu này?')) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   const getStatusBadge = (trangThai: string) => {
     switch (trangThai) {
@@ -178,6 +217,9 @@ export default function PortalRequests() {
           {yeuCauList.map((yc) => {
             const status = getStatusBadge(yc.trangThai);
             const StatusIcon = status.icon;
+            // Tính số ngày từ soGio (1 ngày = 8 giờ)
+            const soNgay = yc.soGio ? Math.round((yc.soGio / 8) * 10) / 10 : null;
+            const canEdit = ['CHO_DUYET', 'TU_CHOI'].includes(yc.trangThai);
             return (
               <div
                 key={yc.id}
@@ -188,7 +230,7 @@ export default function PortalRequests() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-medium text-gray-900 dark:text-white">
-                        {getLoaiLabel(yc.loai)}
+                        {yc.tenLoai || getLoaiLabel(yc.loai)}
                       </h4>
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
                         <StatusIcon className="w-3 h-3" />
@@ -196,13 +238,27 @@ export default function PortalRequests() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-500 mb-1">
-                      {new Date(yc.ngay).toLocaleDateString('vi-VN')} • {yc.soGio} giờ
+                      {new Date(yc.ngay).toLocaleDateString('vi-VN')}
+                      {soNgay ? ` • ${soNgay} ngày` : ''}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                       {yc.lyDo}
                     </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  {/* Nút sửa/xóa khi đang chờ duyệt */}
+                  {canEdit ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleDelete(yc.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Xóa yêu cầu"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  )}
                 </div>
               </div>
             );
