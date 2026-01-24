@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useFavorites } from '../../hooks/useFavorites'
+import { usePendingRequests } from '../../hooks/usePendingRequests'
 import { sidebarMenuGroups, MenuItem, MenuGroup, flattenMenuItems, getGroupColorClasses } from '../../config/sidebarMenu'
 import toast from 'react-hot-toast'
 
@@ -22,6 +23,7 @@ export default function Sidebar({ isOpen, isCollapsed }: SidebarProps) {
   const location = useLocation()
   const { coQuyen, coVaiTro } = useAuth()
   const { favorites, toggleFavorite, isFavorite, isFull } = useFavorites()
+  const { pendingCount } = usePendingRequests()
   
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['du-lieu-dau-vao', 'ky-luong'])
   const [expandedMenus, setExpandedMenus] = useState<string[]>([])
@@ -161,6 +163,18 @@ export default function Sidebar({ isOpen, isCollapsed }: SidebarProps) {
     const isFav = isFavorite(item.id)
     const colorClasses = getGroupColorClasses(groupColor)
 
+    // Badge logic - hiển thị số đơn pending cho menu duyệt nghỉ phép
+    const getBadgeContent = () => {
+      if (item.badge === 'pending' && pendingCount > 0) {
+        return pendingCount > 99 ? '99+' : pendingCount.toString()
+      }
+      if (item.badge && item.badge !== 'pending') {
+        return item.badge
+      }
+      return null
+    }
+    const badgeContent = getBadgeContent()
+
     const baseClasses = `
       group flex items-center gap-3 px-3 py-2 mx-2 rounded-lg transition-all duration-150
       ${active 
@@ -171,16 +185,31 @@ export default function Sidebar({ isOpen, isCollapsed }: SidebarProps) {
 
     const content = (
       <>
-        <div className={`p-1 rounded ${active ? colorClasses.iconBg : ''}`}>
+        <div className={`p-1 rounded ${active ? colorClasses.iconBg : ''} relative`}>
           <Icon size={level > 0 ? 14 : 18} className={active ? colorClasses.text : 'text-gray-500'} />
+          {/* Badge indicator dot for collapsed mode */}
+          {isCollapsed && badgeContent && (
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          )}
         </div>
         {!isCollapsed && (
           <>
             <span className="flex-1 truncate">
               {highlightText(item.label, searchQuery)}
             </span>
+            {/* Badge hiển thị số lượng */}
+            {badgeContent && (
+              <span className={`
+                px-1.5 py-0.5 text-xs font-bold rounded-full min-w-[20px] text-center
+                ${item.badge === 'pending' 
+                  ? 'bg-red-500 text-white animate-pulse' 
+                  : 'bg-blue-100 text-blue-600'}
+              `}>
+                {badgeContent}
+              </span>
+            )}
             {/* Favorite star */}
-            {item.path && (
+            {item.path && !badgeContent && (
               <button
                 onClick={(e) => handleFavoriteClick(e, item)}
                 className={`

@@ -92,6 +92,15 @@ export class YeuCauController {
   // =============== ĐƠN YÊU CẦU ===============
 
   /**
+   * GET /api/yeu-cau/don/pending-count
+   * Đếm số đơn yêu cầu đang chờ duyệt (cho badge menu)
+   */
+  @Get('don/pending-count')
+  async demDonChoDuyet() {
+    return this.yeuCauService.demDonChoDuyet();
+  }
+
+  /**
    * GET /api/yeu-cau/don
    * Lấy danh sách đơn yêu cầu
    */

@@ -69,6 +69,19 @@ export class YeuCauService {
     });
   }
 
+  /**
+   * Đếm số đơn yêu cầu đang chờ duyệt (CHO_DUYET_1 hoặc CHO_DUYET_2)
+   * Dùng cho badge notification trên menu
+   */
+  async demDonChoDuyet(): Promise<{ count: number }> {
+    const count = await this.prisma.donYeuCau.count({
+      where: {
+        trangThai: { in: ['CHO_DUYET_1', 'CHO_DUYET_2'] },
+      },
+    });
+    return { count };
+  }
+
   // =============== ĐƠN YÊU CẦU ===============
 
   async layDanhSachDon(filter: LocDonYeuCauDto, phongBanIds?: number[]) {

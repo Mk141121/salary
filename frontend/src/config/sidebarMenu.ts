@@ -80,6 +80,14 @@ export const sidebarMenuGroups: MenuGroup[] = [
         tags: ['portal', 'employee', 'self-service', 'mobile', 'pwa'],
         badge: 'Mới',
       },
+      {
+        id: 'duyet-nghi-phep-main',
+        label: 'Duyệt nghỉ phép',
+        icon: CheckCircle,
+        path: '/yeu-cau/duyet',
+        tags: ['approve', 'duyệt', 'nghỉ phép', 'request'],
+        badge: 'pending', // Badge động hiển thị số đơn chờ duyệt
+      },
     ],
   },
 
@@ -184,11 +192,11 @@ export const sidebarMenuGroups: MenuGroup[] = [
           },
           {
             id: 'duyet-yeu-cau',
-            label: 'Duyệt yêu cầu',
+            label: 'Duyệt nghỉ phép',
             icon: CheckCircle,
             path: '/yeu-cau/duyet',
             requiredPermissions: ['YEU_CAU_DUYET_CAP_1', 'YEU_CAU_DUYET_CAP_2'],
-            tags: ['approve', 'duyệt'],
+            tags: ['approve', 'duyệt', 'nghỉ phép'],
           },
         ],
       },
