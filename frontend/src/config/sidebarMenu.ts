@@ -404,6 +404,14 @@ export const sidebarMenuGroups: MenuGroup[] = [
         tags: ['performance', 'đánh giá', 'hiệu suất'],
         children: [
           {
+            id: 'kpi-rule-engine',
+            label: 'Quy tắc KPI',
+            icon: Settings,
+            path: '/kpi/rule-engine',
+            requiredPermissions: ['KPI_QUAN_LY'],
+            tags: ['rules', 'quy tắc', 'engine'],
+          },
+          {
             id: 'kpi-template',
             label: 'Template KPI',
             icon: ClipboardList,

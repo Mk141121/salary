@@ -29,9 +29,10 @@ api.interceptors.request.use(
 
 // ==================== ENUMS ====================
 export type XepLoaiKPI = 'XUAT_SAC' | 'TOT' | 'KHA' | 'TRUNG_BINH' | 'YEU'
-export type LoaiChiTieuKPI = 'SO' | 'PHAN_TRAM' | 'TIEN' | 'DANH_GIA'
+export type LoaiChiTieuKPI = 'SO' | 'PHAN_TRAM' | 'TIEN' | 'THOI_GIAN' | 'DANH_GIA'
 export type LoaiKyDanhGia = 'THANG' | 'QUY' | 'NAM'
-export type TrangThaiKyDanhGia = 'CHUA_BAT_DAU' | 'DANG_DIEN_RA' | 'DA_KET_THUC' | 'DA_DONG'
+// Match với backend schema: MO, DONG, DUYET, HOAN_THANH
+export type TrangThaiKyDanhGia = 'MO' | 'DONG' | 'DUYET' | 'HOAN_THANH'
 export type TrangThaiDanhGiaKPI = 'NHAP' | 'CHO_DUYET' | 'DA_DUYET' | 'TU_CHOI'
 
 // ==================== INTERFACES ====================
@@ -246,4 +247,220 @@ export const baoCaoKPIApi = {
     api.get<BaoCaoKPIPhongBan[]>(`/bao-cao/theo-phong-ban/${kyDanhGiaId}`).then((res) => res.data),
 }
 
+// ==================== KPI RULE ENGINE ====================
+export type LoaiQuyTacKPI = 'THUONG' | 'PHAT' | 'TRUNG_BINH'
+export type NguonDuLieuKPI = 'CHAM_CONG' | 'DOANH_SO' | 'BANG_LUONG' | 'HOP_DONG' | 'NHAP_TAY'
+export type ToanTuSoSanh = 'BANG' | 'KHAC' | 'LON_HON' | 'NHO_HON' | 'LON_HON_BANG' | 'NHO_HON_BANG' | 'BETWEEN'
+export type LoaiTinhDiemKPI = 'CO_DINH' | 'CONG_THUC' | 'TY_LE'
+
+export interface NhomQuyTacKPI {
+  id: number
+  maNhom: string
+  tenNhom: string
+  moTa?: string
+  thuTu: number
+  trangThai: boolean
+  quyTacKPIs?: QuyTacKPI[]
+}
+
+export interface QuyTacKPI {
+  id: number
+  maQuyTac: string
+  tenQuyTac: string
+  moTa?: string
+  nhomId: number
+  loaiQuyTac: LoaiQuyTacKPI
+  nguonDuLieu: NguonDuLieuKPI
+  diemToiDa: number
+  diemMacDinh: number
+  trongSoMacDinh: number
+  apDungToanCongTy: boolean
+  trangThai: boolean
+  nhom?: NhomQuyTacKPI
+  dieuKienQuyTacs?: DieuKienQuyTacKPI[]
+  quyTacPhongBans?: QuyTacKPIPhongBan[]
+  quyTacViTris?: QuyTacKPIViTri[]
+}
+
+export interface DieuKienQuyTacKPI {
+  id: number
+  quyTacId: number
+  thuTu: number
+  moTaDieuKien: string
+  bienSo: string
+  toanTu: ToanTuSoSanh
+  giaTriMin?: number
+  giaTriMax?: number
+  loaiTinhDiem: LoaiTinhDiemKPI
+  diemCoDinh?: number
+  congThuc?: string
+  trangThai: boolean
+}
+
+export interface QuyTacKPIPhongBan {
+  id: number
+  quyTacId: number
+  phongBanId: number
+  trongSo: number
+  trangThai: boolean
+}
+
+export interface QuyTacKPIViTri {
+  id: number
+  quyTacId: number
+  viTriId: number
+  trongSo: number
+  trangThai: boolean
+}
+
+export interface BienSoKPI {
+  id: number
+  maBienSo: string
+  tenBienSo: string
+  moTa?: string
+  nguonDuLieu: NguonDuLieuKPI
+  bangNguon?: string
+  truongNguon?: string
+  congThuc?: string
+  donViTinh?: string
+  trangThai: boolean
+}
+
+export interface KetQuaTinhKPI {
+  quyTacId: number
+  maQuyTac: string
+  tenQuyTac: string
+  giaTriDauVao: number
+  diemDat: number
+  trongSo: number
+  diemQuyDoi: number
+  ghiChu?: string
+}
+
+const ruleEngineApi = axios.create({
+  baseURL: '/api/kpi/rule-engine',
+  headers: { 'Content-Type': 'application/json' },
+})
+
+ruleEngineApi.interceptors.request.use(
+  (config) => {
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        if (data.token) {
+          config.headers.Authorization = `Bearer ${data.token}`
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+export const kpiRuleEngineApi = {
+  // Nhóm quy tắc
+  layDanhSachNhom: () =>
+    ruleEngineApi.get<NhomQuyTacKPI[]>('/nhom').then((res) => res.data),
+  
+  taoNhomQuyTac: (data: { maNhom: string; tenNhom: string; moTa?: string; thuTu?: number }) =>
+    ruleEngineApi.post<NhomQuyTacKPI>('/nhom', data).then((res) => res.data),
+  
+  capNhatNhomQuyTac: (id: number, data: Partial<{ tenNhom: string; moTa: string; thuTu: number }>) =>
+    ruleEngineApi.put<NhomQuyTacKPI>(`/nhom/${id}`, data).then((res) => res.data),
+
+  // Quy tắc KPI
+  layDanhSachQuyTac: (nhomId?: number) =>
+    ruleEngineApi.get<QuyTacKPI[]>('/quy-tac', { params: nhomId ? { nhomId } : undefined }).then((res) => res.data),
+  
+  layQuyTacTheoId: (id: number) =>
+    ruleEngineApi.get<QuyTacKPI>(`/quy-tac/${id}`).then((res) => res.data),
+  
+  taoQuyTac: (data: {
+    maQuyTac: string
+    tenQuyTac: string
+    moTa?: string
+    nhomId: number
+    loaiQuyTac?: LoaiQuyTacKPI
+    nguonDuLieu?: NguonDuLieuKPI
+    diemToiDa?: number
+    diemMacDinh?: number
+    trongSoMacDinh?: number
+    apDungToanCongTy?: boolean
+  }) => ruleEngineApi.post<QuyTacKPI>('/quy-tac', data).then((res) => res.data),
+  
+  capNhatQuyTac: (id: number, data: Partial<{
+    tenQuyTac: string
+    moTa: string
+    loaiQuyTac: LoaiQuyTacKPI
+    nguonDuLieu: NguonDuLieuKPI
+    diemToiDa: number
+    diemMacDinh: number
+    trongSoMacDinh: number
+    apDungToanCongTy: boolean
+  }>) => ruleEngineApi.put<QuyTacKPI>(`/quy-tac/${id}`, data).then((res) => res.data),
+  
+  xoaQuyTac: (id: number) =>
+    ruleEngineApi.delete(`/quy-tac/${id}`).then((res) => res.data),
+
+  // Điều kiện quy tắc
+  themDieuKien: (data: {
+    quyTacId: number
+    thuTu?: number
+    moTaDieuKien: string
+    bienSo: string
+    toanTu: ToanTuSoSanh
+    giaTriMin?: number
+    giaTriMax?: number
+    loaiTinhDiem?: LoaiTinhDiemKPI
+    diemCoDinh?: number
+    congThuc?: string
+  }) => ruleEngineApi.post<DieuKienQuyTacKPI>('/dieu-kien', data).then((res) => res.data),
+  
+  capNhatDieuKien: (id: number, data: Partial<DieuKienQuyTacKPI>) =>
+    ruleEngineApi.put<DieuKienQuyTacKPI>(`/dieu-kien/${id}`, data).then((res) => res.data),
+  
+  xoaDieuKien: (id: number) =>
+    ruleEngineApi.delete(`/dieu-kien/${id}`).then((res) => res.data),
+
+  // Biến số KPI
+  layDanhSachBienSo: () =>
+    ruleEngineApi.get<BienSoKPI[]>('/bien-so').then((res) => res.data),
+  
+  taoBienSo: (data: {
+    maBienSo: string
+    tenBienSo: string
+    moTa?: string
+    nguonDuLieu?: NguonDuLieuKPI
+    bangNguon?: string
+    truongNguon?: string
+    congThuc?: string
+    donViTinh?: string
+  }) => ruleEngineApi.post<BienSoKPI>('/bien-so', data).then((res) => res.data),
+
+  // Override trọng số
+  ganTrongSoPhongBan: (quyTacId: number, phongBanId: number, trongSo: number) =>
+    ruleEngineApi.put(`/quy-tac/${quyTacId}/phong-ban/${phongBanId}`, { trongSo }).then((res) => res.data),
+  
+  ganTrongSoViTri: (quyTacId: number, viTriId: number, trongSo: number) =>
+    ruleEngineApi.put(`/quy-tac/${quyTacId}/vi-tri/${viTriId}`, { trongSo }).then((res) => res.data),
+
+  // Tính KPI
+  previewKPI: (nhanVienId: number, thang: number, nam: number, duLieuNhapTay?: Record<string, number>) =>
+    ruleEngineApi.post<KetQuaTinhKPI[]>('/preview', { nhanVienId, thang, nam, duLieuNhapTay }).then((res) => res.data),
+  
+  tinhKPI: (danhGiaId: number, nhanVienId: number, thang: number, nam: number, duLieuNhapTay?: Record<string, number>) =>
+    ruleEngineApi.post<KetQuaTinhKPI[]>('/tinh-kpi', { danhGiaId, nhanVienId, thang, nam, duLieuNhapTay }).then((res) => res.data),
+
+  // Thống kê & khởi tạo
+  thongKeQuyTac: () =>
+    ruleEngineApi.get<{ tongNhom: number; tongQuyTac: number; tongBienSo: number; chiTiet: { nhom: string; soQuyTac: number }[] }>('/thong-ke').then((res) => res.data),
+  
+  khoiTaoDuLieuMau: () =>
+    ruleEngineApi.post<{ message: string; nhomQuyTac: number; bienSo: number; quyTac: number }>('/khoi-tao-mau').then((res) => res.data),
+}
+
 export default api
+

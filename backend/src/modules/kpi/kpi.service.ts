@@ -311,46 +311,67 @@ export class KPIService {
 
     const template = await this.layTemplateTheoId(danhGia.templateId);
 
-    // Upsert từng kết quả
-    for (const kq of dto.ketQuaKPIs) {
-      const chiTieu = template.chiTieuKPIs.find((ct) => ct.id === kq.chiTieuId);
-      const tyLeDat = this.tinhTyLeDat(kq.ketQuaDat, chiTieu);
-      const diemQuyDoi = tyLeDat * Number(chiTieu?.trongSo || 0) / 100;
+    // Sử dụng transaction để đảm bảo tính nhất quán dữ liệu
+    return this.prisma.$transaction(async (tx) => {
+      // Upsert từng kết quả
+      for (const kq of dto.ketQuaKPIs) {
+        const chiTieu = template.chiTieuKPIs.find((ct) => ct.id === kq.chiTieuId);
+        const tyLeDat = this.tinhTyLeDat(kq.ketQuaDat, chiTieu);
+        const diemQuyDoi = tyLeDat * Number(chiTieu?.trongSo || 0) / 100;
 
-      await this.prisma.ketQuaKPI.upsert({
-        where: {
-          danhGiaId_chiTieuId: {
+        await tx.ketQuaKPI.upsert({
+          where: {
+            danhGiaId_chiTieuId: {
+              danhGiaId,
+              chiTieuId: kq.chiTieuId,
+            },
+          },
+          update: {
+            ketQuaDat: kq.ketQuaDat,
+            tyLeDat,
+            diemQuyDoi,
+            ghiChu: kq.ghiChu,
+          },
+          create: {
             danhGiaId,
             chiTieuId: kq.chiTieuId,
+            ketQuaDat: kq.ketQuaDat,
+            tyLeDat,
+            diemQuyDoi,
+            ghiChu: kq.ghiChu,
           },
-        },
-        update: {
-          ketQuaDat: kq.ketQuaDat,
-          tyLeDat,
-          diemQuyDoi,
-          ghiChu: kq.ghiChu,
-        },
-        create: {
-          danhGiaId,
-          chiTieuId: kq.chiTieuId,
-          ketQuaDat: kq.ketQuaDat,
-          tyLeDat,
-          diemQuyDoi,
-          ghiChu: kq.ghiChu,
+        });
+      }
+
+      // Tính lại điểm tổng kết
+      const ketQuaKPIs = await tx.ketQuaKPI.findMany({
+        where: { danhGiaId },
+      });
+
+      const diemTongKet = ketQuaKPIs.reduce(
+        (sum, kq) => sum + Number(kq.diemQuyDoi || 0),
+        0,
+      );
+
+      const xepLoai = this.xepLoaiTheoĐiem(diemTongKet);
+
+      await tx.danhGiaKPINhanVien.update({
+        where: { id: danhGiaId },
+        data: {
+          diemTongKet,
+          xepLoai,
+          nhanXetChung: dto.nhanXetChung,
         },
       });
-    }
 
-    // Tính lại điểm tổng kết
-    await this.tinhDiemTongKet(danhGiaId);
-
-    return this.prisma.danhGiaKPINhanVien.findUnique({
-      where: { id: danhGiaId },
-      include: {
-        ketQuaKPIs: {
-          include: { chiTieu: true },
+      return tx.danhGiaKPINhanVien.findUnique({
+        where: { id: danhGiaId },
+        include: {
+          ketQuaKPIs: {
+            include: { chiTieu: true },
+          },
         },
-      },
+      });
     });
   }
 

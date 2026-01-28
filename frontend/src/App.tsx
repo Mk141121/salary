@@ -17,6 +17,7 @@ import DangNhap from './pages/DangNhap'
 import QuanLyKPI from './pages/QuanLyKPI'
 import KyDanhGiaKPI from './pages/KyDanhGiaKPI'
 import CauHinhThuongKPI from './pages/CauHinhThuongKPI'
+import KPIRuleEngine from './pages/KPIRuleEngine'
 import QuanLyNguoiDung from './pages/QuanLyNguoiDung'
 import AuditLog from './pages/AuditLog'
 // Rule Engine pages
@@ -99,6 +100,7 @@ function App() {
         <Route path="rule-trace" element={<RequireAuth><XemRuleTrace /></RequireAuth>} />
         
         {/* KPI routes */}
+        <Route path="kpi/rule-engine" element={<RequireAuth><KPIRuleEngine /></RequireAuth>} />
         <Route path="kpi/template" element={<RequireAuth><QuanLyKPI /></RequireAuth>} />
         <Route path="kpi/ky-danh-gia" element={<RequireAuth><KyDanhGiaKPI /></RequireAuth>} />
         <Route path="kpi/cau-hinh-thuong" element={<RequireAuth><CauHinhThuongKPI /></RequireAuth>} />

@@ -28,7 +28,6 @@ import { Quyen, VaiTro } from '../../common';
 
 @ApiTags('KPI & Thưởng')
 @Controller('kpi')
-@Quyen('KPI_XEM') // Mặc định cần quyền xem KPI
 export class KPIController {
   constructor(private readonly kpiService: KPIService) {}
 
@@ -37,6 +36,7 @@ export class KPIController {
   // ============================================
 
   @Get('template')
+  @Quyen('KPI_XEM')
   @ApiOperation({ summary: 'Lấy danh sách template KPI' })
   @ApiQuery({ name: 'phongBanId', required: false })
   layDanhSachTemplate(@Query('phongBanId') phongBanId?: string) {
@@ -46,18 +46,21 @@ export class KPIController {
   }
 
   @Get('template/:id')
+  @Quyen('KPI_XEM')
   @ApiOperation({ summary: 'Lấy template KPI theo ID' })
   layTemplateTheoId(@Param('id', ParseIntPipe) id: number) {
     return this.kpiService.layTemplateTheoId(id);
   }
 
   @Post('template')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Tạo template KPI mới' })
   taoTemplate(@Body() dto: TaoTemplateKPIDto) {
     return this.kpiService.taoTemplate(dto);
   }
 
   @Put('template/:id')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Cập nhật template KPI' })
   capNhatTemplate(
     @Param('id', ParseIntPipe) id: number,
@@ -67,6 +70,7 @@ export class KPIController {
   }
 
   @Post('template/:id/chi-tieu')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Thêm chỉ tiêu vào template' })
   themChiTieu(
     @Param('id', ParseIntPipe) id: number,
@@ -76,6 +80,7 @@ export class KPIController {
   }
 
   @Delete('chi-tieu/:id')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Xóa chỉ tiêu KPI' })
   xoaChiTieu(@Param('id', ParseIntPipe) id: number) {
     return this.kpiService.xoaChiTieu(id);
@@ -86,6 +91,7 @@ export class KPIController {
   // ============================================
 
   @Get('ky-danh-gia')
+  @Quyen('KPI_XEM')
   @ApiOperation({ summary: 'Lấy danh sách kỳ đánh giá' })
   @ApiQuery({ name: 'nam', required: false })
   layDanhSachKyDanhGia(@Query('nam') nam?: string) {
@@ -93,18 +99,21 @@ export class KPIController {
   }
 
   @Get('ky-danh-gia/:id')
+  @Quyen('KPI_XEM')
   @ApiOperation({ summary: 'Lấy chi tiết kỳ đánh giá' })
   layKyDanhGiaTheoId(@Param('id', ParseIntPipe) id: number) {
     return this.kpiService.layKyDanhGiaTheoId(id);
   }
 
   @Post('ky-danh-gia')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Tạo kỳ đánh giá mới' })
   taoKyDanhGia(@Body() dto: TaoKyDanhGiaDto) {
     return this.kpiService.taoKyDanhGia(dto);
   }
 
   @Put('ky-danh-gia/:id/trang-thai')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Cập nhật trạng thái kỳ đánh giá' })
   capNhatTrangThaiKy(
     @Param('id', ParseIntPipe) id: number,
@@ -118,12 +127,14 @@ export class KPIController {
   // ============================================
 
   @Post('danh-gia')
+  @Quyen('KPI_DANH_GIA')
   @ApiOperation({ summary: 'Tạo đánh giá KPI cho nhân viên' })
   taoDanhGiaKPI(@Body() dto: TaoDanhGiaKPIDto) {
     return this.kpiService.taoDanhGiaKPI(dto);
   }
 
   @Put('danh-gia/:id')
+  @Quyen('KPI_DANH_GIA')
   @ApiOperation({ summary: 'Cập nhật kết quả KPI' })
   capNhatKetQuaKPI(
     @Param('id', ParseIntPipe) id: number,
@@ -133,12 +144,14 @@ export class KPIController {
   }
 
   @Post('danh-gia/:id/gui-duyet')
+  @Quyen('KPI_DANH_GIA')
   @ApiOperation({ summary: 'Gửi đánh giá để duyệt' })
   guiDuyet(@Param('id', ParseIntPipe) id: number) {
     return this.kpiService.guiDuyet(id);
   }
 
   @Put('danh-gia/:id/duyet')
+  @Quyen('KPI_DUYET')
   @ApiOperation({ summary: 'Duyệt đánh giá KPI' })
   duyetDanhGia(
     @Param('id', ParseIntPipe) id: number,
@@ -148,6 +161,7 @@ export class KPIController {
   }
 
   @Put('danh-gia/:id/tu-choi')
+  @Quyen('KPI_DUYET')
   @ApiOperation({ summary: 'Từ chối đánh giá KPI' })
   tuChoiDanhGia(
     @Param('id', ParseIntPipe) id: number,
@@ -161,18 +175,21 @@ export class KPIController {
   // ============================================
 
   @Get('cau-hinh-thuong/:nam')
+  @Quyen('KPI_XEM')
   @ApiOperation({ summary: 'Lấy cấu hình thưởng theo năm' })
   layCauHinhThuong(@Param('nam', ParseIntPipe) nam: number) {
     return this.kpiService.layCauHinhThuong(nam);
   }
 
   @Post('cau-hinh-thuong')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Lưu cấu hình thưởng' })
   luuCauHinhThuong(@Body() dto: TaoCauHinhThuongDto) {
     return this.kpiService.luuCauHinhThuong(dto);
   }
 
   @Post('cau-hinh-thuong/khoi-tao/:nam')
+  @Quyen('KPI_QUAN_LY')
   @ApiOperation({ summary: 'Khởi tạo cấu hình thưởng mặc định' })
   khoiTaoCauHinhThuongMacDinh(@Param('nam', ParseIntPipe) nam: number) {
     return this.kpiService.khoiTaoCauHinhThuongMacDinh(nam);
@@ -183,6 +200,7 @@ export class KPIController {
   // ============================================
 
   @Post('tinh-thuong')
+  @Quyen('KPI_TINH_THUONG')
   @ApiOperation({ summary: 'Tính thưởng KPI cho kỳ đánh giá' })
   tinhThuongKPI(@Body() dto: TinhThuongKPIDto) {
     return this.kpiService.tinhThuongKPI(dto);
@@ -193,6 +211,7 @@ export class KPIController {
   // ============================================
 
   @Get('bao-cao/theo-phong-ban/:kyDanhGiaId')
+  @Quyen('KPI_XEM')
   @ApiOperation({ summary: 'Báo cáo KPI theo phòng ban' })
   baoCaoKPITheoPhongBan(@Param('kyDanhGiaId', ParseIntPipe) kyDanhGiaId: number) {
     return this.kpiService.baoCaoKPITheoPhongBan(kyDanhGiaId);

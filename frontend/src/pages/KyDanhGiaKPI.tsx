@@ -9,11 +9,12 @@ const LOAI_KY_LABELS: Record<LoaiKyDanhGia, string> = {
   NAM: 'Năm',
 }
 
+// Match với backend schema: MO, DONG, DUYET, HOAN_THANH
 const TRANG_THAI_LABELS: Record<TrangThaiKyDanhGia, { label: string; color: string }> = {
-  CHUA_BAT_DAU: { label: 'Chưa bắt đầu', color: 'bg-gray-100 text-gray-600' },
-  DANG_DIEN_RA: { label: 'Đang diễn ra', color: 'bg-green-100 text-green-700' },
-  DA_KET_THUC: { label: 'Đã kết thúc', color: 'bg-blue-100 text-blue-700' },
-  DA_DONG: { label: 'Đã đóng', color: 'bg-red-100 text-red-700' },
+  MO: { label: 'Đang mở', color: 'bg-green-100 text-green-700' },
+  DONG: { label: 'Đã đóng', color: 'bg-yellow-100 text-yellow-700' },
+  DUYET: { label: 'Đã duyệt', color: 'bg-blue-100 text-blue-700' },
+  HOAN_THANH: { label: 'Hoàn thành', color: 'bg-purple-100 text-purple-700' },
 }
 
 export default function KyDanhGiaKPIPage() {
@@ -171,28 +172,29 @@ export default function KyDanhGiaKPIPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex gap-2">
-                      {ky.trangThai === 'CHUA_BAT_DAU' && (
+                      {/* Workflow: MO -> DONG -> DUYET -> HOAN_THANH */}
+                      {ky.trangThai === 'MO' && (
                         <button
-                          onClick={() => handleCapNhatTrangThai(ky.id, 'DANG_DIEN_RA')}
-                          className="text-green-600 hover:text-green-800"
+                          onClick={() => handleCapNhatTrangThai(ky.id, 'DONG')}
+                          className="text-yellow-600 hover:text-yellow-800"
                         >
-                          Bắt đầu
+                          Đóng nhập liệu
                         </button>
                       )}
-                      {ky.trangThai === 'DANG_DIEN_RA' && (
+                      {ky.trangThai === 'DONG' && (
                         <button
-                          onClick={() => handleCapNhatTrangThai(ky.id, 'DA_KET_THUC')}
+                          onClick={() => handleCapNhatTrangThai(ky.id, 'DUYET')}
                           className="text-blue-600 hover:text-blue-800"
                         >
-                          Kết thúc
+                          Duyệt kết quả
                         </button>
                       )}
-                      {ky.trangThai === 'DA_KET_THUC' && (
+                      {ky.trangThai === 'DUYET' && (
                         <button
-                          onClick={() => handleCapNhatTrangThai(ky.id, 'DA_DONG')}
-                          className="text-red-600 hover:text-red-800"
+                          onClick={() => handleCapNhatTrangThai(ky.id, 'HOAN_THANH')}
+                          className="text-purple-600 hover:text-purple-800"
                         >
-                          Đóng
+                          Hoàn thành
                         </button>
                       )}
                       <a

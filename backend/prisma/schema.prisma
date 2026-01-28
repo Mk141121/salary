@@ -1103,6 +1103,190 @@ model CauHinhThuongKPI {
 }
 
 // ============================================
+// KPI RULE ENGINE - Quy tắc KPI linh hoạt
+// Admin có thể tự định nghĩa và điều chỉnh rules
+// ============================================
+
+// Nhóm quy tắc KPI (dễ quản lý)
+model NhomQuyTacKPI {
+  id          Int      @id @default(autoincrement())
+  maNhom      String   @unique @map("ma_nhom") // VD: "CHAM_CONG", "DOANH_SO", "HANH_VI"
+  tenNhom     String   @map("ten_nhom")
+  moTa        String?  @map("mo_ta")
+  thuTu       Int      @default(0) @map("thu_tu")
+  trangThai   Boolean  @default(true) @map("trang_thai")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+  ngayCapNhat DateTime @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  quyTacKPIs QuyTacKPI[]
+
+  @@map("nhom_quy_tac_kpi")
+}
+
+// Quy tắc KPI cơ bản - Admin định nghĩa
+model QuyTacKPI {
+  id              Int             @id @default(autoincrement())
+  maQuyTac        String          @unique @map("ma_quy_tac") // VD: "DI_MUON", "VE_SOM", "DOANH_SO_DAT"
+  tenQuyTac       String          @map("ten_quy_tac")
+  moTa            String?         @map("mo_ta")
+  nhomId          Int             @map("nhom_id")
+  loaiQuyTac      LoaiQuyTacKPI   @default(THUONG) @map("loai_quy_tac") // THUONG, PHAT, TRUNG_BINH
+  nguonDuLieu     NguonDuLieuKPI  @default(NHAP_TAY) @map("nguon_du_lieu") // CHAM_CONG, DOANH_SO, NHAP_TAY
+  // Điểm KPI
+  diemToiDa       Decimal         @default(100) @map("diem_toi_da") @db.Decimal(5, 2)
+  diemMacDinh     Decimal         @default(0) @map("diem_mac_dinh") @db.Decimal(5, 2)
+  trongSoMacDinh  Decimal         @default(10) @map("trong_so_mac_dinh") @db.Decimal(5, 2) // % trọng số
+  // Phạm vi áp dụng
+  apDungToanCongTy Boolean        @default(true) @map("ap_dung_toan_cong_ty")
+  // Trạng thái
+  trangThai       Boolean         @default(true) @map("trang_thai")
+  ngayTao         DateTime        @default(now()) @map("ngay_tao")
+  ngayCapNhat     DateTime        @updatedAt @map("ngay_cap_nhat")
+
+  // Quan hệ
+  nhom             NhomQuyTacKPI       @relation(fields: [nhomId], references: [id])
+  dieuKienQuyTacs  DieuKienQuyTacKPI[]
+  quyTacPhongBans  QuyTacKPIPhongBan[]
+  quyTacViTris     QuyTacKPIViTri[]
+  ketQuaQuyTacs    KetQuaQuyTacKPI[]
+
+  @@map("quy_tac_kpi")
+}
+
+// Điều kiện chi tiết của quy tắc - Formula builder
+model DieuKienQuyTacKPI {
+  id           Int                @id @default(autoincrement())
+  quyTacId     Int                @map("quy_tac_id")
+  thuTu        Int                @default(1) @map("thu_tu") // Thứ tự ưu tiên
+  moTaDieuKien String             @map("mo_ta_dieu_kien") // VD: "Đi muộn 1-3 lần"
+  // Công thức điều kiện
+  bienSo       String             @map("bien_so") // VD: "SO_LAN_DI_MUON", "TY_LE_CHAM_CONG"
+  toanTu       ToanTuSoSanh       @map("toan_tu") // >, <, >=, <=, ==, BETWEEN
+  giaTriMin    Decimal?           @map("gia_tri_min") @db.Decimal(15, 2)
+  giaTriMax    Decimal?           @map("gia_tri_max") @db.Decimal(15, 2)
+  // Kết quả tính điểm
+  loaiTinhDiem LoaiTinhDiemKPI    @default(CO_DINH) @map("loai_tinh_diem")
+  diemCoDinh   Decimal?           @map("diem_co_dinh") @db.Decimal(5, 2) // Nếu cố định
+  congThuc     String?            @map("cong_thuc") // Nếu theo công thức: "100 - (SO_LAN_DI_MUON * 5)"
+  // Meta
+  trangThai    Boolean            @default(true) @map("trang_thai")
+  ngayTao      DateTime           @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  quyTac QuyTacKPI @relation(fields: [quyTacId], references: [id], onDelete: Cascade)
+
+  @@map("dieu_kien_quy_tac_kpi")
+}
+
+// Áp dụng quy tắc cho phòng ban cụ thể (override trọng số)
+model QuyTacKPIPhongBan {
+  id         Int      @id @default(autoincrement())
+  quyTacId   Int      @map("quy_tac_id")
+  phongBanId Int      @map("phong_ban_id")
+  trongSo    Decimal  @map("trong_so") @db.Decimal(5, 2) // Override trọng số
+  trangThai  Boolean  @default(true) @map("trang_thai")
+  ngayTao    DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  quyTac QuyTacKPI @relation(fields: [quyTacId], references: [id], onDelete: Cascade)
+
+  @@unique([quyTacId, phongBanId])
+  @@map("quy_tac_kpi_phong_ban")
+}
+
+// Áp dụng quy tắc cho vị trí cụ thể (override trọng số)
+model QuyTacKPIViTri {
+  id        Int      @id @default(autoincrement())
+  quyTacId  Int      @map("quy_tac_id")
+  viTriId   Int      @map("vi_tri_id")
+  trongSo   Decimal  @map("trong_so") @db.Decimal(5, 2)
+  trangThai Boolean  @default(true) @map("trang_thai")
+  ngayTao   DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  quyTac QuyTacKPI @relation(fields: [quyTacId], references: [id], onDelete: Cascade)
+
+  @@unique([quyTacId, viTriId])
+  @@map("quy_tac_kpi_vi_tri")
+}
+
+// Biến số KPI - định nghĩa các biến dùng trong công thức
+model BienSoKPI {
+  id          Int             @id @default(autoincrement())
+  maBienSo    String          @unique @map("ma_bien_so") // VD: "SO_LAN_DI_MUON", "DOANH_SO_THANG"
+  tenBienSo   String          @map("ten_bien_so")
+  moTa        String?         @map("mo_ta")
+  nguonDuLieu NguonDuLieuKPI  @default(NHAP_TAY) @map("nguon_du_lieu")
+  bangNguon   String?         @map("bang_nguon") // VD: "cham_cong", "bang_luong"
+  truongNguon String?         @map("truong_nguon") // VD: "so_lan_di_muon"
+  congThuc    String?         @map("cong_thuc") // Nếu là biến tính toán
+  donViTinh   String?         @map("don_vi_tinh")
+  trangThai   Boolean         @default(true) @map("trang_thai")
+  ngayTao     DateTime        @default(now()) @map("ngay_tao")
+
+  @@map("bien_so_kpi")
+}
+
+// Kết quả tính KPI theo quy tắc cho từng nhân viên
+model KetQuaQuyTacKPI {
+  id          Int      @id @default(autoincrement())
+  danhGiaId   Int      @map("danh_gia_id") // Link to DanhGiaKPINhanVien
+  quyTacId    Int      @map("quy_tac_id")
+  giaTriDauVao Decimal? @map("gia_tri_dau_vao") @db.Decimal(15, 2) // Giá trị biến số
+  diemDat     Decimal  @map("diem_dat") @db.Decimal(5, 2)
+  trongSoApDung Decimal @map("trong_so_ap_dung") @db.Decimal(5, 2)
+  diemQuyDoi  Decimal  @map("diem_quy_doi") @db.Decimal(5, 2) // = diemDat * trongSo / 100
+  ghiChu      String?  @map("ghi_chu")
+  ngayTao     DateTime @default(now()) @map("ngay_tao")
+
+  // Quan hệ
+  quyTac QuyTacKPI @relation(fields: [quyTacId], references: [id])
+
+  @@unique([danhGiaId, quyTacId])
+  @@map("ket_qua_quy_tac_kpi")
+}
+
+// Enums cho Rule Engine
+enum LoaiQuyTacKPI {
+  THUONG     // Tính điểm thưởng
+  PHAT       // Tính điểm phạt (trừ)
+  TRUNG_BINH // Tính điểm trung bình
+
+  @@map("loai_quy_tac_kpi")
+}
+
+enum NguonDuLieuKPI {
+  CHAM_CONG   // Lấy từ bảng chấm công
+  DOANH_SO    // Lấy từ bảng doanh số/sản lượng
+  BANG_LUONG  // Lấy từ bảng lương
+  HOP_DONG    // Lấy từ hợp đồng
+  NHAP_TAY    // Nhập tay
+
+  @@map("nguon_du_lieu_kpi")
+}
+
+enum ToanTuSoSanh {
+  BANG          // ==
+  KHAC          // !=
+  LON_HON       // >
+  NHO_HON       // <
+  LON_HON_BANG  // >=
+  NHO_HON_BANG  // <=
+  BETWEEN       // BETWEEN min AND max
+
+  @@map("toan_tu_so_sanh")
+}
+
+enum LoaiTinhDiemKPI {
+  CO_DINH     // Điểm cố định
+  CONG_THUC   // Theo công thức
+  TY_LE       // Theo tỷ lệ % đạt được
+
+  @@map("loai_tinh_diem_kpi")
+}
+
+// ============================================
 // MODULE RBAC & AUDIT
 // Phân quyền và theo dõi hành động
 // ============================================
