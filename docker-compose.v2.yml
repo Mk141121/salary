@@ -92,7 +92,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       # JWT
-      JWT_SECRET: ${JWT_SECRET:-hrm-lite-v2-super-secret-key-2026}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
       # CORS
