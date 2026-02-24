@@ -257,9 +257,13 @@ export class SchedulingService {
       throw new BadRequestException(`Không thể công bố lịch: lịch không tồn tại hoặc đã công bố`);
     }
 
-    // TODO: Sync to ChiTietChamCong (create expected schedule)
+    const synced = await this.syncExpectedAttendanceFromSchedule(lichPhanCaId);
     this.logger.log(`Published lich phan ca #${lichPhanCaId}`);
-    return { success: true, message: 'Đã công bố lịch phân ca' };
+    return {
+      success: true,
+      message: 'Đã công bố lịch phân ca',
+      syncedChiTietChamCong: synced,
+    };
   }
 
   /**
@@ -336,6 +340,95 @@ export class SchedulingService {
   }
 
   // ============== HELPERS ==============
+
+  private async syncExpectedAttendanceFromSchedule(lichPhanCaId: number): Promise<number> {
+    const assignments = await this.prisma.$queryRaw<any[]>`
+      SELECT
+        ct.nhan_vien_id,
+        ct.ngay,
+        ct.ca_lam_viec_id,
+        ca.gio_vao,
+        ca.gio_ra,
+        ca.is_ca_dem
+      FROM lich_phan_ca_chi_tiet ct
+      JOIN ca_lam_viec ca ON ca.id = ct.ca_lam_viec_id
+      WHERE ct.lich_phan_ca_id = ${lichPhanCaId}
+    `;
+
+    let upserted = 0;
+
+    for (const assignment of assignments) {
+      const ngayChamCong = this.normalizeDateOnly(assignment.ngay);
+      const gioVaoDuKien = this.combineDateWithTime(ngayChamCong, assignment.gio_vao);
+      let gioRaDuKien = this.combineDateWithTime(ngayChamCong, assignment.gio_ra);
+
+      if (gioVaoDuKien && gioRaDuKien) {
+        const isCaDem = Boolean(assignment.is_ca_dem);
+        if (isCaDem || gioRaDuKien <= gioVaoDuKien) {
+          gioRaDuKien = new Date(gioRaDuKien);
+          gioRaDuKien.setDate(gioRaDuKien.getDate() + 1);
+        }
+      }
+
+      await this.prisma.chiTietChamCong.upsert({
+        where: {
+          nhanVienId_ngay: {
+            nhanVienId: assignment.nhan_vien_id,
+            ngay: ngayChamCong,
+          },
+        },
+        update: {
+          caLamViecId: assignment.ca_lam_viec_id,
+          gioVaoDuKien,
+          gioRaDuKien,
+        },
+        create: {
+          nhanVienId: assignment.nhan_vien_id,
+          ngay: ngayChamCong,
+          caLamViecId: assignment.ca_lam_viec_id,
+          gioVaoDuKien,
+          gioRaDuKien,
+        },
+      });
+
+      upserted++;
+    }
+
+    return upserted;
+  }
+
+  private normalizeDateOnly(value: Date | string): Date {
+    const date = new Date(value);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  private combineDateWithTime(baseDate: Date, timeValue: unknown): Date | null {
+    if (!timeValue) {
+      return null;
+    }
+
+    let hour = 0;
+    let minute = 0;
+    let second = 0;
+
+    if (typeof timeValue === 'string') {
+      const [h, m, s] = timeValue.split(':').map((value) => Number(value));
+      hour = Number.isFinite(h) ? h : 0;
+      minute = Number.isFinite(m) ? m : 0;
+      second = Number.isFinite(s) ? s : 0;
+    } else if (timeValue instanceof Date) {
+      hour = timeValue.getHours();
+      minute = timeValue.getMinutes();
+      second = timeValue.getSeconds();
+    } else {
+      return null;
+    }
+
+    const result = new Date(baseDate);
+    result.setHours(hour, minute, second, 0);
+    return result;
+  }
 
   private detectCaDem(gioVao: string, gioRa: string): boolean {
     const [hvH, hvM] = gioVao.split(':').map(Number);

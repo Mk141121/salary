@@ -23,6 +23,25 @@ import {
 import { phongBanApi, PhongBan } from '../services/api'
 import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
 
+const getTrangThaiBadgeClass = (trangThai: TrangThaiDonNghiPhep): string => {
+  const color = getTrangThaiColor(trangThai)
+
+  switch (color) {
+    case 'green':
+      return 'bg-green-100 text-green-800'
+    case 'red':
+      return 'bg-red-100 text-red-800'
+    case 'yellow':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'blue':
+      return 'bg-blue-100 text-blue-800'
+    case 'gray':
+      return 'bg-gray-100 text-gray-800'
+    default:
+      return 'bg-slate-100 text-slate-800'
+  }
+}
+
 export default function DuyetNghiPhep() {
   const queryClient = useQueryClient()
   const [viewDetail, setViewDetail] = useState<DonNghiPhep | null>(null)
@@ -291,9 +310,9 @@ export default function DuyetNghiPhep() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full bg-${getTrangThaiColor(
-                        don.trangThai
-                      )}-100 text-${getTrangThaiColor(don.trangThai)}-800`}
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getTrangThaiBadgeClass(
+                        don.trangThai,
+                      )}`}
                     >
                       {getTrangThaiLabel(don.trangThai)}
                     </span>
@@ -397,9 +416,9 @@ export default function DuyetNghiPhep() {
                   <span className="text-sm text-gray-500">Trạng thái</span>
                   <p>
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full bg-${getTrangThaiColor(
-                        viewDetail.trangThai
-                      )}-100 text-${getTrangThaiColor(viewDetail.trangThai)}-800`}
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getTrangThaiBadgeClass(
+                        viewDetail.trangThai,
+                      )}`}
                     >
                       {getTrangThaiLabel(viewDetail.trangThai)}
                     </span>

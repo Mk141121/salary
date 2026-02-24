@@ -9,11 +9,22 @@ import {
   Query,
   Headers,
   Ip,
+  Req,
+  Res,
   ParseIntPipe,
+  ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiHeader } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
 import { RBACService } from './rbac.service';
 import { CongKhai, VaiTro, ThrottleLogin } from '../../common/decorators';
+import {
+  AUTH_COOKIE_NAME,
+  CSRF_COOKIE_NAME,
+  extractAuthTokenFromRequest,
+  generateOpaqueToken,
+} from '../../common/utils/http-auth.util';
 import {
   TaoNguoiDungDto,
   CapNhatNguoiDungDto,
@@ -32,6 +43,15 @@ import {
 export class RBACController {
   constructor(private readonly rbacService: RBACService) {}
 
+  private ensureBootstrapAllowed() {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const allowBootstrap = process.env.ALLOW_RBAC_BOOTSTRAP === 'true';
+
+    if (isProduction && !allowBootstrap) {
+      throw new ForbiddenException('RBAC bootstrap bị chặn trên production');
+    }
+  }
+
   // ============================================
   // XÁC THỰC
   // ============================================
@@ -44,23 +64,95 @@ export class RBACController {
     @Body() dto: DangNhapDto,
     @Ip() ip: string,
     @Headers('user-agent') userAgent: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.rbacService.dangNhap(dto, ip, userAgent);
+    return this.rbacService.dangNhap(dto, ip, userAgent).then((data) => {
+      const forwardedProto = req.headers['x-forwarded-proto'];
+      const isHttps = req.secure || forwardedProto === 'https';
+      const secure = process.env.NODE_ENV === 'production' ? isHttps : false;
+      const sameSite = secure ? 'none' : 'lax';
+      const csrfToken = generateOpaqueToken(24);
+      const expires = new Date(data.hetHan);
+
+      res.cookie(AUTH_COOKIE_NAME, data.token, {
+        httpOnly: true,
+        secure,
+        sameSite,
+        expires,
+        path: '/',
+      });
+
+      res.cookie(CSRF_COOKIE_NAME, csrfToken, {
+        httpOnly: false,
+        secure,
+        sameSite,
+        expires,
+        path: '/',
+      });
+
+      return data;
+    });
   }
 
   @Post('dang-xuat')
   @ApiOperation({ summary: 'Đăng xuất' })
   @ApiHeader({ name: 'Authorization', description: 'Bearer token' })
-  dangXuat(@Headers('authorization') auth: string) {
-    const token = auth?.replace('Bearer ', '');
+  dangXuat(
+    @Req() req: Request,
+    @Headers('authorization') auth: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = extractAuthTokenFromRequest({
+      headers: {
+        authorization: auth,
+        cookie: req.headers.cookie,
+      },
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('Token không hợp lệ');
+    }
+
+    const forwardedProto = req.headers['x-forwarded-proto'];
+    const isHttps = req.secure || forwardedProto === 'https';
+    const secure = process.env.NODE_ENV === 'production' ? isHttps : false;
+    const sameSite = secure ? 'none' : 'lax';
+
+    res.cookie(AUTH_COOKIE_NAME, '', {
+      httpOnly: true,
+      secure,
+      sameSite,
+      expires: new Date(0),
+      path: '/',
+    });
+
+    res.cookie(CSRF_COOKIE_NAME, '', {
+      httpOnly: false,
+      secure,
+      sameSite,
+      expires: new Date(0),
+      path: '/',
+    });
+
     return this.rbacService.dangXuat(token);
   }
 
   @Get('kiem-tra-token')
   @ApiOperation({ summary: 'Kiểm tra token' })
   @ApiHeader({ name: 'Authorization', description: 'Bearer token' })
-  kiemTraToken(@Headers('authorization') auth: string) {
-    const token = auth?.replace('Bearer ', '');
+  kiemTraToken(@Req() req: Request, @Headers('authorization') auth: string) {
+    const token = extractAuthTokenFromRequest({
+      headers: {
+        authorization: auth,
+        cookie: req.headers.cookie,
+      },
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('Token không hợp lệ');
+    }
+
     return this.rbacService.kiemTraToken(token);
   }
 
@@ -238,31 +330,35 @@ export class RBACController {
   // KHỞI TẠO
   // ============================================
 
-  @CongKhai()
+  @VaiTro('ADMIN')
   @Post('khoi-tao/quyen')
   @ApiOperation({ summary: 'Khởi tạo quyền mặc định' })
   khoiTaoQuyenMacDinh() {
+    this.ensureBootstrapAllowed();
     return this.rbacService.khoiTaoQuyenMacDinh();
   }
 
-  @CongKhai()
+  @VaiTro('ADMIN')
   @Post('khoi-tao/vai-tro')
   @ApiOperation({ summary: 'Khởi tạo vai trò mặc định' })
   khoiTaoVaiTroMacDinh() {
+    this.ensureBootstrapAllowed();
     return this.rbacService.khoiTaoVaiTroMacDinh();
   }
 
-  @CongKhai()
+  @VaiTro('ADMIN')
   @Post('khoi-tao/admin')
   @ApiOperation({ summary: 'Khởi tạo admin mặc định' })
   khoiTaoAdminMacDinh() {
+    this.ensureBootstrapAllowed();
     return this.rbacService.khoiTaoAdminMacDinh();
   }
 
-  @CongKhai()
+  @VaiTro('ADMIN')
   @Post('khoi-tao/tat-ca')
   @ApiOperation({ summary: 'Khởi tạo tất cả dữ liệu mặc định' })
   async khoiTaoTatCa() {
+    this.ensureBootstrapAllowed();
     await this.rbacService.khoiTaoQuyenMacDinh();
     await this.rbacService.khoiTaoVaiTroMacDinh();
     const admin = await this.rbacService.khoiTaoAdminMacDinh();

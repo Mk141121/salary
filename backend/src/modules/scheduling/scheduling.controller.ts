@@ -3,7 +3,18 @@
  * PRD-01: REST API endpoints cho module xếp ca
  */
 
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { SchedulingService } from './scheduling.service';
 import {
@@ -14,6 +25,7 @@ import {
   CopyWeekDto,
 } from './dto/scheduling.dto';
 import { CongKhai } from '../../common/decorators/cong-khai.decorator';
+import { NguoiDungHienTai, ThongTinNguoiDung } from '../../common/decorators/nguoi-dung-hien-tai.decorator';
 
 @ApiTags('Xếp Ca / Scheduling')
 @ApiBearerAuth()
@@ -84,9 +96,11 @@ export class SchedulingController {
 
   @Post('phan-ca')
   @ApiOperation({ summary: 'Tạo lịch phân ca mới' })
-  async createLichPhanCa(@Body() dto: CreateLichPhanCaDto) {
-    // TODO: Get createdBy from auth token
-    const data = await this.schedulingService.createLichPhanCa(dto, 1);
+  async createLichPhanCa(
+    @Body() dto: CreateLichPhanCaDto,
+    @NguoiDungHienTai() nguoiDung: ThongTinNguoiDung,
+  ) {
+    const data = await this.schedulingService.createLichPhanCa(dto, nguoiDung.id);
     return { success: true, data };
   }
 
@@ -141,10 +155,13 @@ export class SchedulingController {
   async getMySchedule(
     @Query('from') from: string,
     @Query('to') to: string,
-    // TODO: Get nhanVienId from auth token
+    @NguoiDungHienTai() nguoiDung: ThongTinNguoiDung,
   ) {
-    // Mock nhanVienId = 1 for now
-    const data = await this.schedulingService.getMySchedule(1, from, to);
+    if (!nguoiDung.nhanVienId) {
+      throw new UnauthorizedException('Không tìm thấy nhân viên gắn với tài khoản hiện tại');
+    }
+
+    const data = await this.schedulingService.getMySchedule(nguoiDung.nhanVienId, from, to);
     return { success: true, data };
   }
 }

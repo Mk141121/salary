@@ -43,6 +43,26 @@ const formatDate = (dateStr: string): string => {
   return new Date(dateStr).toLocaleDateString('vi-VN');
 };
 
+const getKpiBackgroundClass = (color?: string): string => {
+  switch (color) {
+    case 'blue':
+      return 'bg-blue-100';
+    case 'green':
+      return 'bg-green-100';
+    case 'amber':
+    case 'yellow':
+      return 'bg-amber-100';
+    case 'purple':
+      return 'bg-purple-100';
+    case 'red':
+      return 'bg-red-100';
+    case 'teal':
+      return 'bg-teal-100';
+    default:
+      return 'bg-slate-100';
+  }
+};
+
 export default function ReportsPage() {
   const [loaiBaoCao, setLoaiBaoCao] = useState<LoaiBaoCao>('dashboard');
   const [filter, setFilter] = useState<ReportFilter>({
@@ -250,7 +270,7 @@ function DashboardTab({ data, isLoading }: { data?: DashboardReport; isLoading: 
                     {kpi.donVi !== 'VND' && <span className="text-sm ml-1">{kpi.donVi}</span>}
                   </p>
                 </div>
-                <div className={`p-3 rounded-full bg-${kpi.mau}-100`}>
+                <div className={`p-3 rounded-full ${getKpiBackgroundClass(kpi.mau)}`}>
                   {kpi.icon === 'users' && <Users className="h-6 w-6 text-blue-600" />}
                   {kpi.icon === 'dollar' && <DollarSign className="h-6 w-6 text-green-600" />}
                   {kpi.icon === 'clock' && <Clock className="h-6 w-6 text-amber-600" />}

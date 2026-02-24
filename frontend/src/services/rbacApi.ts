@@ -1,27 +1,17 @@
 // RBAC API Service - Phân quyền & Người dùng
 import axios from 'axios'
-
-const AUTH_STORAGE_KEY = 'tinh_luong_auth'
+import { attachAuthHeaders } from './httpAuth'
 
 const api = axios.create({
   baseURL: '/api/rbac',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 // Interceptor để tự động thêm token vào header
 api.interceptors.request.use(
   (config) => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (stored) {
-      try {
-        const data = JSON.parse(stored)
-        if (data.token) {
-          config.headers.Authorization = `Bearer ${data.token}`
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
+    attachAuthHeaders(config)
     return config
   },
   (error) => Promise.reject(error)
@@ -106,13 +96,18 @@ export const authApi = {
   dangNhap: (tenDangNhap: string, matKhau: string) =>
     api.post<DangNhapResponse>('/dang-nhap', { tenDangNhap, matKhau }).then((res) => res.data),
   
-  dangXuat: (token: string) =>
-    api.post('/dang-xuat', null, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.data),
+  dangXuat: (token?: string) =>
+    api
+      .post('/dang-xuat', null, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
+      .then((res) => res.data),
   
-  kiemTraToken: (token: string) =>
-    api.get<{ hieu_luc: boolean; nguoiDung: NguoiDung; vaiTros: string[]; quyens: string[]; hetHan: string }>('/kiem-tra-token', {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => res.data),
+  kiemTraToken: (token?: string) =>
+    api
+      .get<{ hieu_luc: boolean; nguoiDung: NguoiDung; vaiTros: string[]; quyens: string[]; hetHan: string }>(
+        '/kiem-tra-token',
+        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+      )
+      .then((res) => res.data),
 }
 
 // ==================== NGƯỜI DÙNG ====================

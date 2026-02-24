@@ -6,9 +6,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import * as crypto from 'crypto';
+import { createHash } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CONG_KHAI_KEY } from '../decorators/cong-khai.decorator';
+import {
+  CSRF_COOKIE_NAME,
+  extractAuthTokenFromRequest,
+  parseCookies,
+} from '../utils/http-auth.util';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -16,13 +21,6 @@ export class JwtAuthGuard implements CanActivate {
     private reflector: Reflector,
     private prisma: PrismaService,
   ) { }
-
-  /**
-   * Hash token để lookup trong DB
-   */
-  private hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
-  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Kiểm tra xem route có được đánh dấu public không
@@ -35,12 +33,19 @@ export class JwtAuthGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const request = context.switchToHttp().getRequest<{
+      method: string;
+      headers: { authorization?: string; cookie?: string; 'x-csrf-token'?: string };
+      nguoiDung?: unknown;
+      user?: unknown;
+    }>();
+    const token = extractAuthTokenFromRequest(request);
 
     if (!token) {
       throw new UnauthorizedException('Yêu cầu đăng nhập để truy cập');
     }
+
+    this.validateCsrfForCookieAuth(request, token);
 
     try {
       // Hash token để lookup trong DB (token được lưu dạng hash)
@@ -119,8 +124,32 @@ export class JwtAuthGuard implements CanActivate {
     }
   }
 
-  private extractTokenFromHeader(request: { headers: { authorization?: string } }): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private validateCsrfForCookieAuth(request: {
+    method: string;
+    headers: { authorization?: string; cookie?: string; 'x-csrf-token'?: string };
+  }, token: string): void {
+    const cookies = parseCookies(request.headers.cookie);
+    const cookieToken = cookies.TL_AUTH_TOKEN;
+
+    if (!cookieToken || cookieToken !== token) {
+      return;
+    }
+
+    const method = request.method?.toUpperCase() || 'GET';
+    const safeMethod = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+    if (safeMethod) {
+      return;
+    }
+
+    const csrfCookie = cookies[CSRF_COOKIE_NAME];
+    const csrfHeader = request.headers['x-csrf-token'];
+
+    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+      throw new UnauthorizedException('CSRF token không hợp lệ');
+    }
   }
 }

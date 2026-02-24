@@ -6,6 +6,7 @@ export interface ThongTinNguoiDung {
   tenDangNhap: string;
   hoTen: string;
   email: string;
+  nhanVienId?: number;
   vaiTros: string[];
   quyens: string[];
 }
