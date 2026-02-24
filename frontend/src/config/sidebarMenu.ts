@@ -35,6 +35,7 @@ import {
   Smartphone,
   Search,
 } from 'lucide-react'
+import { PERMISSIONS } from './permissions'
 
 export interface MenuItem {
   id: string
@@ -103,7 +104,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Chấm công',
         icon: Clock,
         path: '/cham-cong',
-        requiredPermissions: ['CHAM_CONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.CHAM_CONG_XEM],
         tags: ['attendance', 'timesheet', 'giờ làm'],
       },
       {
@@ -111,14 +112,14 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Bảng công tháng',
         icon: CalendarRange,
         path: '/timesheet',
-        requiredPermissions: ['CHAM_CONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.CHAM_CONG_XEM],
         tags: ['timesheet', 'monthly', 'bảng công'],
       },
       {
         id: 'xep-ca',
         label: 'Xếp ca',
         icon: Calendar,
-        requiredPermissions: ['PHAN_CA_VIEW'],
+        requiredPermissions: [PERMISSIONS.PHAN_CA_XEM],
         tags: ['scheduling', 'shift', 'ca làm việc'],
         children: [
           {
@@ -141,7 +142,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         id: 'nghi-phep',
         label: 'Nghỉ phép',
         icon: CalendarDays,
-        requiredPermissions: ['NGHI_PHEP_VIEW'],
+        requiredPermissions: [PERMISSIONS.NGHI_PHEP_XEM],
         tags: ['leave', 'off', 'nghỉ'],
         children: [
           {
@@ -156,7 +157,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
             label: 'Duyệt nghỉ phép',
             icon: CheckCircle,
             path: '/nghi-phep/duyet',
-            requiredPermissions: ['NGHI_PHEP_DUYET'],
+            requiredPermissions: [PERMISSIONS.NGHI_PHEP_DUYET],
             tags: ['approve', 'duyệt'],
           },
           {
@@ -171,7 +172,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
             label: 'Danh mục loại nghỉ',
             icon: ListTodo,
             path: '/nghi-phep/loai-nghi',
-            requiredPermissions: ['ADMIN'],
+            requiredPermissions: [PERMISSIONS.ADMIN],
             tags: ['category', 'loại'],
           },
         ],
@@ -180,7 +181,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         id: 'yeu-cau',
         label: 'Yêu cầu',
         icon: ClipboardCheck,
-        requiredPermissions: ['YEU_CAU_VIEW'],
+        requiredPermissions: [PERMISSIONS.YEU_CAU_XEM],
         tags: ['request', 'OT', 'trễ giờ', 'về sớm', 'công tác'],
         children: [
           {
@@ -195,7 +196,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
             label: 'Duyệt nghỉ phép',
             icon: CheckCircle,
             path: '/yeu-cau/duyet',
-            requiredPermissions: ['YEU_CAU_DUYET_CAP_1', 'YEU_CAU_DUYET_CAP_2'],
+            requiredPermissions: [PERMISSIONS.YEU_CAU_DUYET_CAP_1, PERMISSIONS.YEU_CAU_DUYET_CAP_2],
             tags: ['approve', 'duyệt', 'nghỉ phép'],
           },
         ],
@@ -215,7 +216,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Bảng lương',
         icon: FileSpreadsheet,
         path: '/bang-luong',
-        requiredPermissions: ['BANG_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.BANG_LUONG_XEM],
         tags: ['payroll', 'salary sheet', 'bảng tính'],
       },
       {
@@ -223,7 +224,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Cấu hình cột',
         icon: Settings,
         path: '/cau-hinh/bang-luong',
-        requiredPermissions: ['BANG_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.BANG_LUONG_XEM],
         tags: ['column', 'config', 'cấu hình', 'cột'],
       },
     ],
@@ -241,7 +242,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Bảng ứng lương',
         icon: Wallet,
         path: '/ung-luong',
-        requiredPermissions: ['UNG_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.UNG_LUONG_XEM],
         tags: ['advance', 'tạm ứng'],
       },
       {
@@ -249,7 +250,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Cấu hình cột',
         icon: Settings,
         path: '/cau-hinh/ung-luong',
-        requiredPermissions: ['UNG_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.UNG_LUONG_XEM],
         tags: ['column', 'config', 'cấu hình', 'cột'],
       },
     ],
@@ -267,7 +268,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Sổ lương nhân viên',
         icon: BookOpen,
         path: '/so-luong/nhan-vien',
-        requiredPermissions: ['SO_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SO_LUONG_XEM],
         tags: ['employee salary book', 'sổ lương'],
       },
       {
@@ -275,7 +276,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Sổ lương phòng ban',
         icon: BarChart3,
         path: '/so-luong/phong-ban',
-        requiredPermissions: ['SO_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SO_LUONG_XEM],
         tags: ['department salary', 'báo cáo phòng ban'],
       },
     ],
@@ -293,7 +294,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Khoản lương',
         icon: Receipt,
         path: '/khoan-luong',
-        requiredPermissions: ['KHOAN_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.KHOAN_LUONG_XEM],
         tags: ['salary component', 'thành phần lương'],
       },
       {
@@ -301,7 +302,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Quy chế lương',
         icon: Scale,
         path: '/quy-che',
-        requiredPermissions: ['QUY_CHE_VIEW'],
+        requiredPermissions: [PERMISSIONS.QUY_CHE_XEM],
         tags: ['rule', 'engine', 'công thức', 'quy tắc'],
       },
       {
@@ -309,7 +310,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Sự kiện thưởng/phạt',
         icon: Zap,
         path: '/su-kien',
-        requiredPermissions: ['SU_KIEN_VIEW'],
+        requiredPermissions: [PERMISSIONS.SU_KIEN_XEM],
         tags: ['bonus', 'penalty', 'thưởng', 'phạt'],
       },
     ],
@@ -327,7 +328,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Tra cứu sản lượng',
         icon: Search,
         path: '/san-luong',
-        requiredPermissions: ['SAN_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SAN_LUONG_XEM],
         tags: ['tra cứu', 'search', 'xem'],
       },
       {
@@ -335,7 +336,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Chia hàng',
         icon: Package,
         path: '/import-chia-hang',
-        requiredPermissions: ['SAN_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SAN_LUONG_XEM],
         tags: ['sorting', 'phân loại'],
       },
       {
@@ -343,7 +344,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Giao hàng',
         icon: Truck,
         path: '/import-giao-hang',
-        requiredPermissions: ['SAN_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SAN_LUONG_XEM],
         tags: ['delivery', 'vận chuyển'],
       },
       {
@@ -351,7 +352,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Lịch sử Import',
         icon: History,
         path: '/lich-su-import',
-        requiredPermissions: ['SAN_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SAN_LUONG_XEM],
         tags: ['history', 'lịch sử'],
       },
       {
@@ -359,7 +360,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Đơn giá sản lượng',
         icon: DollarSign,
         path: '/san-luong/don-gia',
-        requiredPermissions: ['SAN_LUONG_VIEW'],
+        requiredPermissions: [PERMISSIONS.SAN_LUONG_XEM],
         tags: ['đơn giá', 'pricing', 'cấu hình'],
       },
     ],
@@ -377,7 +378,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Nhân viên',
         icon: UserPlus,
         path: '/nhan-vien',
-        requiredPermissions: ['NHAN_VIEN_VIEW'],
+        requiredPermissions: [PERMISSIONS.NHAN_VIEN_XEM],
         tags: ['employee', 'staff', 'nhân sự'],
       },
       {
@@ -385,7 +386,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Phòng ban',
         icon: FolderTree,
         path: '/phong-ban',
-        requiredPermissions: ['PHONG_BAN_VIEW'],
+        requiredPermissions: [PERMISSIONS.PHONG_BAN_XEM],
         tags: ['department', 'tổ chức'],
       },
       {
@@ -393,14 +394,14 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Nhóm nhân viên',
         icon: Briefcase,
         path: '/nhom-nhan-vien',
-        requiredPermissions: ['NHOM_NV_VIEW'],
+        requiredPermissions: [PERMISSIONS.NHOM_NV_XEM],
         tags: ['group', 'team'],
       },
       {
         id: 'kpi',
         label: 'KPI',
         icon: Target,
-        requiredPermissions: ['KPI_VIEW'],
+        requiredPermissions: [PERMISSIONS.KPI_XEM],
         tags: ['performance', 'đánh giá', 'hiệu suất'],
         children: [
           {
@@ -408,7 +409,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
             label: 'Quy tắc KPI',
             icon: Settings,
             path: '/kpi/rule-engine',
-            requiredPermissions: ['KPI_QUAN_LY'],
+            requiredPermissions: [PERMISSIONS.KPI_QUAN_LY],
             tags: ['rules', 'quy tắc', 'engine'],
           },
           {
@@ -449,7 +450,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Cài đặt hệ thống',
         icon: Settings,
         path: '/cai-dat',
-        requiredPermissions: ['ADMIN'],
+        requiredPermissions: [PERMISSIONS.ADMIN],
         tags: ['settings', 'configuration', 'cấu hình'],
       },
       {
@@ -457,7 +458,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Người dùng',
         icon: UserCog,
         path: '/quan-tri/nguoi-dung',
-        requiredPermissions: ['ADMIN'],
+        requiredPermissions: [PERMISSIONS.ADMIN],
         tags: ['user', 'account', 'tài khoản'],
       },
       {
@@ -465,7 +466,7 @@ export const sidebarMenuGroups: MenuGroup[] = [
         label: 'Nhật ký hệ thống',
         icon: ScrollText,
         path: '/quan-tri/audit-log',
-        requiredPermissions: ['ADMIN'],
+        requiredPermissions: [PERMISSIONS.ADMIN],
         tags: ['log', 'history', 'nhật ký'],
       },
     ],

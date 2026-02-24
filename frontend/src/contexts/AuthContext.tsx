@@ -1,6 +1,7 @@
 // Auth Context - Quản lý đăng nhập/phân quyền
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { authApi, DangNhapResponse } from '../services/rbacApi'
+import { PERMISSIONS, normalizePermissionCode, normalizePermissionList } from '../config/permissions'
 
 interface AuthUser {
   id: number
@@ -91,10 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data: StoredAuth = JSON.parse(stored)
         // Kiểm tra hết hạn
         if (new Date(data.hetHan) > new Date()) {
+          const normalizedPermissions = normalizePermissionList(data.quyens || [])
+
           setToken(data.token)
           setUser(data.user)
           setVaiTros(data.vaiTros)
-          setQuyens(data.quyens)
+          setQuyens(normalizedPermissions)
+
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+            ...data,
+            quyens: normalizedPermissions,
+          }))
         } else {
           localStorage.removeItem(AUTH_STORAGE_KEY)
         }
@@ -115,12 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const dangNhap = async (tenDangNhap: string, matKhau: string) => {
     const response: DangNhapResponse = await authApi.dangNhap(tenDangNhap, matKhau)
+    const normalizedPermissions = normalizePermissionList(response.quyens || [])
     
     const authData: StoredAuth = {
       token: response.token,
       user: response.nguoiDung,
       vaiTros: response.vaiTros,
-      quyens: response.quyens,
+      quyens: normalizedPermissions,
       hetHan: response.hetHan,
     }
     
@@ -128,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(response.token)
     setUser(response.nguoiDung)
     setVaiTros(response.vaiTros)
-    setQuyens(response.quyens)
+    setQuyens(normalizedPermissions)
   }
 
   const dangXuat = async () => {
@@ -159,7 +168,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const coQuyen = (maQuyen: string): boolean => {
-    return quyens.includes(maQuyen) || vaiTros.includes('ADMIN')
+    if (vaiTros.includes(PERMISSIONS.ADMIN)) return true
+
+    return quyens.includes(normalizePermissionCode(maQuyen))
   }
 
   const coVaiTro = (maVaiTro: string): boolean => {
