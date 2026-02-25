@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -447,6 +447,40 @@ export class ChatbotService {
     } catch {
       return this.getSessionHistory(sessionId);
     }
+  }
+
+  async getChatHistoryForViewer(
+    sessionId: string,
+    viewer: { id: number; vaiTros?: string[] },
+  ): Promise<ChatMessage[]> {
+    const vaiTros = viewer.vaiTros || [];
+    const isPrivileged = vaiTros.includes('ADMIN') || vaiTros.includes('HR');
+
+    if (isPrivileged) {
+      return this.getChatHistory(sessionId);
+    }
+
+    let ownerUserId: number | null = null;
+    try {
+      const ownerRow = await this.prisma.$queryRaw<Array<{ user_id: number | null }>>`
+        SELECT user_id
+        FROM chat_history
+        WHERE session_id = ${sessionId}::uuid
+          AND user_id IS NOT NULL
+        ORDER BY created_at ASC
+        LIMIT 1
+      `;
+
+      ownerUserId = ownerRow[0]?.user_id ?? null;
+    } catch {
+      ownerUserId = null;
+    }
+
+    if (!ownerUserId || ownerUserId !== viewer.id) {
+      throw new ForbiddenException('Bạn không có quyền xem lịch sử hội thoại của session này');
+    }
+
+    return this.getChatHistory(sessionId);
   }
 
   /**

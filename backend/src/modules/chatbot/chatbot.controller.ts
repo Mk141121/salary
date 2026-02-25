@@ -2,6 +2,7 @@ import { Controller, Post, Get, Body, Query, HttpCode, Param } from '@nestjs/com
 import { ApiTags, ApiOperation, ApiBody, ApiQuery, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ChatbotService } from './chatbot.service';
 import { CongKhai } from '../../common/decorators/cong-khai.decorator';
+import { NguoiDungHienTai, ThongTinNguoiDung } from '../../common/decorators/nguoi-dung-hien-tai.decorator';
 import { IsString, IsNotEmpty, IsOptional, IsUUID, IsNumber } from 'class-validator';
 
 class ChatDto {
@@ -50,8 +51,11 @@ export class ChatbotController {
 
   @Get('history/:sessionId')
   @ApiOperation({ summary: 'Lấy lịch sử hội thoại theo session' })
-  async getHistory(@Param('sessionId') sessionId: string) {
-    const history = await this.chatbotService.getChatHistory(sessionId);
+  async getHistory(
+    @Param('sessionId') sessionId: string,
+    @NguoiDungHienTai() nguoiDung: ThongTinNguoiDung,
+  ) {
+    const history = await this.chatbotService.getChatHistoryForViewer(sessionId, nguoiDung);
     return {
       success: true,
       data: { sessionId, messages: history },
