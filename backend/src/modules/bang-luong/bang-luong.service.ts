@@ -22,6 +22,7 @@ import {
   ChotBangLuongDto,
 } from './dto/bang-luong.dto';
 import { NguonChiTiet, CachTinhLuong } from '@prisma/client';
+import { BangLuongValidationService } from './bang-luong-validation.service';
 
 @Injectable()
 export class BangLuongService {
@@ -37,6 +38,7 @@ export class BangLuongService {
     private sanLuongService: SanLuongService,
     private chamCongService: ChamCongService,
     private auditLogService: AuditLogService,
+    private validationService: BangLuongValidationService,
   ) {}
 
   /**
@@ -788,13 +790,8 @@ export class BangLuongService {
       where: { id },
     });
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
-    }
-
-    if (bangLuong.trangThai !== 'NHAP') {
-      throw new BadRequestException('Không thể sửa bảng lương đã chốt hoặc khóa');
-    }
+    this.validationService.assertBangLuongTonTai(bangLuong, id);
+    this.validationService.assertTrangThaiNhap(bangLuong);
 
     return this.prisma.bangLuong.update({
       where: { id },
@@ -809,13 +806,8 @@ export class BangLuongService {
       where: { id: dto.bangLuongId },
     });
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${dto.bangLuongId}`);
-    }
-
-    if (bangLuong.trangThai !== 'NHAP') {
-      throw new BadRequestException('Không thể sửa bảng lương đã chốt hoặc khóa');
-    }
+    this.validationService.assertBangLuongTonTai(bangLuong, dto.bangLuongId);
+    this.validationService.assertTrangThaiNhap(bangLuong);
 
     // Lấy giá trị cũ để lưu lịch sử
     const existing = await this.prisma.chiTietBangLuong.findUnique({
@@ -909,13 +901,8 @@ export class BangLuongService {
       include: { phongBan: true },
     });
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
-    }
-
-    if (bangLuong.trangThai !== 'NHAP') {
-      throw new BadRequestException('Bảng lương đã được chốt trước đó');
-    }
+    this.validationService.assertBangLuongTonTai(bangLuong, id);
+    this.validationService.assertTrangThaiNhap(bangLuong, 'Bảng lương đã được chốt trước đó');
 
     // Bước 1: Tính BHXH/Thuế TNCN cho toàn bộ nhân viên
     try {
@@ -946,17 +933,13 @@ export class BangLuongService {
 
   // Mở khóa bảng lương (cho admin) - YÊU CẦU LÝ DO
   async moKhoaBangLuong(id: number, lyDo: string, nguoiDungId?: number, tenDangNhap?: string) {
-    if (!lyDo || lyDo.trim().length < 10) {
-      throw new BadRequestException('Lý do mở khóa phải có ít nhất 10 ký tự');
-    }
+    this.validationService.assertLyDoMoKhoa(lyDo);
 
     const bangLuong = await this.prisma.bangLuong.findUnique({
       where: { id },
     });
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
-    }
+    this.validationService.assertBangLuongTonTai(bangLuong, id);
 
     if (bangLuong.trangThai === 'KHOA') {
       throw new BadRequestException('Bảng lương đã khóa hoàn toàn, không thể mở');
@@ -988,13 +971,8 @@ export class BangLuongService {
       where: { id },
     });
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
-    }
-
-    if (bangLuong.trangThai !== 'DA_CHOT') {
-      throw new BadRequestException('Phải chốt bảng lương trước khi khóa');
-    }
+    this.validationService.assertBangLuongTonTai(bangLuong, id);
+    this.validationService.assertTrangThaiDaChot(bangLuong);
 
     const result = await this.prisma.bangLuong.update({
       where: { id },
@@ -1017,9 +995,7 @@ export class BangLuongService {
       where: { id },
     });
 
-    if (!bangLuong) {
-      throw new NotFoundException(`Không tìm thấy bảng lương với ID: ${id}`);
-    }
+    this.validationService.assertBangLuongTonTai(bangLuong, id);
 
     // Nếu không phải force delete, chỉ cho phép xóa bảng ở trạng thái NHAP
     if (!forceDelete && bangLuong.trangThai !== 'NHAP') {

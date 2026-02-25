@@ -12,6 +12,7 @@ import { ChamCongModule } from '../cham-cong/cham-cong.module';
 import { SanLuongModule } from '../san-luong/san-luong.module';
 import { EmailModule } from '../email/email.module';
 import { AuditLogService } from '../../common/services/audit-log.service';
+import { BangLuongValidationService } from './bang-luong-validation.service';
 
 @Module({
   imports: [
@@ -23,7 +24,14 @@ import { AuditLogService } from '../../common/services/audit-log.service';
     EmailModule,
   ],
   controllers: [BangLuongController],
-  providers: [BangLuongService, TinhLuongService, PhieuLuongService, NgayCongService, AuditLogService],
+  providers: [
+    BangLuongService,
+    TinhLuongService,
+    PhieuLuongService,
+    NgayCongService,
+    AuditLogService,
+    BangLuongValidationService,
+  ],
   exports: [BangLuongService, TinhLuongService, PhieuLuongService, NgayCongService],
 })
 export class BangLuongModule {}
