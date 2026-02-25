@@ -53,27 +53,33 @@ async function bootstrap() {
   // Prefix API
   app.setGlobalPrefix('api');
 
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('Hệ Thống Tính Lương')
-    .setDescription('API cho hệ thống tính lương doanh nghiệp Việt Nam')
-    .setVersion('1.0')
-    .addTag('phong-ban', 'Quản lý phòng ban')
-    .addTag('nhan-vien', 'Quản lý nhân viên')
-    .addTag('khoan-luong', 'Quản lý khoản lương')
-    .addTag('bang-luong', 'Quản lý bảng lương')
-    .addTag('import-excel', 'Import dữ liệu từ Excel')
-    .build();
-  
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const swaggerEnv = process.env.ENABLE_SWAGGER;
+  const enableSwagger = swaggerEnv ? swaggerEnv === 'true' : process.env.NODE_ENV !== 'production';
+
+  if (enableSwagger) {
+    const config = new DocumentBuilder()
+      .setTitle('Hệ Thống Tính Lương')
+      .setDescription('API cho hệ thống tính lương doanh nghiệp Việt Nam')
+      .setVersion('1.0')
+      .addTag('phong-ban', 'Quản lý phòng ban')
+      .addTag('nhan-vien', 'Quản lý nhân viên')
+      .addTag('khoan-luong', 'Quản lý khoản lương')
+      .addTag('bang-luong', 'Quản lý bảng lương')
+      .addTag('import-excel', 'Import dữ liệu từ Excel')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
   
   const logger = new Logger('Bootstrap');
   logger.log(`Server đang chạy tại: http://localhost:${port}`);
-  logger.log(`API Docs: http://localhost:${port}/api/docs`);
+  if (enableSwagger) {
+    logger.log(`API Docs: http://localhost:${port}/api/docs`);
+  }
 }
 
 bootstrap();
