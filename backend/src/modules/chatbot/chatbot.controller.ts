@@ -49,7 +49,6 @@ export class ChatbotController {
   }
 
   @Get('history/:sessionId')
-  @CongKhai()
   @ApiOperation({ summary: 'Lấy lịch sử hội thoại theo session' })
   async getHistory(@Param('sessionId') sessionId: string) {
     const history = await this.chatbotService.getChatHistory(sessionId);
@@ -60,7 +59,6 @@ export class ChatbotController {
   }
 
   @Get('analytics')
-  @CongKhai()
   @ApiOperation({ summary: 'Thống kê sử dụng chatbot' })
   @ApiQuery({ name: 'days', required: false, example: 7 })
   async getAnalytics(@Query('days') days?: string) {
@@ -72,7 +70,6 @@ export class ChatbotController {
   }
 
   @Get('analytics/top-queries')
-  @CongKhai()
   @ApiOperation({ summary: 'Top câu hỏi phổ biến' })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   async getTopQueries(@Query('limit') limit?: string) {
@@ -104,7 +101,6 @@ export class ChatbotController {
   }
 
   @Get('stats')
-  @CongKhai()
   @ApiOperation({ summary: 'Thống kê Knowledge Base' })
   getStats() {
     return {
