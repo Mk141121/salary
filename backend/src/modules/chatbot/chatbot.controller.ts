@@ -1,9 +1,8 @@
 import { Controller, Post, Get, Body, Query, HttpCode, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiQuery, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ChatbotService } from './chatbot.service';
-import { CongKhai } from '../../common/decorators/cong-khai.decorator';
 import { NguoiDungHienTai, ThongTinNguoiDung } from '../../common/decorators/nguoi-dung-hien-tai.decorator';
-import { IsString, IsNotEmpty, IsOptional, IsUUID, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 
 class ChatDto {
   @ApiProperty({ example: 'Làm sao tạo bảng lương mới?', description: 'Câu hỏi' })
@@ -15,11 +14,6 @@ class ChatDto {
   @IsOptional()
   @IsUUID()
   sessionId?: string;
-
-  @ApiPropertyOptional({ example: 1, description: 'ID người dùng (nếu đã đăng nhập)' })
-  @IsOptional()
-  @IsNumber()
-  userId?: number;
 }
 
 @ApiTags('Chatbot')
@@ -28,7 +22,6 @@ export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
 
   @Post('ask')
-  @CongKhai()
   @HttpCode(200)
   @ApiOperation({ summary: 'Hỏi chatbot về hệ thống' })
   @ApiBody({
@@ -37,12 +30,14 @@ export class ChatbotController {
       properties: {
         query: { type: 'string', example: 'Làm sao tạo bảng lương mới?' },
         sessionId: { type: 'string', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', description: 'Optional session ID' },
-        userId: { type: 'number', example: 1, description: 'Optional user ID' },
       },
     },
   })
-  async ask(@Body() body: ChatDto) {
-    const result = await this.chatbotService.chat(body.query, body.sessionId, body.userId);
+  async ask(
+    @Body() body: ChatDto,
+    @NguoiDungHienTai() nguoiDung: ThongTinNguoiDung,
+  ) {
+    const result = await this.chatbotService.chat(body.query, body.sessionId, nguoiDung.id);
     return {
       success: true,
       data: result,
