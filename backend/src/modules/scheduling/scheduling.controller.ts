@@ -24,7 +24,6 @@ import {
   AssignCaBatchDto,
   CopyWeekDto,
 } from './dto/scheduling.dto';
-import { CongKhai } from '../../common/decorators/cong-khai.decorator';
 import { NguoiDungHienTai, ThongTinNguoiDung } from '../../common/decorators/nguoi-dung-hien-tai.decorator';
 
 @ApiTags('Xếp Ca / Scheduling')
@@ -36,7 +35,6 @@ export class SchedulingController {
   // ============== CA LAM VIEC ==============
 
   @Get('ca-lam-viec')
-  @CongKhai()
   @ApiOperation({ summary: 'Lấy danh sách ca làm việc' })
   @ApiQuery({ name: 'phongBanId', required: false })
   async getAllCaLamViec(@Query('phongBanId') phongBanId?: string) {
@@ -45,7 +43,6 @@ export class SchedulingController {
   }
 
   @Get('ca-lam-viec/:id')
-  @CongKhai()
   @ApiOperation({ summary: 'Lấy chi tiết ca làm việc' })
   async getCaLamViecById(@Param('id', ParseIntPipe) id: number) {
     const data = await this.schedulingService.getCaLamViecById(id);
@@ -79,7 +76,6 @@ export class SchedulingController {
   // ============== LICH PHAN CA ==============
 
   @Get('phan-ca')
-  @CongKhai()
   @ApiOperation({ summary: 'Lấy lịch phân ca theo tháng' })
   @ApiQuery({ name: 'thangNam', required: true, example: '2026-02' })
   @ApiQuery({ name: 'phongBanId', required: false })
@@ -139,7 +135,6 @@ export class SchedulingController {
   }
 
   @Get('phan-ca/:id/calendar')
-  @CongKhai()
   @ApiOperation({ summary: 'Lấy calendar view của lịch phân ca' })
   async getCalendar(@Param('id', ParseIntPipe) id: number) {
     const data = await this.schedulingService.getCalendar(id);
