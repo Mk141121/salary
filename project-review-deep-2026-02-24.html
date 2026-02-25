@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Project Review - Tinh Luong (2026-02-24)</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111a33;
+      --panel-2: #172447;
+      --text: #e8edf8;
+      --muted: #a9b5d1;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --info: #60a5fa;
+      --line: #2a3966;
+      --chip: #22335f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #090f1f 0%, #0b1020 100%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 28px; }
+    h1, h2, h3 { margin: 0 0 12px; line-height: 1.25; }
+    h1 { font-size: 30px; }
+    h2 {
+      font-size: 20px;
+      margin-top: 28px;
+      border-left: 4px solid var(--info);
+      padding-left: 10px;
+    }
+    h3 { font-size: 16px; margin-top: 18px; }
+    p { margin: 8px 0; color: var(--text); }
+    .muted { color: var(--muted); }
+    .grid { display: grid; gap: 16px; }
+    .g2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .card {
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: var(--chip);
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      color: #dbe7ff;
+    }
+    .score {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th { background: #142042; color: #dbe7ff; }
+    tr:last-child td { border-bottom: none; }
+    ul { margin: 8px 0 8px 18px; }
+    .sev-critical { color: #fecaca; background: #7f1d1d; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .sev-high { color: #fde68a; background: #78350f; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .sev-medium { color: #bfdbfe; background: #1e3a8a; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .sev-low { color: #bbf7d0; background: #14532d; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    code {
+      background: #0b1737;
+      border: 1px solid #2a3966;
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: #c7dbff;
+    }
+    .foot {
+      margin-top: 30px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Deep Review Dự Án Tính Lương</h1>
+    <p class="muted">Ngày đánh giá: 24/02/2026 • Phạm vi: Flow nghiệp vụ, giao diện, code, vận hành Docker/VPS</p>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="score">Điểm tổng thể: <span style="color:#7dd3fc;">7.9 / 10</span></div>
+      <p><strong>Kết luận nhanh:</strong> Dự án có độ hoàn thiện nghiệp vụ cao (nhiều module), kiến trúc phân tầng rõ, build ổn định. Tuy nhiên tồn tại rủi ro bảo mật/kiểm soát quyền cần xử lý ngay, cùng một số điểm nợ kỹ thuật ở frontend/backend file lớn và chuẩn hóa permission code.</p>
+      <span class="pill">Backend NestJS + Prisma</span>
+      <span class="pill">Frontend React + Vite + Tailwind</span>
+      <span class="pill">35 backend modules</span>
+      <span class="pill">218 file TS backend</span>
+      <span class="pill">123 file TS/TSX frontend</span>
+      <span class="pill">22 unit spec backend</span>
+      <span class="pill">0 frontend test</span>
+    </div>
+
+    <h2>1) Phương pháp review</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Nguồn dữ liệu đã kiểm tra</h3>
+        <ul>
+          <li>Cấu trúc dự án, module map, route map, service API.</li>
+          <li>Luồng auth/RBAC, payroll, timesheet, reports, chatbot.</li>
+          <li>Cấu hình triển khai Docker compose và health trạng thái.</li>
+          <li>Build thực tế: <code>frontend</code> và <code>backend</code> đều build pass.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Tiêu chí chấm</h3>
+        <ul>
+          <li>Độ đúng flow nghiệp vụ end-to-end.</li>
+          <li>Tính nhất quán UI/UX và khả năng mở rộng.</li>
+          <li>Code quality, testability, maintainability.</li>
+          <li>Bảo mật, vận hành và readiness production.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>2) Đánh giá kiến trúc & flow nghiệp vụ</h2>
+    <table>
+      <thead>
+        <tr><th>Hạng mục</th><th>Nhận định</th><th>Điểm</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Kiến trúc tổng thể</td>
+          <td>Module hóa tốt, domain phong phú (35 modules). Global guard/filter/interceptor được thiết kế nhất quán.</td>
+          <td>8.5/10</td>
+        </tr>
+        <tr>
+          <td>Flow payroll</td>
+          <td>Flow chính đầy đủ: chấm công → bảng lương → sync/rule trace → báo cáo; có lock/chốt và lịch sử chỉnh sửa.</td>
+          <td>8.5/10</td>
+        </tr>
+        <tr>
+          <td>Flow RBAC</td>
+          <td>Hạ tầng guard + role + permission tốt, nhưng còn lỗ hổng endpoint init công khai và naming quyền chưa đồng bộ.</td>
+          <td>6.5/10</td>
+        </tr>
+        <tr>
+          <td>Flow portal nhân viên</td>
+          <td>Mobile flow có định hướng rõ, redirect theo role trong layout hợp lý.</td>
+          <td>8.0/10</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Những điểm mạnh nổi bật</h3>
+    <ul>
+      <li>Schema dữ liệu rất chi tiết và bám nghiệp vụ Việt Nam (hợp đồng, BHXH, thuế, phân ca, nghỉ phép, OT, anti-fraud).</li>
+      <li>Flow bảng lương xử lý nhiều tình huống nghiệp vụ (ngày công lý thuyết/thực tế, phụ cấp, snapshot, tính lại).</li>
+      <li>RBAC có cả roles và permissions guard, token session hash trong DB, audit interceptor toàn cục.</li>
+      <li>Module payroll-sync và reports tạo được chuỗi kiểm soát dữ liệu liên module.</li>
+    </ul>
+
+    <h2>3) Đánh giá giao diện & UX</h2>
+    <table>
+      <thead>
+        <tr><th>Hạng mục UI</th><th>Nhận định</th><th>Điểm</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Navigation / Information Architecture</td>
+          <td>Sidebar nhóm theo workflow khá rõ, có search/favorites/command palette. Khối lượng menu lớn nhưng vẫn có cấu trúc.</td>
+          <td>8.0/10</td>
+        </tr>
+        <tr>
+          <td>Tính nhất quán style</td>
+          <td>Nhiều trang dùng design primitives tốt, tuy nhiên vẫn pha trộn class utility trực tiếp và custom patterns ở các trang lớn.</td>
+          <td>7.2/10</td>
+        </tr>
+        <tr>
+          <td>Usability nghiệp vụ</td>
+          <td>Trang chi tiết bảng lương hỗ trợ thao tác kiểu Excel tốt, có pending changes và cảnh báo.</td>
+          <td>8.3/10</td>
+        </tr>
+        <tr>
+          <td>Accessibility/Responsiveness</td>
+          <td>Cơ bản ổn, nhưng thiếu chuẩn hóa keyboard focus/aria cho nhiều vùng phức tạp (table lớn, modal lồng).</td>
+          <td>6.8/10</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>UX issues đáng chú ý</h3>
+    <ul>
+      <li>Một số trang quá lớn (>800-1200 dòng) làm khó maintain và dễ tạo regression UI.</li>
+      <li>ReportsPage dùng dynamic Tailwind class như <code>bg-${kpi.mau}-100</code> có nguy cơ không được generate đầy đủ khi build production.</li>
+      <li>Header action thay đổi theo tab đã cải thiện, nhưng luồng quản trị vẫn còn nhiều modal/phần tử dense trên cùng màn hình.</li>
+    </ul>
+
+    <h2>4) Đánh giá code quality & maintainability</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Hotspots (file lớn)</h3>
+        <ul>
+          <li><code>frontend/src/pages/ChiTietNhanVien.tsx</code> ~1212 dòng</li>
+          <li><code>backend/src/modules/bang-luong/bang-luong.service.ts</code> ~1164 dòng</li>
+          <li><code>frontend/src/components/TroLyAiDrawer.tsx</code> ~1058 dòng</li>
+          <li><code>frontend/src/pages/QuanLyNguoiDung.tsx</code> ~889 dòng</li>
+        </ul>
+        <p class="muted">Khuyến nghị: tách theo feature hooks/components/services để giảm độ phức tạp nhận thức.</p>
+      </div>
+      <div class="card">
+        <h3>Testability</h3>
+        <ul>
+          <li>Backend có footprint test tốt (22 spec + 3 e2e).</li>
+          <li>Frontend chưa có test tự động (0 test file) → rủi ro regression UI cao.</li>
+          <li>Cần tối thiểu smoke tests cho các flow: login, tạo bảng lương, phân quyền, sync.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>5) Phát hiện rủi ro bảo mật & vận hành</h2>
+    <table>
+      <thead>
+        <tr><th>Mức độ</th><th>Phát hiện</th><th>Tác động</th><th>Khuyến nghị</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="sev-critical">CRITICAL</span></td>
+          <td>Endpoint khởi tạo RBAC đang <strong>public</strong>: <code>/api/rbac/khoi-tao/quyen|vai-tro|admin|tat-ca</code> (được gắn <code>@CongKhai()</code>).</td>
+          <td>Bất kỳ ai cũng có thể kích hoạt lại bootstrap quyền/vai trò/admin nếu route mở ra Internet.</td>
+          <td>Gỡ <code>@CongKhai</code>, chỉ cho <code>ADMIN</code> hoặc tắt route ở production bằng feature flag/env.</td>
+        </tr>
+        <tr>
+          <td><span class="sev-high">HIGH</span></td>
+          <td>Compose dùng fallback <code>JWT_SECRET</code> mặc định dạng yếu.</td>
+          <td>Dễ cấu hình sai ở môi trường mới/clone nhanh.</td>
+          <td>Bắt buộc fail-fast khi thiếu secret; không cho default secret trong production compose.</td>
+        </tr>
+        <tr>
+          <td><span class="sev-high">HIGH</span></td>
+          <td>Token auth lưu localStorage.</td>
+          <td>Nếu có XSS, nguy cơ lộ token phiên đăng nhập.</td>
+          <td>Cân nhắc chuyển sang httpOnly cookie + CSRF token cho web app production.</td>
+        </tr>
+        <tr>
+          <td><span class="sev-medium">MEDIUM</span></td>
+          <td>Naming permission không đồng bộ giữa menu frontend và permission mặc định backend (VD: <code>CHAM_CONG_VIEW</code> vs <code>CHAM_CONG_XEM</code>).</td>
+          <td>Ẩn/hiện menu sai, khó quản trị quyền theo kỳ vọng.</td>
+          <td>Tạo permission dictionary chung (shared constants) và migrate code đồng bộ.</td>
+        </tr>
+        <tr>
+          <td><span class="sev-medium">MEDIUM</span></td>
+          <td>Một số TODO quan trọng còn tồn tại trong scheduling (sync chấm công, lấy user từ token).</td>
+          <td>Dữ liệu xếp ca có thể không liên thông đầy đủ, audit actor không chính xác.</td>
+          <td>Đưa vào sprint fix ngắn hạn, bắt buộc hoàn thiện trước mở rộng module scheduling.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>6) Đánh giá hiệu năng</h2>
+    <ul>
+      <li>Frontend build cảnh báo chunk JS lớn (~1.8MB), ảnh hưởng TTI trên mạng chậm.</li>
+      <li>Nên code-split mạnh hơn theo route/module (đặc biệt reports, payroll, chatbot widgets).</li>
+      <li>Backend có một số service rất lớn, cần giám sát truy vấn nặng và phân tách transaction scopes.</li>
+    </ul>
+
+    <h2>7) Kế hoạch hành động ưu tiên (7/30/90 ngày)</h2>
+    <table>
+      <thead>
+        <tr><th>Khung thời gian</th><th>Việc cần làm</th><th>Kết quả kỳ vọng</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>7 ngày</td>
+          <td>
+            <ul>
+              <li>Đóng public init RBAC endpoints.</li>
+              <li>Bỏ default secret production, kiểm tra env bắt buộc.</li>
+              <li>Chuẩn hóa permission mapping FE/BE (ít nhất cho menu chính).</li>
+            </ul>
+          </td>
+          <td>Giảm ngay rủi ro bảo mật mức cao.</td>
+        </tr>
+        <tr>
+          <td>30 ngày</td>
+          <td>
+            <ul>
+              <li>Refactor 3-5 file lớn nhất theo pattern container + hooks + presentational.</li>
+              <li>Thêm frontend smoke tests (Playwright/Cypress) cho 4 flow cốt lõi.</li>
+              <li>Fix TODO scheduling còn tồn và chuẩn hóa actor audit.</li>
+            </ul>
+          </td>
+          <td>Giảm regression, tăng tốc độ phát triển tính năng mới.</td>
+        </tr>
+        <tr>
+          <td>90 ngày</td>
+          <td>
+            <ul>
+              <li>Thiết kế shared contracts package (types + permission constants).</li>
+              <li>Thiết lập performance budget frontend + observability backend.</li>
+              <li>Roadmap hardening auth (httpOnly cookies, CSRF, security headers nâng cao).</li>
+            </ul>
+          </td>
+          <td>Nền tảng bền vững cho mở rộng module và scale người dùng.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>8) Danh sách bằng chứng chính đã rà soát</h2>
+    <ul>
+      <li><code>backend/src/app.module.ts</code> (global guards, modules map).</li>
+      <li><code>backend/src/main.ts</code> (helmet, cors, validation, prefix/versioning).</li>
+      <li><code>backend/src/modules/bang-luong/*</code> (payroll lifecycle).</li>
+      <li><code>backend/src/modules/rbac/*</code> (auth, role/permission, init routes).</li>
+      <li><code>frontend/src/App.tsx</code> + <code>components/layout/*</code> (route/layout/navigation).</li>
+      <li><code>frontend/src/config/sidebarMenu.ts</code> (permission-driven menu).</li>
+      <li><code>frontend/src/pages/ChiTietBangLuong.tsx</code>, <code>PayrollSync.tsx</code>, <code>QuanLyNguoiDung.tsx</code>, <code>reports/ReportsPage.tsx</code>.</li>
+      <li><code>docker-compose.yml</code> và trạng thái container production.</li>
+    </ul>
+
+    <div class="foot">
+      <p>Báo cáo này là deep technical review dựa trên code hiện hữu, build thực tế, và đối chiếu flow đa module. Có thể dùng làm baseline cho sprint hardening tiếp theo.</p>
+    </div>
+  </div>
+</body>
+</html>
