@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Edit2, Search, FileSpreadsheet, ChevronDown, Pause, UserX, UserCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { nhanVienApi, phongBanApi, NhanVien, TrangThaiNhanVien, LoaiNhanVien, LOAI_NHAN_VIEN_MAP } from '../services/api'
+import { buildAuthFetchOptions } from '../services/httpAuth'
 import { VietnameseDatePicker } from '../components/VietnameseDatePicker'
-import { useAuth } from '../contexts/AuthContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -19,7 +19,6 @@ const TRANG_THAI_MAP: Record<TrangThaiNhanVien, { label: string; color: string }
 
 export default function QuanLyNhanVien() {
   const queryClient = useQueryClient()
-  const { token } = useAuth()
   const [showModal, setShowModal] = useState(false)
   const [filterPhongBan, setFilterPhongBan] = useState<number | undefined>()
   const [filterTrangThai, setFilterTrangThai] = useState<TrangThaiNhanVien | ''>('')
@@ -158,10 +157,7 @@ export default function QuanLyNhanVien() {
     try {
       const res = await fetch(`${API_URL}/api/nhan-vien/${selectedNhanVien.id}/trang-thai`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        ...buildAuthFetchOptions(undefined, { 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           trangThai: trangThaiMoi,
           lyDo: lyDoDoiTrangThai || undefined,

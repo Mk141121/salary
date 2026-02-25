@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { phongBanApi } from '../services/api'
-import { useAuth } from '../contexts/AuthContext'
+import { buildAuthFetchOptions } from '../services/httpAuth'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -43,7 +43,6 @@ interface TruongHeThong {
 }
 
 export default function ImportExportNhanVien() {
-  const { token } = useAuth()
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import')
   const [step, setStep] = useState(1) // 1: Upload, 2: Mapping, 3: Kết quả
   const [file, setFile] = useState<File | null>(null)
@@ -63,13 +62,14 @@ export default function ImportExportNhanVien() {
   const { data: truongHeThong } = useQuery<TruongHeThong[]>({
     queryKey: ['nhan-vien-truong-he-thong'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/nhan-vien/import-export/danh-sach-truong`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await fetch(
+        `${API_URL}/api/nhan-vien/import-export/danh-sach-truong`,
+        buildAuthFetchOptions(),
+      )
       if (!res.ok) throw new Error('Lỗi lấy danh sách trường')
       return res.json()
     },
-    enabled: !!token,
+    enabled: true,
   })
 
   // Lấy danh sách phòng ban
@@ -98,8 +98,8 @@ export default function ImportExportNhanVien() {
       // Đọc header
       const resHeader = await fetch(`${API_URL}/api/nhan-vien/import-export/doc-header`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
+        ...buildAuthFetchOptions(),
       })
 
       if (!resHeader.ok) {
@@ -115,8 +115,8 @@ export default function ImportExportNhanVien() {
       formData2.append('file', selectedFile)
       const resMapping = await fetch(`${API_URL}/api/nhan-vien/import-export/goi-y-mapping`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData2,
+        ...buildAuthFetchOptions(),
       })
 
       if (resMapping.ok) {
@@ -171,8 +171,8 @@ export default function ImportExportNhanVien() {
 
       const res = await fetch(`${API_URL}/api/nhan-vien/import-export/import`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
+        ...buildAuthFetchOptions(),
       })
 
       if (!res.ok) {
@@ -205,7 +205,7 @@ export default function ImportExportNhanVien() {
       if (exportTrangThai) params.append('trangThai', exportTrangThai)
 
       const res = await fetch(`${API_URL}/api/nhan-vien/import-export/export?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        ...buildAuthFetchOptions(),
       })
 
       if (!res.ok) throw new Error('Lỗi export')
@@ -230,7 +230,7 @@ export default function ImportExportNhanVien() {
   const handleDownloadTemplate = async () => {
     try {
       const res = await fetch(`${API_URL}/api/nhan-vien/import-export/template`, {
-        headers: { Authorization: `Bearer ${token}` },
+        ...buildAuthFetchOptions(),
       })
 
       if (!res.ok) throw new Error('Lỗi tải template')

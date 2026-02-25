@@ -1,27 +1,17 @@
 // KPI API Service - Quản lý KPI & Thưởng
 import axios from 'axios'
-
-const AUTH_STORAGE_KEY = 'tinh_luong_auth'
+import { attachAuthHeaders } from './httpAuth'
 
 const api = axios.create({
   baseURL: '/api/kpi',
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 
 // Interceptor để tự động thêm token vào header
 api.interceptors.request.use(
   (config) => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (stored) {
-      try {
-        const data = JSON.parse(stored)
-        if (data.token) {
-          config.headers.Authorization = `Bearer ${data.token}`
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
+    attachAuthHeaders(config)
     return config
   },
   (error) => Promise.reject(error)
@@ -339,22 +329,13 @@ export interface KetQuaTinhKPI {
 
 const ruleEngineApi = axios.create({
   baseURL: '/api/kpi/rule-engine',
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 
 ruleEngineApi.interceptors.request.use(
   (config) => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (stored) {
-      try {
-        const data = JSON.parse(stored)
-        if (data.token) {
-          config.headers.Authorization = `Bearer ${data.token}`
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
+    attachAuthHeaders(config)
     return config
   },
   (error) => Promise.reject(error)

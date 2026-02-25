@@ -1,11 +1,11 @@
 // API Service cho Anti-fraud - Sprint 7
 // GPS + Geofence management
 import axios from 'axios';
-
-const AUTH_STORAGE_KEY = 'tinh_luong_auth';
+import { attachAuthHeaders } from './httpAuth';
 
 const api = axios.create({
   baseURL: '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,17 +14,7 @@ const api = axios.create({
 // Interceptor để tự động thêm token vào header
 api.interceptors.request.use(
   (config) => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        if (data.token) {
-          config.headers.Authorization = `Bearer ${data.token}`;
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
+    attachAuthHeaders(config as { headers?: Record<string, string> });
     return config;
   },
   (error) => Promise.reject(error)

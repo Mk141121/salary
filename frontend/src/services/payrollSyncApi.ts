@@ -1,21 +1,15 @@
 // Payroll Sync API - Sprint 10
 import axios from 'axios'
-
-const AUTH_STORAGE_KEY = 'tinh_luong_auth'
+import { attachAuthHeaders } from './httpAuth'
 
 const api = axios.create({
   baseURL: '/api',
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 
 api.interceptors.request.use((config) => {
-  const stored = localStorage.getItem(AUTH_STORAGE_KEY)
-  if (stored) {
-    try {
-      const data = JSON.parse(stored)
-      if (data.token) config.headers.Authorization = `Bearer ${data.token}`
-    } catch { /* ignore */ }
-  }
+  attachAuthHeaders(config)
   return config
 })
 

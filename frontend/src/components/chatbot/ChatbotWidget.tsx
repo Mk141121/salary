@@ -6,8 +6,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, HelpCircle, BookOpen, ChevronDown } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import { buildAuthFetchOptions } from '../../services/httpAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -43,7 +43,6 @@ interface Message {
  * Main Chatbot Widget Component
  */
 export const ChatbotWidget: React.FC = () => {
-  const { token } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -75,9 +74,7 @@ export const ChatbotWidget: React.FC = () => {
   const loadFAQs = async () => {
     try {
       const res = await fetch(`${API_URL}/api/chatbot/faqs?limit=8`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        ...buildAuthFetchOptions(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -119,9 +116,7 @@ export const ChatbotWidget: React.FC = () => {
     try {
       const res = await fetch(`${API_URL}/api/chatbot/ask`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        ...buildAuthFetchOptions(undefined, { 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           query: text.trim(),
         }),
@@ -168,7 +163,7 @@ export const ChatbotWidget: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, token]);
+  }, [isLoading]);
 
   const handleFAQClick = (faq: FAQEntry) => {
     sendMessage(faq.question);

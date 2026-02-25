@@ -1,4 +1,5 @@
 import api from './api';
+import { read, utils } from 'xlsx';
 
 // Types
 export interface ChiaHangRow {
@@ -279,7 +280,6 @@ export const laySnapshotSanLuong = async (
  * Parse Excel file to JSON using xlsx library
  */
 export const parseExcelToChiaHang = async (file: File): Promise<ChiaHangRow[]> => {
-  const { read, utils } = await import('xlsx');
   const buffer = await file.arrayBuffer();
   const wb = read(buffer, { type: 'array' });
   const ws = wb.Sheets[wb.SheetNames[0]];
@@ -298,7 +298,6 @@ export const parseExcelToChiaHang = async (file: File): Promise<ChiaHangRow[]> =
  * Parse Excel file to JSON for Giao Hàng
  */
 export const parseExcelToGiaoHang = async (file: File): Promise<GiaoHangRow[]> => {
-  const { read, utils } = await import('xlsx');
   const buffer = await file.arrayBuffer();
   const wb = read(buffer, { type: 'array' });
   const ws = wb.Sheets[wb.SheetNames[0]];

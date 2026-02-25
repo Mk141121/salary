@@ -96,16 +96,15 @@ export const authApi = {
   dangNhap: (tenDangNhap: string, matKhau: string) =>
     api.post<DangNhapResponse>('/dang-nhap', { tenDangNhap, matKhau }).then((res) => res.data),
   
-  dangXuat: (token?: string) =>
+  dangXuat: (_token?: string) =>
     api
-      .post('/dang-xuat', null, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
+      .post('/dang-xuat')
       .then((res) => res.data),
   
-  kiemTraToken: (token?: string) =>
+  kiemTraToken: (_token?: string) =>
     api
       .get<{ hieu_luc: boolean; nguoiDung: NguoiDung; vaiTros: string[]; quyens: string[]; hetHan: string }>(
         '/kiem-tra-token',
-        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
       )
       .then((res) => res.data),
 }

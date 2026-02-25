@@ -42,3 +42,23 @@ export function attachAuthHeaders(config: { headers?: Record<string, string> }):
     // Ignore parse errors
   }
 }
+
+export function buildAuthFetchOptions(
+  init?: RequestInit,
+  extraHeaders?: Record<string, string>,
+): RequestInit {
+  const headers = {
+    ...(init?.headers && typeof init.headers === 'object' && !Array.isArray(init.headers)
+      ? (init.headers as Record<string, string>)
+      : {}),
+    ...(extraHeaders || {}),
+  }
+
+  attachAuthHeaders({ headers })
+
+  return {
+    ...init,
+    headers,
+    credentials: 'include',
+  }
+}

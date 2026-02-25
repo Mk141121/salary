@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, FileText, Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { buildAuthFetchOptions } from '../services/httpAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -92,13 +93,10 @@ export const FileUpload = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
+        ...buildAuthFetchOptions(),
       });
 
       if (!response.ok) {
@@ -271,13 +269,10 @@ export const MultiFileUpload = ({
       const formData = new FormData();
       Array.from(files).forEach(file => formData.append('files', file));
 
-      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
+        ...buildAuthFetchOptions(),
       });
 
       if (!response.ok) {
